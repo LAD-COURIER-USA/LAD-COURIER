@@ -1,0 +1,473 @@
+{
+  "@@locale": "en",
+  "earnings_title": "WORK ZONES",
+  "earnings_period_today": "Today",
+  "earnings_period_week": "This Week",
+  "earnings_period_month": "Current Month",
+  "earnings_period_year": "Fiscal Year",
+  "earnings_stat_gross": "GROSS INCOME",
+  "earnings_stat_miles": "FISCAL MILES",
+  "earnings_stat_missions": "MISSIONS",
+  "earnings_stat_efficiency": "EFFICIENCY",
+  "earnings_history_title": "MISSION HISTORY",
+  "earnings_empty_history": "No missions in this period.",
+  "earnings_network_title": "MY ACTION RADIUS",
+  "earnings_linked_users": "LINKED USERS",
+  "earnings_referrals_count": "Referrals",
+  "earnings_plan_label": "SELECTED ZONE",
+  "earnings_refund_title": "ZONE STATUS",
+  "earnings_refund_covered": "ACTIVE",
+  "earnings_refund_saving": "FREE",
+  "earnings_refund_status_free_current": "ZONE NO CHARGE",
+  "earnings_refund_status_free_next": "CHANGE AVAILABLE",
+  "earnings_refund_goal_msg": "Configure your action radius freely.",
+  "earnings_refund_success_msg": "Zone configured correctly.",
+  "earnings_refund_pending_msg": "Configuration in progress...",
+  "earnings_refund_anti_fraud_rule": "Zone change is instant and at no cost.",
+  "earnings_refund_disclaimer": "LAD Courier does not charge a monthly fee. Only a $0.50 service fee per successful order, regardless of the agreed price.",
+  "driver_dash_title": "DRIVER COMMAND CENTER",
+  "driver_status_online": "DRIVER ONLINE",
+  "driver_status_offline": "OFF DUTY",
+  "driver_btn_work_zone": "OPERATIONAL MAP",
+  "driver_menu_services": "SERVICES",
+  "driver_menu_profile": "MY PROFILE",
+  "driver_menu_earnings": "ZONES",
+  "driver_menu_invite": "INVITE",
+  "driver_dialog_services_title": "ACTIVE SERVICES",
+  "driver_btn_confirm": "CONFIRM",
+  "driver_error_no_photo": "MISSING PROFILE PHOTO",
+  "driver_error_no_photo_msg": "You must upload a professional photo so customers can identify you.",
+  "driver_error_incomplete_data": "INCOMPLETE DATA",
+  "driver_error_incomplete_data_msg": "Your name and phone are mandatory for service security.",
+  "driver_error_no_vehicle": "VEHICLE DETAILS",
+  "driver_error_no_vehicle_msg": "Describe your transport in the My Profile section.",
+  "driver_error_no_membership": "ZONE NOT SELECTED",
+  "driver_error_no_membership_msg": "You must select a 'Work Zone' (Lite, Standard or Pro) to receive orders.",
+  "driver_error_no_stripe": "STRIPE NOT LINKED",
+  "driver_error_no_stripe_msg": "To get online, you must configure your Stripe Connect account in 'My Profile'.",
+  "driver_error_no_verification": "VERIFICATION PENDING",
+  "driver_error_no_verification_msg": "You must complete your identity verification and background check to go online.",
+  "driver_error_no_services": "NO ACTIVE SERVICES",
+  "driver_error_no_services_msg": "Select at least one service before going online.",
+  "driver_active_missions_alert": "⚠️ YOU HAVE ACTIVE MISSIONS. Finish them first.",
+  "driver_btn_understand": "UNDERSTOOD",
+  "driver_selection_title": "Choose Driver",
+  "driver_card_plan": "Zone",
+  "driver_card_coverage": "Coverage",
+  "driver_selection_no_drivers_title": "We're sorry",
+  "driver_selection_no_drivers_body": "No available drivers cover these locations within their work zone. Try a shorter distance.",
+  "notification_order_sent_success": "Mission sent to driver",
+  "prof_title": "MY OPERATIONAL PROFILE",
+  "prof_radar_title": "MY RECRUITMENT RADAR",
+  "prof_radar_body": "Your customers scan this QR to link to your network.",
+  "prof_section_id": "IDENTIFICATION DATA",
+  "prof_label_name": "Full Name",
+  "prof_label_phone": "Contact Phone",
+  "prof_label_vehicle": "Vehicle Description",
+  "prof_section_mem": "WORK ZONES",
+  "prof_section_pay": "PAYMENT TOOLS (STRIPE)",
+  "prof_pay_stripe": "Link Stripe Connect",
+  "prof_pay_stripe_sub": "To receive your payments instantly",
+  "prof_pay_paypal": "PayPal (Optional)",
+  "prof_pay_paypal_sub": "Only for manual collections",
+  "prof_btn_save": "SAVE CHANGES",
+  "prof_btn_switch": "SWITCH TO CUSTOMER MODE",
+  "work_title": "OPERATIONS MAP",
+  "work_panel_title": "PENDING REQUESTS",
+  "work_waiting": "Waiting for new missions...",
+  "work_alert_title": "🚀 NEW MISSION DETECTED!",
+  "work_alert_body": "You have a new request on the radar.",
+  "work_notif_channel_name": "Urgent Order Alerts",
+  "work_notif_channel_desc": "Channel for new mission notifications",
+  "sub_title": "WORK ZONES",
+  "sub_promo": "ELABORATE YOUR OWN ROUTE FREELY",
+  "sub_free": "FREE",
+  "sub_radius": "Radius: {radius}",
+  "@sub_radius": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "sub_bonus": "Cost: {bonus}",
+  "@sub_bonus": {
+    "placeholders": {
+      "bonus": {
+        "type": "String"
+      }
+    }
+  },
+  "sub_btn_activate": "ACTIVATE ZONE",
+  "welcome_title": "Welcome Aboard!",
+  "welcome_body": "To finalize your registration, please choose your role in our community.",
+  "welcome_btn_client": "I am a Customer",
+  "welcome_btn_driver": "I am a Courier",
+  "client_dash_title": "CUSTOMER COMMAND CENTER",
+  "client_dash_welcome": "LAD COURIER SYSTEM",
+  "client_dash_requested_services": "REQUESTED SERVICES",
+  "client_dash_no_requests": "No pending requests.",
+  "client_dash_new_request": "NEW REQUEST",
+  "client_dash_first_offer": "FIRST OFFER RECEIVED",
+  "client_dash_counter_offer": "COUNTER-OFFER RECEIVED",
+  "client_dash_driver_label": "Driver: {name}",
+  "@client_dash_driver_label": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_active_missions": "ONGOING MISSIONS",
+  "client_dash_price_label": "PRICE: {price}",
+  "@client_dash_price_label": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_status_label": "Status: {status}",
+  "@client_dash_status_label": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_linked_drivers": "DRIVERS LIST",
+  "client_dash_no_linked_drivers": "You have no linked drivers.",
+  "client_dash_driver_available": "AVAILABLE",
+  "client_dash_driver_resting": "RESTING",
+  "client_dash_services_label": "SERVICES: {services}",
+  "@client_dash_services_label": {
+    "placeholders": {
+      "services": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_plan_label": "ZONE: {plan}",
+  "@client_dash_plan_label": {
+    "placeholders": {
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_radius_label": "RADIUS: {radius}",
+  "@client_dash_radius_label": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_no_phone": "No Phone",
+  "client_dash_unlink_title": "UNLINK DRIVER",
+  "client_dash_unlink_confirm": "Are you sure you want to remove {name} from your trusted list?",
+  "@client_dash_unlink_confirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_unlink_button": "UNLINK",
+  "client_dash_unlink_success": "Driver successfully unlinked",
+  "client_dash_invite_title": "LINK DRIVER",
+  "client_dash_invite_hint": "Driver Code or ID",
+  "common_confirm": "CONFIRM",
+  "common_cancel": "CANCEL",
+  "client_prof_title": "MY CUSTOMER PROFILE",
+  "client_prof_contact_details": "CONTACT DETAILS",
+  "client_prof_name_label": "Full Name",
+  "client_prof_phone_label": "Phone",
+  "client_prof_address_label": "Main Address",
+  "client_prof_payment_methods": "PAYMENT METHODS",
+  "client_prof_stripe_title": "Stripe",
+  "client_prof_stripe_subtitle": "Credit/Debit Card",
+  "client_prof_paypal_title": "PayPal",
+  "client_prof_paypal_subtitle": "Digital Account",
+  "client_prof_cta_title": "EARN MONEY AS A DRIVER!",
+  "client_prof_cta_body": "Join our network of couriers and generate income in your free time.",
+  "client_prof_cta_button": "VIEW DRIVER ZONES",
+  "client_prof_save_button": "SAVE CHANGES",
+  "client_prof_switch_button": "SWITCH TO DRIVER MODE",
+  "client_prof_update_success": "Profile updated",
+  "client_prof_update_error": "Update error: {error}",
+  "@client_prof_update_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "client_prof_completed_orders": "COMPLETED ORDERS",
+  "client_dash_history_title": "MISSION HISTORY (36H)",
+  "order_details_title": "{type} ORDER #{index}",
+  "@order_details_title": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "order_details_id": "Order ID: {id}",
+  "@order_details_id": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "order_details_pickup": "PICKUP POINT",
+  "order_details_delivery": "DELIVERY POINT",
+  "order_details_instructions": "MISSION INSTRUCTIONS",
+  "order_details_no_instructions": "No specific instructions from the customer.",
+  "order_details_proximity_on": "YOU ARE AT THE LOCATION!",
+  "order_details_proximity_off": "DISTANCE TO POINT",
+  "order_details_meters": "{meters} meters",
+  "@order_details_meters": {
+    "placeholders": {
+      "meters": {
+        "type": "String"
+      }
+    }
+  },
+  "order_details_btn_go_pickup": "GO TO PICKUP",
+  "order_details_btn_arrived": "ARRIVED / PICKED UP",
+  "order_details_btn_go_delivery": "GO TO DELIVERY",
+  "order_details_btn_photo": "TAKE PROOF PHOTO",
+  "order_details_btn_finish": "FINISH MISSION",
+  "order_details_photo_success": "Photo captured",
+  "order_details_evidence_msg": "Evidence saved with GPS coordinates",
+  "order_details_btn_view_proof": "VIEW PROOF OF DELIVERY",
+  "order_details_multiple_warning": "YOU HAVE {count} MORE ORDERS AT THIS LOCATION",
+  "@order_details_multiple_warning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "neg_title": "NEGOTIATION",
+  "neg_client_initial": "INITIAL REQUEST (NO PRICE)",
+  "neg_client_counter": "CUSTOMER COUNTER-OFFER",
+  "neg_driver_last": "YOUR LAST OFFER",
+  "neg_input_label": "YOUR PROPOSAL ($)",
+  "neg_btn_accept": "ACCEPT",
+  "neg_btn_first": "FIRST OFFER",
+  "neg_btn_counter": "NEW COUNTER-OFFER",
+  "neg_btn_final": "SEND FINAL OFFER",
+  "neg_btn_reject": "REJECT AND CLOSE",
+  "neg_impact_single": "This order represents a total trip of {miles} miles.",
+  "neg_impact_multi": "Adding this order adds {miles} extra miles to your current route.",
+  "@neg_impact_single": {
+    "placeholders": {
+      "miles": {
+        "type": "String"
+      }
+    }
+  },
+  "@neg_impact_multi": {
+    "placeholders": {
+      "miles": {
+        "type": "String"
+      }
+    }
+  },
+  "create_order_title": "CREATE ORDER",
+  "create_order_service_label": "Available Service Type",
+  "create_order_pickup_hint": "Origin (Exact address)",
+  "create_order_dropoff_hint": "Destination (Exact address)",
+  "create_order_details_hint": "Package details",
+  "create_order_pickup_label": "4. PICKUP ADDRESS",
+  "create_order_dropoff_label": "5. DELIVERY ADDRESS",
+  "create_order_description_label": "3. PACKAGE DESCRIPTION",
+  "create_order_btn_send": "SEND ORDER",
+  "create_order_success": "✅ ORDER SENT",
+  "create_order_error_address": "Invalid address.",
+  "create_order_error_radius": "Destination is outside the permitted radius ({radius} mi).",
+  "@create_order_error_radius": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "create_order_error_session": "Session expired.",
+  "create_order_required": "Required field",
+  "create_order_geofence_error": "⚠️ OUT OF COVERAGE: This Driver operates in a {radius} mi radius. Both pickup and delivery must be within their work zone.",
+  "@create_order_geofence_error": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "create_order_sent_toast": "🚀 REQUEST SENT",
+  "create_order_client_default": "Customer",
+  "neg_client_details_title": "OFFER DETAILS",
+  "neg_client_closing": "Closing negotiation...",
+  "neg_client_waiting": "Waiting for offer...",
+  "neg_client_driver_assigned": "DRIVER ASSIGNED",
+  "neg_client_order_details": "ORDER DETAILS",
+  "neg_client_price_proposal": "PRICE PROPOSAL",
+  "neg_client_price_final": "DRIVER FINAL OFFER",
+  "neg_client_btn_accept": "ACCEPT AND ORDER NOW",
+  "neg_client_btn_accept_final": "ACCEPT LAST OFFER",
+  "neg_client_btn_counter": "MAKE COUNTER-OFFER",
+  "neg_client_btn_reject_cancel": "REJECT AND CANCEL",
+  "neg_client_dialog_title": "YOUR COUNTER-OFFER",
+  "neg_client_dialog_body": "Propose a new price to the driver:",
+  "neg_client_dialog_label": "New Price",
+  "neg_client_dialog_btn_cancel": "REJECT",
+  "neg_client_dialog_btn_send": "SEND",
+  "auth_sync_security": "Syncing security...",
+  "auth_sync_timeout": "If it takes too long, press the button below.",
+  "auth_cancel_retry": "Cancel and retry",
+  "auth_login_welcome": "Welcome back, soldier!",
+  "auth_login_email": "Email",
+  "auth_login_password": "Password",
+  "auth_login_btn": "Log In",
+  "auth_login_not_member": "Not a member?",
+  "auth_login_register_now": "Register now",
+  "auth_register_title": "Create an account to start!",
+  "auth_register_name": "Full Name",
+  "auth_register_confirm_pass": "Confirm Password",
+  "auth_register_btn": "REGISTER",
+  "auth_register_already_member": "Already a member?",
+  "auth_register_login_now": "Log in now",
+  "auth_error_fields": "Please fill in all fields.",
+  "auth_error_pass_match": "Passwords do not match",
+  "auth_error_name": "Enter your full name",
+  "auth_role_title": "Welcome to LAD!",
+  "auth_role_subtitle": "Choose how you want to use the platform:",
+  "auth_role_client": "I AM A CUSTOMER",
+  "auth_role_messenger": "I AM A COURIER",
+  "auth_role_preparing": "Preparing your account...",
+  "service_location_disabled": "Location services are disabled.",
+  "service_location_denied": "Location permissions are denied.",
+  "service_location_denied_forever": "Location permissions are permanently denied.",
+  "service_invitation_error_user": "Error: User could not be identified.",
+  "service_invitation_share_msg": "Hi! 👋 I invite you to join my personal network on LAD Courier. It's the fastest and safest way to manage your shipments with me. Register here: {link}",
+  "@service_invitation_share_msg": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "service_invitation_subject": "🚚 Join my courier network on LAD!",
+  "service_recommend_share_msg": "🚀 Hi! I recommend {name} for your deliveries. He is my trusted courier on LAD COURIER. You can contact him by downloading the app here: {link}",
+  "@service_recommend_share_msg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "service_recommend_subject": "I recommend my courier on LAD Courier",
+  "auth_error_role_save": "Error saving role: {error}",
+  "@auth_error_role_save": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "order_error_deleted": "The order has been deleted.",
+  "order_status_active_msg": "ACTIVE ORDER",
+  "order_status_timeout_msg": "Timeout (30 min).",
+  "order_status_timeout_full_msg": "Due to the large number of orders, the driver could not attend to it in time. Please send it to another available driver. Thank you!",
+  "auth_error_generic": "Security error: {message}",
+  "@auth_error_generic": {
+    "description": "Generic error",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "deliver_label": "DELIVER",
+  "pickup_label": "PICKUP",
+  "notification_new_order_title": "🚀 NEW MISSION DETECTED!",
+  "notification_new_order_body": "You have a new request on the radar.",
+  "driver_work_zone_title": "OPERATIONS MAP",
+  "driver_work_zone_pending_requests": "PENDING REQUESTS",
+  "driver_work_zone_waiting": "Waiting for new missions...",
+  "dashboard_btn_create_order": "Create Order",
+  "client_label": "Customer",
+  "counter_offer_label": "COUNTER-OFFER",
+  "new_order_label": "NEW ORDER",
+  "create_order_requirements": "REQUIREMENTS",
+  "create_order_section_messenger": "6. SELECT YOUR DRIVER",
+  "create_order_search_available": "Any Driver",
+  "create_order_add_photo": "2. PHOTO OR RECEIPT",
+  "create_order_service_type": "1. CHOOSE SERVICE",
+  "create_order_btn_search_drivers": "Search available drivers",
+  "order_details_product_photo": "PRODUCT PHOTO",
+  "order_details_save_photo": "SAVE REFERENCE",
+  "order_details_photo_saved": "Photo saved to gallery",
+  "order_details_photo_error": "Error saving photo",
+  "create_order_shopping_nav_btn": "SHOPPING NAVIGATOR (STORE)",
+  "create_order_shopping_nav_success": "✅ STORE CAPTURED SUCCESSFULLY",
+  "shopping_nav_capture": "CAPTURE",
+  "shopping_nav_title": "SHOPPING NAVIGATOR",
+  "catalog_title": "SHOPPING NAVIGATOR",
+  "catalog_no_stores": "NO NEARBY STORES WITHIN COURIER RADIUS",
+  "shopping_nav_capturing": "Uploading evidence...",
+  "shopping_nav_error_photo": "⚠️ Receipt photo mandatory to continue",
+  "shopping_nav_success_full": "✅ Store and receipt captured successfully",
+  "sub_plan_lite_title": "LITE ZONE",
+  "sub_plan_lite_desc": "Ideal for fast local deliveries.",
+  "sub_plan_standart_title": "STANDARD ZONE",
+  "sub_plan_standart_desc": "Covers your entire city and surroundings.",
+  "sub_plan_pro_title": "PRO ZONE",
+  "sub_plan_pro_desc": "Maximum reach for long freights.",
+  "sub_price_per_month": "{price} / month",
+  "@sub_price_per_month": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "catalog_cat_all": "ALL",
+  "catalog_cat_food": "GASTRO",
+  "catalog_cat_fashion": "FASHION",
+  "catalog_cat_auto": "MOTOR",
+  "catalog_cat_health": "HEALTH",
+  "catalog_cat_grocery": "MARKETS",
+  "catalog_cat_home": "HOME",
+  "catalog_cat_tech": "TECH",
+  "catalog_radius": "Search Radius",
+  "catalog_select_cat": "Please select a category",
+  "catalog_no_results": "No results found for this category",
+  "catalog_no_results_area": "NO RESULTS IN THIS AREA",
+  "shopping_nav_instruction_title": "Shopping Instructions",
+  "shopping_nav_instruction_body": "Navigate, complete your purchase, and once you see the final receipt, press CAPTURE.",
+  "catalog_no_results_detail": "Try changing category or check if Driver has action radius.",
+  "catalog_default_name": "Store",
+  "driver_service_courier": "Messaging and Packages",
+  "driver_service_logistics": "Specialized Logistics",
+  "driver_service_shopping": "Shopping and Errands",
+  "shopping_nav_instruction_title_alt": "💡 BACKUP PLAN",
+  "shopping_nav_instruction_body_alt": "If the store forces you to use its official App, place the order there, take a screenshot of the receipt and upload it here.",
+  "client_dash_order_here": "ORDER HERE",
+  "prof_btn_business_card": "MY BUSINESS CARD",
+  "business_card_title": "LAD COURIER BUSINESS CARD",
+  "business_card_scan_msg": "Scan to download LAD and link to my network",
+  "common_delete_account": "DELETE MY ACCOUNT",
+  "delete_account_confirm_title": "DELETE ACCOUNT PERMANENTLY?",
+  "delete_account_confirm_body": "This action will delete all your data, history, and connections. It cannot be undone.",
+  "delete_account_btn_confirm": "YES, DELETE EVERYTHING",
+  "delete_account_reauth_required": "For security, you must log in again before deleting your account."
+}

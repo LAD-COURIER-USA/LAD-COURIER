@@ -1,0 +1,83 @@
+name: lad_courier
+description: "A new Flutter project."
+publish_to: 'none'
+
+version: 1.0.0+3
+
+environment:
+  sdk: '>=3.10.4 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # --- PIEZA CLAVE PARA INTERNACIONALIZACIÓN ---
+  flutter_localizations:
+    sdk: flutter
+
+  app_links: ^7.0.0
+  shared_preferences: ^2.5.4
+
+  # --- PIEZA CLAVE PARA RECLUTAMIENTO OMNICANAL (WEB/MÓVIL) ---
+  universal_html: ^2.2.4
+
+  # --- ARMAMENTO DE PAGO Y FACTURACIÓN ---
+  in_app_purchase: ^3.2.0
+  flutter_stripe: ^11.3.0
+
+  # --- ACTUALIZACIÓN DEL ARSENAL ---
+  firebase_core: ^3.1.1
+  firebase_auth: ^5.1.1
+  cloud_firestore: ^5.0.2
+  firebase_storage: ^12.0.2
+  firebase_messaging: ^15.0.2
+  # --- NUEVA INCORPORACIÓN PARA RADAR HÍBRIDO ---
+  cloud_functions: ^5.1.1
+  # --- PROTECCIÓN ANTI-HACKERS ---
+  firebase_app_check: ^0.3.0+1
+  
+  # --- BIOMETRÍA LOCAL (SIN COSTO Y SIN FALLOS) ---
+  local_auth: ^2.3.0
+  
+  # --- INTELIGENCIA ARTIFICIAL (RECONOCIMIENTO DE RECIBOS) ---
+  google_mlkit_text_recognition: ^0.13.0
+  google_mlkit_entity_extraction: ^0.12.0
+
+  # --- GESTOR DE ALERTAS LOCALES ---
+  flutter_local_notifications: ^17.2.2
+
+  share_plus: ^11.0.0
+  image_picker: ^1.1.2
+  provider: ^6.1.2
+  url_launcher: ^6.3.0
+  google_maps_flutter: ^2.7.0
+
+  geolocator: ^12.0.0
+  cupertino_icons: ^1.0.8
+  intl: ^0.20.2
+  flutter_native_splash: ^2.4.7
+
+  # --- PIEZAS PARA GUARDADO DE FOTOS Y QR ---
+  gal: ^2.3.2
+  path_provider: ^2.1.3
+  qr_flutter: ^4.1.0
+
+  # --- NUEVA INCORPORACIÓN: NAVEGACIÓN WEB PARA SHOPPING NAVIGATOR ---
+  webview_flutter: ^4.4.2
+
+  # ... otras dependencias ...
+  device_info_plus: ^10.1.0
+  http: ^1.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  generate: true
+
+  assets:
+    - assets/images/
+    - assets/map_styles/

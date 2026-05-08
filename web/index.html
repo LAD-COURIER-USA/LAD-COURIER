@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base href="$FLUTTER_BASE_HREF">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="LAD Courier - Tu servicio de mensajería de confianza.">
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="lad_courier">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>LAD Courier</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!-- SCRIPT DE INTELIGENCIA DE REFERIDOS LAD (V2.0 TÁCTICO) -->
+  <script>
+    // 1. CAPTURA INMEDIATA: Se ejecuta apenas el usuario toca la web
+    const urlParams = new URLSearchParams(window.location.search);
+    const referrerId = urlParams.get('ref');
+
+    if (referrerId) {
+      // Guardamos en la memoria del navegador para que Flutter lo lea después
+      localStorage.setItem('referred_by_id', referrerId);
+      console.log("Sistema LAD: Referido detectado -> " + referrerId);
+
+      // Intento de copia inicial silenciosa (algunos navegadores lo permiten)
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText("ref=" + referrerId).catch(() => {});
+      }
+    }
+
+    /**
+     * FUNCIÓN TÁCTICA: "REGISTRAR Y DESCARGAR"
+     * Debe llamarse desde los botones de la Landing Page.
+     * Asegura el ID en el portapapeles y redirige a la tienda.
+     */
+    function registrarYDescargar(platform) {
+      const id = localStorage.getItem('referred_by_id');
+
+      // NOTA: Reemplazar con el link real de la Play Store cuando lo tenga
+      const storeUrl = "https://play.google.com/store/apps/details?id=com.ladcourier.app";
+
+      if (id && navigator.clipboard && navigator.clipboard.writeText) {
+        // Obligamos la copia al portapapeles ANTES de salir de la web
+        navigator.clipboard.writeText("ref=" + id).then(() => {
+          window.location.href = storeUrl;
+        }).catch(() => {
+          // Si la copia falla, redirigimos de todos modos para no perder al cliente
+          window.location.href = storeUrl;
+        });
+      } else {
+        // Si no hay referido o el navegador no soporta clipboard, vamos directo
+        window.location.href = storeUrl;
+      }
+    }
+  </script>
+</head>
+<body>
+<!--
+  Nota: La advertencia sobre 'flutter_bootstrap.js' es normal.
+  Flutter lo inyecta automáticamente durante el despliegue.
+-->
+<script src="flutter_bootstrap.js" async></script>
+</body>
+</html>

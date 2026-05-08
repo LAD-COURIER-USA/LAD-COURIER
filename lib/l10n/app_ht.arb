@@ -1,0 +1,473 @@
+{
+  "@@locale": "ht",
+  "earnings_title": "ZÒN TRAVAY",
+  "earnings_period_today": "Jodi a",
+  "earnings_period_week": "Semèn sa a",
+  "earnings_period_month": "Mwa sa a",
+  "earnings_period_year": "Ane Fiskal",
+  "earnings_stat_gross": "RENI BRID",
+  "earnings_stat_miles": "MIL FISKAL",
+  "earnings_stat_missions": "MISYON",
+  "earnings_stat_efficiency": "EFEKTIVITE",
+  "earnings_history_title": "ISTORIK MISYON",
+  "earnings_empty_history": "Pa gen misyon nan peryòd sa a.",
+  "earnings_network_title": "REZO AKSYON MWEN",
+  "earnings_linked_users": "ITILIZATÈ KI LYE",
+  "earnings_referrals_count": "Referans",
+  "earnings_plan_label": "ZÒN CHWAZI",
+  "earnings_refund_title": "ETA ZÒN LAN",
+  "earnings_refund_covered": "AKTIF",
+  "earnings_refund_saving": "GRATIS",
+  "earnings_refund_status_free_current": "ZÒN SAN FRAIS",
+  "earnings_refund_status_free_next": "CHANJMAN DISPONIB",
+  "earnings_refund_goal_msg": "Konfigire rezo ou libman.",
+  "earnings_refund_success_msg": "Zòn konfigire kòrèkteman.",
+  "earnings_refund_pending_msg": "Konfigirasyon ap fèt...",
+  "earnings_refund_anti_fraud_rule": "Chanjman zòn se enstantane epi san pri.",
+  "earnings_refund_disclaimer": "LAD Courier pa chaje mwa. Sèlman yon frè sèvis 0.50 $ pou chak kòmand ki reyisi, kèlkeswa pri ki te fikse a.",
+  "driver_dash_title": "SANT KÒMAND CHOFÈ",
+  "driver_status_online": "CHOFÈ AN LINY",
+  "driver_status_offline": "PA NAN SÈVIS",
+  "driver_btn_work_zone": "MAP OPERASYONÈL",
+  "driver_menu_services": "SÈVIS",
+  "driver_menu_profile": "PWOFIL MWEN",
+  "driver_menu_earnings": "ZÒN YO",
+  "driver_menu_invite": "ENVITE",
+  "driver_dialog_services_title": "SÈVIS AKTIF",
+  "driver_btn_confirm": "KONFIME",
+  "driver_error_no_photo": "FOTO PWOFIL MANKE",
+  "driver_error_no_photo_msg": "Ou dwe monte yon foto pwofesyonèl pou kliyan ou ka idantifye ou.",
+  "driver_error_incomplete_data": "DONE ENKONPLÈ",
+  "driver_error_incomplete_data_msg": "Non ou ak telefòn ou obligatwa pou sekirite sèvis la.",
+  "driver_error_no_vehicle": "DETAY MACHIN",
+  "driver_error_no_vehicle_msg": "Dekri mwayen transpò ou nan seksyon Pwofil Mwen an.",
+  "driver_error_no_membership": "ZÒN PA CHWAZI",
+  "driver_error_no_membership_msg": "Ou dwe chwazi yon 'Zòn Travay' (Lite, Standard oswa Pro) pou resevwa kòmand.",
+  "driver_error_no_stripe": "STRIPE PA LYE",
+  "driver_error_no_stripe_msg": "Pou mete ou an liny, ou dwe konfigire kont Stripe Connect ou nan 'Pwofil Mwen'.",
+  "driver_error_no_verification": "VERIFIKASYON PANDAN",
+  "driver_error_no_verification_msg": "Ou dwe konplete verifikasyon idantite ou ak background check pou mete ou an liny.",
+  "driver_error_no_services": "PA GEN SÈVIS AKTIF",
+  "driver_error_no_services_msg": "Chwazi omwen yon sèvis anvan ou mete ou an liny.",
+  "driver_active_missions_alert": "⚠️ OU GEN MISYON AKTIF. Fini yo anvan.",
+  "driver_btn_understand": "KONPRANN",
+  "driver_selection_title": "Chwazi Chofè",
+  "driver_card_plan": "Zòn",
+  "driver_card_coverage": "Kouvèti",
+  "driver_selection_no_drivers_title": "Nou regrèt sa",
+  "driver_selection_no_drivers_body": "Pa gen chofè ki disponib ki kouvri adrès sa yo. Eseye ak yon trajè ki pi kout.",
+  "notification_order_sent_success": "Misyon voye bay chofè a",
+  "prof_title": "PWOFIL OPERASYONÈL MWEN",
+  "prof_radar_title": "RADAR REKRITMAN MWEN",
+  "prof_radar_body": "Kliyan ou yo eskane QR sa a pou yo lye ak rezo ou.",
+  "prof_section_id": "DONE IDANTIFIKASYON",
+  "prof_label_name": "Non Konplè",
+  "prof_label_phone": "Telefòn Kontak",
+  "prof_label_vehicle": "Deskripsyon Machin",
+  "prof_section_mem": "ZÒN TRAVAY YO",
+  "prof_section_pay": "ZOUTI PEMAN (STRIPE)",
+  "prof_pay_stripe": "Lye Stripe Connect",
+  "prof_pay_stripe_sub": "Pou resevwa paman ou yo enstantane",
+  "prof_pay_paypal": "PayPal (Opsyonèl)",
+  "prof_pay_paypal_sub": "Sèlman pou koleksyon manyèl",
+  "prof_btn_save": "SOVE CHANJMAN",
+  "prof_btn_switch": "CHANJE NAN MÒD KLIYAN",
+  "work_title": "MAP OPERASYON",
+  "work_panel_title": "DEMANN PANDAN",
+  "work_waiting": "Ap tann nouvo misyon...",
+  "work_alert_title": "🚀 NOUVO MISYON DETEKTE!",
+  "work_alert_body": "Ou gen yon nouvo demann nan radar a.",
+  "work_notif_channel_name": "Alèt Kòmand Ijan",
+  "work_notif_channel_desc": "Canal pour notifikasyon nouvo misyon",
+  "sub_title": "ZÒN TRAVAY YO",
+  "sub_promo": "ELABORE PWÒP ROUTE OU LIBREMAN",
+  "sub_free": "GRATIS",
+  "sub_radius": "Ranje: {radius}",
+  "@sub_radius": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "sub_bonus": "Bonis: {bonus}",
+  "@sub_bonus": {
+    "placeholders": {
+      "bonus": {
+        "type": "String"
+      }
+    }
+  },
+  "sub_btn_activate": "AKTIVE ZÒN",
+  "welcome_title": "Byenveni nan Bò!",
+  "welcome_body": "Pour fini enskripsyon ou, tanpri chwazi wòl ou nan kominote nou an.",
+  "welcome_btn_client": "Mwen se Kliyan",
+  "welcome_btn_driver": "Mwen se Mesaje",
+  "client_dash_title": "SANT KÒMAND KLIYAN",
+  "client_dash_welcome": "SISTÈM LAD COURIER",
+  "client_dash_requested_services": "SÈVIS MANDE",
+  "client_dash_no_requests": "Pa gen demann pandan.",
+  "client_dash_new_request": "NOUVO DEMANN",
+  "client_dash_first_offer": "PREMYE OFRANN RESEVWA",
+  "client_dash_counter_offer": "KONT-OFRANN RESEVWA",
+  "client_dash_driver_label": "Chofè: {name}",
+  "@client_dash_driver_label": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_active_missions": "MISYON AN KOU",
+  "client_dash_price_label": "PRI: {price}",
+  "@client_dash_price_label": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_status_label": "Eta: {status}",
+  "@client_dash_status_label": {
+    "placeholders": {
+      "status": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_linked_drivers": "LIST CHOFÈ YO",
+  "client_dash_no_linked_drivers": "Ou pa gen chofè ki lye.",
+  "client_dash_driver_available": "DISPONIB",
+  "client_dash_driver_resting": "AP REPOZE",
+  "client_dash_services_label": "SÈVIS: {services}",
+  "@client_dash_services_label": {
+    "placeholders": {
+      "services": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_plan_label": "ZÒN: {plan}",
+  "@client_dash_plan_label": {
+    "placeholders": {
+      "plan": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_radius_label": "RADYIS: {radius}",
+  "@client_dash_radius_label": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_no_phone": "Pa gen Tel",
+  "client_dash_unlink_title": "DEKONEKTE CHOFÈ",
+  "client_dash_unlink_confirm": "Èske ou sèten ou vle retire {name} nan lis konfyans ou a?",
+  "@client_dash_unlink_confirm": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_unlink_button": "DEKONEKTE",
+  "client_dash_unlink_success": "Chofè dekonekte avèk siksè",
+  "client_dash_invite_title": "LYE YON CHOFÈ",
+  "client_dash_invite_hint": "Kòd oswa ID Chofè",
+  "common_confirm": "KONFIME",
+  "common_cancel": "ANILE",
+  "client_prof_title": "PWOFIL KLIYAN MWEN",
+  "client_prof_contact_details": "DONE KONTAK",
+  "client_prof_name_label": "Non Konplè",
+  "client_prof_phone_label": "Telefòn",
+  "client_prof_address_label": "Adrès Prensipal",
+  "client_prof_payment_methods": "METÒD PEMAN",
+  "client_prof_stripe_title": "Stripe",
+  "client_prof_stripe_subtitle": "Kat Kredi/Debi",
+  "client_prof_paypal_title": "PayPal",
+  "client_prof_paypal_subtitle": "Kont Dijital",
+  "client_prof_cta_title": "GANYEN LAJAN KÒM CHOFÈ!",
+  "client_prof_cta_body": "Antre nan rezo mesaje nou an epi fè revni nan tan lib ou.",
+  "client_prof_cta_button": "WÈ ZÒN CHOFÈ YO",
+  "client_prof_save_button": "SOVE CHANJMAN",
+  "client_prof_switch_button": "CHANJE NAN MÒD CHOFÈ",
+  "client_prof_update_success": "Pwofil aktyalize",
+  "client_prof_update_error": "Erè nan aktyalizasyon: {error}",
+  "@client_prof_update_error": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "client_prof_completed_orders": "KÒMAND FINI",
+  "client_dash_history_title": "ISTORIK MISYON (36H)",
+  "order_details_title": "KÒMAND {type} #{index}",
+  "@order_details_title": {
+    "placeholders": {
+      "type": {
+        "type": "String"
+      },
+      "index": {
+        "type": "int"
+      }
+    }
+  },
+  "order_details_id": "ID Kòmand: {id}",
+  "@order_details_id": {
+    "placeholders": {
+      "id": {
+        "type": "String"
+      }
+    }
+  },
+  "order_details_pickup": "PWEEN RANMASE",
+  "order_details_delivery": "PWEEN LIVREZON",
+  "order_details_instructions": "ENSTRIKSYON MISYON",
+  "order_details_no_instructions": "Pa gen enstriksyon espesifik nan men kliyan an.",
+  "order_details_proximity_on": "OU NAN PLAS LA!",
+  "order_details_proximity_off": "DISTANS AK PWEEN AN",
+  "order_details_meters": "{meters} mèt",
+  "@order_details_meters": {
+    "placeholders": {
+      "meters": {
+        "type": "String"
+      }
+    }
+  },
+  "order_details_btn_go_pickup": "ALE RANMASE",
+  "order_details_btn_arrived": "MWEN RIVE / RANMASE",
+  "order_details_btn_go_delivery": "ALE LIVRE",
+  "order_details_btn_photo": "PRAN FOTO PRÈV",
+  "order_details_btn_finish": "FINI MISYON",
+  "order_details_photo_success": "Foto pran",
+  "order_details_evidence_msg": "Prèv sove avèk kowòdone GPS",
+  "order_details_btn_view_proof": "WÈ PRÈV LIVREZON",
+  "order_details_multiple_warning": "OU GEN {count} KÒMAND ANPLIS ISIT LA",
+  "@order_details_multiple_warning": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "neg_title": "NEGOSYASYON",
+  "neg_client_initial": "DEMANN INISYAL (SAN PRI)",
+  "neg_client_counter": "KONT-OFRANN KLIYAN",
+  "neg_driver_last": "DÈNYE OFRANN OU",
+  "neg_input_label": "PWOPOZISYON OU ($)",
+  "neg_btn_accept": "AKSEPTE",
+  "neg_btn_first": "PREMYE OFRANN",
+  "neg_btn_counter": "NOUVO KONT-OFRANN",
+  "neg_btn_final": "VOYE DÈNYE OFRANN",
+  "neg_btn_reject": "REJTE EPI FÈMEN",
+  "neg_impact_single": "Kòmand sa a reprezante yon vwayaj total de {miles} mil.",
+  "neg_impact_multi": "Ajoute kòmand sa a ajoute {miles} mil anplis nan wout ou.",
+  "@neg_impact_single": {
+    "placeholders": {
+      "miles": {
+        "type": "String"
+      }
+    }
+  },
+  "@neg_impact_multi": {
+    "placeholders": {
+      "miles": {
+        "type": "String"
+      }
+    }
+  },
+  "create_order_title": "KREYE KÒMAND LAN",
+  "create_order_service_label": "Kalite sèvis ki disponib",
+  "create_order_pickup_hint": "Orijin (Adrès egzak)",
+  "create_order_dropoff_hint": "Destinasyon (Adrès egzak)",
+  "create_order_details_hint": "Detay pakè",
+  "create_order_pickup_label": "4. PWEEN RANMASE",
+  "create_order_dropoff_label": "5. PWEEN LIVREZON",
+  "create_order_description_label": "3. DESKRIPSYON PAKÈ",
+  "create_order_btn_send": "VOYE KÒMAND LAN",
+  "create_order_success": "✅ KÒMAND VOYE",
+  "create_order_error_address": "Adrès pa valid.",
+  "create_order_error_radius": "Destinasyon an andeyò radyis ki pèmèt la ({radius} mi).",
+  "@create_order_error_radius": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "create_order_error_session": "Seksyon ekspire.",
+  "create_order_required": "Chann obligatwa",
+  "create_order_geofence_error": "⚠️ ANDEYÒ KOUVÈTI: Chofè sa a opere nan yon radyis de {radius} mi. Ranmase ak livrezon dwe nan zòn li.",
+  "@create_order_geofence_error": {
+    "placeholders": {
+      "radius": {
+        "type": "String"
+      }
+    }
+  },
+  "create_order_sent_toast": "🚀 DEMANN VOYE",
+  "create_order_client_default": "Kliyan",
+  "neg_client_details_title": "DETAY OFRANN",
+  "neg_client_closing": "Ap fèmen negosyasyon...",
+  "neg_client_waiting": "Ap tann ofrann...",
+  "neg_client_driver_assigned": "CHOFÈ ASIYEN",
+  "neg_client_order_details": "DETAY KÒMAND",
+  "neg_client_price_proposal": "PWOPOZISYON PRI",
+  "neg_client_price_final": "DÈNYE OFRANN CHOFÈ",
+  "neg_client_btn_accept": "AKSEPTE EPI MANDE KOUNYE A",
+  "neg_client_btn_accept_final": "AKSEPTE DÈNYE OFRANN",
+  "neg_client_btn_counter": "FÈ KONT-OFRANN",
+  "neg_client_btn_reject_cancel": "REJTE EPI ANILE",
+  "neg_client_dialog_title": "KONT-OFRANN OU",
+  "neg_client_dialog_body": "Pwopoze yon nouvo pri bay chofè a:",
+  "neg_client_dialog_label": "Nouvo pri",
+  "neg_client_dialog_btn_cancel": "REJTE",
+  "neg_client_dialog_btn_send": "VOYE",
+  "auth_sync_security": "Senkronizasyon sekirite...",
+  "auth_sync_timeout": "Si li pran twòp tan, peze bouton anba a.",
+  "auth_cancel_retry": "Anile epi reye",
+  "auth_login_welcome": "Byenveni tounen, solda!",
+  "auth_login_email": "Email",
+  "auth_login_password": "Modpas",
+  "auth_login_btn": "Konekte",
+  "auth_login_not_member": "Ou pa manm?",
+  "auth_login_register_now": "Enskri kounye a",
+  "auth_register_title": "Kreye yon kont pou kòmanse!",
+  "auth_register_name": "Non konplè",
+  "auth_register_confirm_pass": "Konfime modpas",
+  "auth_register_btn": "ENSKRI",
+  "auth_register_already_member": "Èske ou deja manm?",
+  "auth_register_login_now": "Konekte kounye a",
+  "auth_error_fields": "Tanpri ranpli tout chan yo.",
+  "auth_error_pass_match": "Modpas yo pa koresponn",
+  "auth_error_name": "Antre non konplè ou",
+  "auth_role_title": "Byenveni nan LAD!",
+  "auth_role_subtitle": "Chwazi kijan ou vle itilize platfòm lan:",
+  "auth_role_client": "MWEN SE KLIYAN",
+  "auth_role_messenger": "MWEN SE MESAJÈ",
+  "auth_role_preparing": "Ap prepare kont ou...",
+  "service_location_disabled": "Sèvis kote yo dezaktive.",
+  "service_location_denied": "Pèmisyon kote yo rejte.",
+  "service_location_denied_forever": "Pèmisyon kote yo rejte nèt ale.",
+  "service_invitation_error_user": "Erè: Itilizatè a pa ka idantifye.",
+  "service_invitation_share_msg": "Alo! 👋 Mwen envite ou antre nan rezo pèsonèl mwen sou LAD Courier. Se fason ki pi rapid ak pi an sekirite pou jere anbakman ou avèk mwen. Enskri isit la: {link}",
+  "@service_invitation_share_msg": {
+    "placeholders": {
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "service_invitation_subject": "🚚 Antre nan rezo mesaje m sou LAD!",
+  "service_recommend_share_msg": "🚀 Alo! Mwen rekòmande {name} pou livrezon ou yo. Se mesaje konfyans mwen sou LAD COURIER. Ou ka kontakte li lè ou telechaje app a isit la: {link}",
+  "@service_recommend_share_msg": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      },
+      "link": {
+        "type": "String"
+      }
+    }
+  },
+  "service_recommend_subject": "Mwen rekòmande mesaje m nan sou LAD Courier",
+  "auth_error_role_save": "Erè nan sove wòl la: {error}",
+  "@auth_error_role_save": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "order_error_deleted": "Kòmand lan siprime.",
+  "order_status_active_msg": "KÒMAND AKTIF",
+  "order_status_timeout_msg": "Tan fini (30 min).",
+  "order_status_timeout_full_msg": "Akòz gwo kantite kòmandman, chofè a pa t kapab ale in li alè. Tanpri voye li bay yon lòt chofè ki disponib. Mèsi!",
+  "auth_error_generic": "Erè sekirite: {message}",
+  "@auth_error_generic": {
+    "description": "Erè jenerik",
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "deliver_label": "LIVRE",
+  "pickup_label": "RANMASE",
+  "notification_new_order_title": "🚀 NOUVO MISYON DETEKTE!",
+  "notification_new_order_body": "Ou gen yon nouvo demann nan radar a.",
+  "driver_work_zone_title": "MAP OPERASYON",
+  "driver_work_zone_pending_requests": "DEMANN PANDAN",
+  "driver_work_zone_waiting": "Ap tann nouvo misyon...",
+  "dashboard_btn_create_order": "Kreye Kòmand",
+  "client_label": "Kliyan",
+  "counter_offer_label": "KONT-OFRANN",
+  "new_order_label": "NOUVO KÒMAND",
+  "create_order_requirements": "REKIZIT YO",
+  "create_order_section_messenger": "6. CHWAZI CHOFÈ OU",
+  "create_order_search_available": "Nenpòt Chofè",
+  "create_order_add_photo": "2. FOTO OSWA RESI",
+  "create_order_service_type": "1. CHWAZI SÈVIS",
+  "create_order_btn_search_drivers": "Chèche chofè ki disponib",
+  "order_details_product_photo": "FOTO PWODWI",
+  "order_details_save_photo": "SOVE REFERANS",
+  "order_details_photo_saved": "Foto sove nan galri a",
+  "order_details_photo_error": "Erè nan sove foto a",
+  "create_order_shopping_nav_btn": "SHOPPING NAVIGATOR (MAGAZEN)",
+  "create_order_shopping_nav_success": "✅ MAGAZEN KAPTURE AVÈK SIKSÈ",
+  "shopping_nav_capture": "KAPTURE",
+  "shopping_nav_title": "SHOPPING NAVIGATOR",
+  "catalog_title": "SHOPPING NAVIGATOR",
+  "catalog_no_stores": "PA GEN MAGAZEN PWOCH NAN RADYIS MESAJÈ A",
+  "shopping_nav_capturing": "Ap monte prèv yo...",
+  "shopping_nav_error_photo": "⚠️ Foto resi a obligatwa pou kontinye",
+  "shopping_nav_success_full": "✅ Magazen ak resi kapture avèk siksè",
+  "sub_plan_lite_title": "ZÒN LITE",
+  "sub_plan_lite_desc": "Ideyal pou livrezon lokal rapid.",
+  "sub_plan_standart_title": "ZÒN STANDARD",
+  "sub_plan_standart_desc": "Kouvri tout vil ou ak anviwonman li yo.",
+  "sub_plan_pro_title": "ZÒN PRO",
+  "sub_plan_pro_desc": "Maksimòm ranje pou machandiz long.",
+  "sub_price_per_month": "{price} / mwa",
+  "@sub_price_per_month": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "catalog_cat_all": "TOUT",
+  "catalog_cat_food": "GASTRO",
+  "catalog_cat_fashion": "MOD",
+  "catalog_cat_auto": "MOTÈ",
+  "catalog_cat_health": "SANTE",
+  "catalog_cat_grocery": "MACHE YO",
+  "catalog_cat_home": "LAKAY",
+  "catalog_cat_tech": "TEK",
+  "catalog_radius": "Radyis Rechèch",
+  "catalog_select_cat": "Tanpri chwazi yon kategori",
+  "catalog_no_results": "Pa gen rezilta nan kategori sa a",
+  "catalog_no_results_area": "PA GEN REZILTA NAN ZÒN SA A",
+  "shopping_nav_instruction_title": "Enstriksyon pou Achte",
+  "shopping_nav_instruction_body": "Navige, fè acha ou epi lè ou wè resi final la, peze KAPTURE.",
+  "catalog_no_results_detail": "Eseye chanje kategori oswa verifye si Chofè a gen radyis aksyon.",
+  "catalog_default_name": "Lokal",
+  "driver_service_courier": "Mesajeri ak Pakè",
+  "driver_service_logistics": "Lojistik Espesyalize",
+  "driver_service_shopping": "Acha ak Komisyon",
+  "shopping_nav_instruction_title_alt": "💡 PLAN SOVETAY",
+  "shopping_nav_instruction_body_alt": "Si magazen an fòse ou sèvi ak App ofisyèl li a, fè kòmand ou la, pran yon screenshot resi a epi monte li isit la.",
+  "client_dash_order_here": "KÒMANDE ISIT LA",
+  "prof_btn_business_card": "KAT BIZNIS MWEN",
+  "business_card_title": "KAT BIZNIS LAD COURIER",
+  "business_card_scan_msg": "Eskane pou telechaje LAD epi lye ak rezo mwen an",
+  "common_delete_account": "SIPRIME KONT MWEN",
+  "delete_account_confirm_title": "SIPRIME KONT LAN NÈT ALE?",
+  "delete_account_confirm_body": "Aksyon sa a ap efase tout done ou yo, istorik ak koneksyon. Sa pa ka anile.",
+  "delete_account_btn_confirm": "WI, EFÈSE TOUT BAGAY",
+  "delete_account_reauth_required": "Pou sekirite, ou dwe konekte ankò anvan ou siprime kont ou."
+}

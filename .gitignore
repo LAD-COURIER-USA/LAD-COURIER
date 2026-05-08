@@ -1,0 +1,64 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.buildlog/
+.history
+.svn/
+.secret
+.local
+*.keystore
+/packages
+
+# IntelliJ
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Flutter/Dart/Pub
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.dart_tool/
+build/
+
+# Android
+.gradle/
+local.properties
+/android/key.properties
+/android/app/build/
+
+# iOS
+/ios/Pods/
+/ios/Flutter/App.framework
+/ios/Flutter/Flutter.framework
+/ios/Flutter/ephemeral/
+/ios/Flutter/Generated.xcconfig
+/ios/Flutter/app.flx
+/ios/Flutter/app.zip
+/ios/Flutter/flutter_assets/
+/ios/Flutter/pod_runner.xcworkspace
+/ios/Flutter/.last_build_id
+/ios/.symlinks/
+/ios/Runner/GeneratedPluginRegistrant.h
+/ios/Runner/GeneratedPluginRegistrant.m
+
+# VS Code
+.vscode/
+
+# Obfuscation
+*.map.json
+scripts/data/
+*.csv
+
+# Web / Public
+public/assets/*.apk
+
+# ✨ SISTEMA LAD: Seguridad
+scripts/llave_maestra.json
+.env

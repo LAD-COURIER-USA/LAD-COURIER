@@ -1,0 +1,151 @@
+{
+  "project_info": {
+    "project_number": "666821658855",
+    "project_id": "dev-access-472419-f1",
+    "storage_bucket": "dev-access-472419-f1.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666821658855:android:0745eae40c00048cfffa42",
+        "android_client_info": {
+          "package_name": "com.elmensajero.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYK7yOxwZvg2zYuxkK828a53kAy2Fg0Fk"
+        },
+        {
+          "current_key": "AIzaSyAwEbTmJBTXmo9nVSFWKVG3YAL0zg0ir9g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "666821658855-0m595to4q7orrj9vqkk54g4t9v7i5pqg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.digitalScanFill"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666821658855:android:012ef316fbc9799efffa42",
+        "android_client_info": {
+          "package_name": "com.elmensajero.app.client"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "666821658855-j6kgku7ckpc76v14rik31cflrl9i1unp.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elmensajero.app.client",
+            "certificate_hash": "ab8847cd2293602b7ae312639e6a5eef7148fd9e"
+          }
+        },
+        {
+          "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYK7yOxwZvg2zYuxkK828a53kAy2Fg0Fk"
+        },
+        {
+          "current_key": "AIzaSyAwEbTmJBTXmo9nVSFWKVG3YAL0zg0ir9g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "666821658855-0m595to4q7orrj9vqkk54g4t9v7i5pqg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.digitalScanFill"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666821658855:android:217955b90bb11b28fffa42",
+        "android_client_info": {
+          "package_name": "com.elmensajero.app.messenger"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "666821658855-4bco9gtsuh8s3nd34nonh1luvcaj8hh4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elmensajero.app.messenger",
+            "certificate_hash": "1c65a9fc56d2ca6f51d9c2aed408b9378718fa1f"
+          }
+        },
+        {
+          "client_id": "666821658855-a28liek8joh915kbnd5309sk8lomph24.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elmensajero.app.messenger",
+            "certificate_hash": "ab8847cd2293602b7ae312639e6a5eef7148fd9e"
+          }
+        },
+        {
+          "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYK7yOxwZvg2zYuxkK828a53kAy2Fg0Fk"
+        },
+        {
+          "current_key": "AIzaSyAwEbTmJBTXmo9nVSFWKVG3YAL0zg0ir9g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "666821658855-0m595to4q7orrj9vqkk54g4t9v7i5pqg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.digitalScanFill"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAD Courier | Centro de Mando Logístico 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-brand { font-family: 'Orbitron', sans-serif; }
+        .bg-lad-purple { background-color: #4B39A8; }
+        .text-lad-purple { color: #4B39A8; }
+
+        .app-screenshot {
+            width: 100%;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            border: 4px solid #1f2937;
+            transition: transform 0.3s ease;
+        }
+        .app-screenshot:hover { transform: scale(1.05); border-color: #4B39A8; }
+
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); backdrop-filter: blur(8px); }
+        .modal-content { background: #fff; margin: 5% auto; padding: 40px; border-radius: 24px; width: 90%; max-width: 800px; max-height: 80vh; overflow-y: auto; color: #1a202c; position: relative; }
+
+        .legal-text h2 { font-family: 'Orbitron'; color: #4B39A8; font-size: 1.2rem; margin-top: 1.5rem; border-bottom: 1px solid #ddd; padding-bottom: 5px; }
+        .reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900 overflow-x-hidden">
+
+<!-- HEADER -->
+<header class="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <img src="assets/logo.webp" alt="LAD Courier Logo" class="h-10">
+            <span class="font-brand font-bold text-lg tracking-tighter text-lad-purple uppercase">LAD COURIER</span>
+        </div>
+        <a href="assets/standards.apk" download onclick="handleDownloadClick(event)" class="bg-lad-purple text-white px-6 py-2 rounded-full font-bold text-xs hover:bg-indigo-700 transition shadow-lg font-brand uppercase">Descargar APK</a>
+    </div>
+</header>
+
+<main>
+    <!-- HERO SECTION -->
+    <section class="pt-32 pb-16 bg-gradient-to-b from-indigo-50 to-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+            <div class="reveal active text-center md:text-left">
+                <h1 class="font-brand text-4xl md:text-6xl font-black leading-tight mb-6 uppercase">
+                    Negocia <span class="text-lad-purple">Directo</span>, Sin Intermediarios
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 font-light italic">"Tu envío, tu precio, tu control total."</p>
+
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                    <a href="assets/standards.apk" download onclick="handleDownloadClick(event)" class="bg-black text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:scale-105 transition shadow-2xl">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" class="h-6 invert" alt="Icono Android">
+                        <div class="text-left">
+                            <p class="text-[8px] uppercase opacity-60">Descarga Directa</p>
+                            <p class="font-brand text-xs uppercase text-white">Android Standards (Recomendado)</p>
+                        </div>
+                    </a>
+                    <div class="bg-gray-200 text-gray-400 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 cursor-not-allowed">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6 opacity-20" alt="Icono Apple">
+                        <div class="text-left">
+                            <p class="text-[8px] uppercase">App Store</p>
+                            <p class="font-brand text-xs uppercase">Próximamente</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN DE COMPATIBILIDAD AVANZADA (ESTRATEGIA LAD) -->
+                <div class="mt-12 max-w-lg mx-auto md:mx-0">
+                    <p class="text-[10px] font-brand font-bold text-lad-purple uppercase mb-4 tracking-widest text-center md:text-left">
+                        Arquitectura de Sistema 2026:
+                    </p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <!-- LEGACY -->
+                        <a href="assets/legacy.apk" download onclick="handleDownloadClick(event)"
+                           class="group flex flex-col justify-between bg-indigo-50/50 p-5 rounded-2xl border-2 border-indigo-100 hover:border-lad-purple hover:bg-white transition-all duration-300 shadow-sm hover:shadow-xl h-full">
+                            <div>
+                                <p class="text-[10px] font-black text-indigo-400 uppercase mb-2 tracking-tighter group-hover:text-lad-purple">Versión Legacy</p>
+                                <p class="text-[11px] text-gray-600 leading-tight font-medium">Equipos de 32-bit o antiguos. Funcionalidad pura para Clientes.</p>
+                            </div>
+                            <div class="mt-4 flex items-center gap-2 text-lad-purple opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-[9px] font-bold uppercase">Descargar</span>
+                                <span class="text-xs">→</span>
+                            </div>
+                        </a>
+
+                        <!-- FUTURE -->
+                        <a href="assets/future.apk" download onclick="handleDownloadClick(event)"
+                           class="group flex flex-col justify-between bg-indigo-50/50 p-5 rounded-2xl border-2 border-indigo-100 hover:border-lad-purple hover:bg-white transition-all duration-300 shadow-sm hover:shadow-xl h-full">
+                            <div>
+                                <p class="text-[10px] font-black text-indigo-400 uppercase mb-2 tracking-tighter group-hover:text-lad-purple">Versión Future</p>
+                                <p class="text-[11px] text-gray-600 leading-tight font-medium">Optimizado para x86_64, Tablets Pro y PC Híbridas.</p>
+                            </div>
+                            <div class="mt-4 flex items-center gap-2 text-lad-purple opacity-0 group-hover:opacity-100 transition-opacity">
+                                <span class="text-[9px] font-bold uppercase">Descargar</span>
+                                <span class="text-xs">→</span>
+                            </div>
+                        </a>
+                    </div>
+                    <p class="text-[9px] mt-5 text-gray-400 italic font-medium text-center md:text-left uppercase tracking-tight">
+                        Soporte Multi-Núcleo: ARMv7, ARMv8-a y X86_64 garantizado.
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-center reveal active">
+                <img src="assets/01.webp" alt="LAD Courier Dashboard" class="app-screenshot max-w-[320px]">
+            </div>
+        </div>
+    </section>
+
+    <!-- GRID DE LAS 6 IMÁGENES (OPTIMIZADO 3x2) -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7-xl mx-auto px-6">
+            <h2 class="font-brand text-3xl text-center font-black mb-16 uppercase italic text-gray-800 underline decoration-lad-purple decoration-4 underline-offset-8">Experiencia LAD Courier 2.0</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <!-- Foto 01: Dashboard Principal -->
+                <div class="reveal text-center">
+                    <img src="assets/01.webp" class="app-screenshot mb-4" alt="Dashboard Principal">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold">CENTRO DE MANDO</p>
+                </div>
+                <!-- Foto 02: Disponibilidad -->
+                <div class="reveal text-center">
+                    <img src="assets/02.webp" class="app-screenshot mb-4" alt="Servicios">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold">DISPONIBILIDAD Y SERVICIOS</p>
+                </div>
+                <!-- Foto 03: Negociación -->
+                <div class="reveal text-center">
+                    <img src="assets/03.webp" class="app-screenshot mb-4" alt="Negociación">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold">NEGOCIACIÓN REAL-TIME</p>
+                </div>
+                <!-- Foto 04: Mapa -->
+                <div class="reveal text-center">
+                    <img src="assets/04.webp" class="app-screenshot mb-4" alt="Mapa">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold">MAPA DE OPERACIONES</p>
+                </div>
+                <!-- Foto 05: Stripe -->
+                <div class="reveal text-center">
+                    <img src="assets/05.webp" class="app-screenshot mb-4" alt="Stripe">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold">PAGOS SEGUROS STRIPE</p>
+                </div>
+                <!-- Foto 06: Dashboard Cliente -->
+                <div class="reveal text-center">
+                    <img src="assets/06.webp" class="app-screenshot mb-4" alt="Cliente">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold">DASHBOARD CLIENTE</p>
+                </div>
+            </div>
+
+            <!-- Banner Informativo Inferior (Cierra el diseño) -->
+            <div class="mt-20 reveal bg-lad-purple text-white p-8 rounded-[40px] text-center shadow-2xl">
+                <p class="font-brand text-sm font-bold uppercase tracking-widest">
+                    Sistema Binario: Driver y Cliente en una sola App
+                </p>
+                <p class="text-xs mt-2 opacity-80">Tecnología logística de vanguardia diseñada para LAD Digital Systems LLC.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN SEGURIDAD -->
+    <section class="py-24 bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+            <div class="reveal">
+                <div class="bg-green-500/20 text-green-400 border border-green-500/30 px-4 py-1 rounded-full text-[10px] font-brand mb-6 inline-block uppercase">Shield Verified 2026</div>
+                <h2 class="font-brand text-4xl font-black mb-6 uppercase">Validación Biométrica</h2>
+                <p class="text-gray-400 text-lg mb-8 leading-relaxed">Seguridad sin burocracia. Utilizamos reconocimiento facial y huellas digitales para proteger cada entrega.</p>
+                <ul class="space-y-4 text-sm font-light">
+                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Identidad verificada por IA.</li>
+                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Validación por Selfie cada 72h.</li>
+                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Encriptación nivel bancario.</li>
+                </ul>
+            </div>
+            <div class="reveal text-center">
+                <img src="assets/05.webp" class="app-screenshot max-w-[250px] mx-auto border-green-500/50" alt="Biometría">
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- FOOTER LIMPIO -->
+<footer class="bg-black text-white py-20 px-6 border-t border-lad-purple">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 border-b border-gray-800 pb-16">
+        <div>
+            <h3 class="font-brand font-black text-2xl text-lad-purple mb-4">LAD COURIER</h3>
+            <p class="text-[11px] text-gray-400 leading-relaxed max-w-md">
+                LAD Courier es una marca registrada y plataforma tecnológica propiedad de <span class="text-white font-bold">LAD DIGITAL SYSTEMS LLC</span>.
+                Todos los derechos de software, diseño y arquitectura están protegidos por las leyes internacionales de <span class="text-white font-bold">© COPYRIGHT 2026</span>.
+            </p>
+            <p class="text-[10px] mt-4 text-gray-500 uppercase tracking-[0.2em]">
+                Propiedad Intelectual Protegida - Miami, Florida.
+            </p>
+        </div>
+        <div class="flex flex-col gap-4">
+            <button onclick="openModal('termsModal')" class="text-white font-black text-sm border-b-2 border-lad-purple uppercase hover:text-lad-purple transition text-left">Términos y Privacidad</button>
+            <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Dominio Garantizado 2026-2036</p>
+        </div>
+    </div>
+    <div class="mt-12 text-center text-[10px] font-bold tracking-[0.6em] opacity-30 uppercase">
+        © 2026 LAD Digital Systems LLC.
+    </div>
+</footer>
+
+<!-- MODAL ÚNICO -->
+<div id="termsModal" class="modal">
+    <div class="modal-content">
+        <div class="flex justify-between items-center mb-10 text-lad-purple">
+            <h2 class="font-brand text-2xl font-black uppercase">Acuerdo Legal 2026</h2>
+            <button onclick="closeModal('termsModal')" class="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition text-black">✕</button>
+        </div>
+        <div class="legal-text overflow-y-auto max-h-[60vh]">
+            <h2>1. PROPIEDAD INTELECTUAL</h2>
+            <p>El software LAD Courier, su código fuente, diseño de interfaz y logotipos son propiedad exclusiva de LAD DIGITAL SYSTEMS LLC. Queda prohibida cualquier reproducción o ingeniería inversa.</p>
+
+            <h2>2. MODELO DE NEGOCIO</h2>
+            <p>LAD Courier actúa como facilitador tecnológico. Los pagos se procesan directamente al driver a través de Stripe Connect, con una tarifa fija de mantenimiento de plataforma de $0.50.</p>
+
+            <h2>3. SEGURIDAD BIOMÉTRICA</h2>
+            <p>La validación por selfie es obligatoria para garantizar la integridad de los servicios. Los datos biométricos se procesan bajo estrictos estándares de encriptación.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('active');
+        });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+    function openModal(id) { document.getElementById(id).style.display = 'block'; }
+    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+
+    // ✨ SISTEMA LAD: LÓGICA DE RESCATE DE REFERIDO (PORTAPAPELES)
+    function handleDownloadClick(event) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get('ref') || urlParams.get('id');
+
+        if (ref) {
+            // ✨ SISTEMA LAD: Copiamos con el prefijo 'ref=' para que la App lo reconozca
+            // bajo las nuevas normas de seguridad y evite falsos positivos.
+            navigator.clipboard.writeText("ref=" + ref).then(() => {
+                console.log("SISTEMA LAD: ID de referido copiado con éxito -> " + ref);
+            }).catch(err => {
+                console.error("Error al copiar referido: ", err);
+            });
+        }
+        // El navegador continuará con la descarga automáticamente por el atributo 'download'
+    }
+
+    window.onclick = function(event) {
+        if (event.target.className === 'modal') event.target.style.display = 'none';
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,70 @@
+<html>
+<head>
+<title>geocoding_service.dart</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #bcbec4;}
+.s1 { color: #6aab73;}
+.s2 { color: #bcbec4;}
+.s3 { color: #7a7e85;}
+.s4 { color: #cf8e6d;}
+.s5 { color: #5f826b; font-style: italic;}
+.s6 { color: #2aacb8;}
+.ln { color: #4b5059; font-weight: normal; font-style: normal; }
+</style>
+</head>
+<body bgcolor="#1e1f22">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+geocoding_service.dart</font>
+</center></td></tr></table>
+<pre><a name="l1"><span class="ln">1    </span></a><span class="s0">import </span><span class="s1">'dart:convert'</span><span class="s2">;</span>
+<a name="l2"><span class="ln">2    </span></a><span class="s0">import </span><span class="s1">'package:http/http.dart' </span><span class="s0">as http</span><span class="s2">;</span>
+<a name="l3"><span class="ln">3    </span></a><span class="s0">import </span><span class="s1">'package:cloud_firestore/cloud_firestore.dart'</span><span class="s2">;</span>
+<a name="l4"><span class="ln">4    </span></a><span class="s0">import </span><span class="s1">'package:flutter/foundation.dart'</span><span class="s2">;</span>
+<a name="l5"><span class="ln">5    </span></a><span class="s0">import </span><span class="s1">'package:lad_courier/api_keys.dart'</span><span class="s2">; </span><span class="s3">// Importar la clave centralizada</span>
+<a name="l6"><span class="ln">6    </span></a>
+<a name="l7"><span class="ln">7    </span></a><span class="s4">class </span><span class="s0">GeocodingService </span><span class="s2">{</span>
+<a name="l8"><span class="ln">8    </span></a>  <span class="s5">/// QUÉ HACE: Convierte una dirección de texto en coordenadas geográficas.</span>
+<a name="l9"><span class="ln">9    </span></a>  <span class="s5">/// POR QUÉ: Es la única forma de obtener la inteligencia de ubicación necesaria</span>
+<a name="l10"><span class="ln">10   </span></a>  <span class="s5">/// para calcular rutas, ETAs y confirmar entregas.</span>
+<a name="l11"><span class="ln">11   </span></a>  <span class="s0">Future</span><span class="s2">&lt;</span><span class="s0">GeoPoint</span><span class="s2">?&gt; </span><span class="s0">getLatLng</span><span class="s2">(</span><span class="s0">String address</span><span class="s2">) </span><span class="s0">async </span><span class="s2">{</span>
+<a name="l12"><span class="ln">12   </span></a>    <span class="s3">// 1. Prepara la dirección para ser usada en una URL.</span>
+<a name="l13"><span class="ln">13   </span></a>    <span class="s4">final </span><span class="s0">encodedAddress </span><span class="s2">= </span><span class="s0">Uri</span><span class="s2">.</span><span class="s0">encodeComponent</span><span class="s2">(</span><span class="s0">address</span><span class="s2">);</span>
+<a name="l14"><span class="ln">14   </span></a>    <span class="s3">// 2. Construye la URL de la API de Geocoding usando la clave correcta.</span>
+<a name="l15"><span class="ln">15   </span></a>    <span class="s4">final </span><span class="s0">url </span><span class="s2">= </span><span class="s0">Uri</span><span class="s2">.</span><span class="s0">parse</span><span class="s2">(</span>
+<a name="l16"><span class="ln">16   </span></a>        <span class="s1">'https://maps.googleapis.com/maps/api/geocode/json?address=</span><span class="s2">$</span><span class="s0">encodedAddress</span><span class="s1">&amp;key=</span><span class="s2">$</span><span class="s0">googleMapsApiKey</span><span class="s1">'</span><span class="s2">);</span>
+<a name="l17"><span class="ln">17   </span></a>
+<a name="l18"><span class="ln">18   </span></a>    <span class="s4">try </span><span class="s2">{</span>
+<a name="l19"><span class="ln">19   </span></a>      <span class="s3">// 3. Ejecuta la petición a la API de Google.</span>
+<a name="l20"><span class="ln">20   </span></a>      <span class="s4">final </span><span class="s0">response </span><span class="s2">= </span><span class="s0">await http</span><span class="s2">.</span><span class="s0">get</span><span class="s2">(</span><span class="s0">url</span><span class="s2">);</span>
+<a name="l21"><span class="ln">21   </span></a>
+<a name="l22"><span class="ln">22   </span></a>      <span class="s4">if </span><span class="s2">(</span><span class="s0">response</span><span class="s2">.</span><span class="s0">statusCode </span><span class="s2">== </span><span class="s6">200</span><span class="s2">) {</span>
+<a name="l23"><span class="ln">23   </span></a>        <span class="s3">// 4. Decodifica la respuesta JSON.</span>
+<a name="l24"><span class="ln">24   </span></a>        <span class="s4">final </span><span class="s0">data </span><span class="s2">= </span><span class="s0">json</span><span class="s2">.</span><span class="s0">decode</span><span class="s2">(</span><span class="s0">response</span><span class="s2">.</span><span class="s0">body</span><span class="s2">);</span>
+<a name="l25"><span class="ln">25   </span></a>
+<a name="l26"><span class="ln">26   </span></a>        <span class="s3">// 5. Verifica que se hayan encontrado resultados.</span>
+<a name="l27"><span class="ln">27   </span></a>        <span class="s4">if </span><span class="s2">(</span><span class="s0">data</span><span class="s2">[</span><span class="s1">'status'</span><span class="s2">] == </span><span class="s1">'OK' </span><span class="s2">&amp;&amp; </span><span class="s0">data</span><span class="s2">[</span><span class="s1">'results'</span><span class="s2">].</span><span class="s0">isNotEmpty</span><span class="s2">) {</span>
+<a name="l28"><span class="ln">28   </span></a>          <span class="s3">// 6. Extrae las coordenadas del primer resultado.</span>
+<a name="l29"><span class="ln">29   </span></a>          <span class="s4">final </span><span class="s0">location </span><span class="s2">= </span><span class="s0">data</span><span class="s2">[</span><span class="s1">'results'</span><span class="s2">][</span><span class="s6">0</span><span class="s2">][</span><span class="s1">'geometry'</span><span class="s2">][</span><span class="s1">'location'</span><span class="s2">];</span>
+<a name="l30"><span class="ln">30   </span></a>          <span class="s4">final </span><span class="s0">double lat </span><span class="s2">= </span><span class="s0">location</span><span class="s2">[</span><span class="s1">'lat'</span><span class="s2">];</span>
+<a name="l31"><span class="ln">31   </span></a>          <span class="s4">final </span><span class="s0">double lng </span><span class="s2">= </span><span class="s0">location</span><span class="s2">[</span><span class="s1">'lng'</span><span class="s2">];</span>
+<a name="l32"><span class="ln">32   </span></a>          <span class="s3">// 7. Devuelve un GeoPoint de Firestore.</span>
+<a name="l33"><span class="ln">33   </span></a>          <span class="s4">return </span><span class="s0">GeoPoint</span><span class="s2">(</span><span class="s0">lat</span><span class="s2">, </span><span class="s0">lng</span><span class="s2">);</span>
+<a name="l34"><span class="ln">34   </span></a>        <span class="s2">} </span><span class="s4">else </span><span class="s2">{</span>
+<a name="l35"><span class="ln">35   </span></a>          <span class="s3">// Imprime el error de Google para diagnóstico</span>
+<a name="l36"><span class="ln">36   </span></a>          <span class="s0">debugPrint</span><span class="s2">(</span><span class="s1">'Geocoding API Error: </span><span class="s2">${</span><span class="s0">data</span><span class="s2">[</span><span class="s1">'status'</span><span class="s2">]} </span><span class="s1">- </span><span class="s2">${</span><span class="s0">data</span><span class="s2">[</span><span class="s1">'error_message'</span><span class="s2">]}</span><span class="s1">'</span><span class="s2">);</span>
+<a name="l37"><span class="ln">37   </span></a>        <span class="s2">}</span>
+<a name="l38"><span class="ln">38   </span></a>      <span class="s2">}</span>
+<a name="l39"><span class="ln">39   </span></a>      <span class="s3">// Si la API no responde con 200 OK o no encuentra la dirección, devuelve null.</span>
+<a name="l40"><span class="ln">40   </span></a>      <span class="s4">return null</span><span class="s2">;</span>
+<a name="l41"><span class="ln">41   </span></a>    <span class="s2">} </span><span class="s4">catch </span><span class="s2">(</span><span class="s0">e</span><span class="s2">) {</span>
+<a name="l42"><span class="ln">42   </span></a>      <span class="s3">// En caso de un error de red, devuelve null.</span>
+<a name="l43"><span class="ln">43   </span></a>      <span class="s0">debugPrint</span><span class="s2">(</span><span class="s1">'Network exception in GeocodingService: </span><span class="s2">$</span><span class="s0">e</span><span class="s1">'</span><span class="s2">);</span>
+<a name="l44"><span class="ln">44   </span></a>      <span class="s4">return null</span><span class="s2">;</span>
+<a name="l45"><span class="ln">45   </span></a>    <span class="s2">}</span>
+<a name="l46"><span class="ln">46   </span></a>  <span class="s2">}</span>
+<a name="l47"><span class="ln">47   </span></a><span class="s2">}</span></pre>
+</body>
+</html>
