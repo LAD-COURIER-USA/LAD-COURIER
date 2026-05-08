@@ -991,4 +991,58 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get delete_account_reauth_required =>
       'For security, you must log in again before deleting your account.';
+
+  @override
+  String get common_payment_required_title => 'PAYMENT LINK REQUIRED';
+
+  @override
+  String get common_payment_required_msg =>
+      'To ensure the security of your orders, you must link a payment method in your profile.';
+
+  @override
+  String get driver_inactivity_title => 'REST MODE';
+
+  @override
+  String get driver_inactivity_msg =>
+      'Your availability has been automatically closed because you have been inactive for more than 4 hours. If you are ready to work, please go online again.';
+
+  @override
+  String get common_logout => 'LOG OUT';
+
+  @override
+  String get common_logout_confirm =>
+      'Are you sure you want to log out? You will need to enter your email and password again to refresh security.';
+
+  @override
+  String get common_exit => 'EXIT';
+
+  @override
+  String get common_continue => 'CONTINUE';
+
+  @override
+  String get auth_verification_required_title => '🛡️ MANDATORY VERIFICATION';
+
+  @override
+  String get auth_verification_required_body =>
+      'For security, you must validate your identity with a selfie and your fingerprint to start working.';
+
+  @override
+  String get client_dash_negotiations_title => 'NEGOTIATIONS';
+
+  @override
+  String get client_dash_no_negotiations => 'No pending negotiations';
+
+  @override
+  String get client_dash_no_active_missions => 'No active missions';
+
+  @override
+  String get client_dash_order_active => 'ACTIVE ORDER';
+
+  @override
+  String client_dash_driver_resting_body(String name) {
+    return 'DRIVER $name IS NOT RECEIVING ORDERS AT THIS TIME. WOULD YOU LIKE TO SEARCH FOR ANOTHER AVAILABLE DRIVER?';
+  }
+
+  @override
+  String get client_dash_invite_code_label => 'ENTER DRIVER LINKING CODE:';
 }

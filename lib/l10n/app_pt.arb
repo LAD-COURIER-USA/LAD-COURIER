@@ -469,5 +469,28 @@
   "delete_account_confirm_title": "¿ELIMINAR CONTA DEFINITIVAMENTE?",
   "delete_account_confirm_body": "Esta ação apagará todos os seus dados, histórico e conexões. Não pode ser desfeita.",
   "delete_account_btn_confirm": "SIM, ELIMINAR TUDO",
-  "delete_account_reauth_required": "Por segurança, você deve iniciar sessão de novo antes de apagar sua conta."
+  "delete_account_reauth_required": "Por segurança, você deve iniciar sessão de novo antes de apagar sua conta.",
+  "common_payment_required_title": "PAGAMENTO NECESSÁRIO",
+  "common_payment_required_msg": "Para garantir a segurança dos seus pedidos, você deve vincular um método de pagamento no seu perfil.",
+  "driver_inactivity_title": "MODO DESCANSO",
+  "driver_inactivity_msg": "Sua disponibilidade foi fechada automaticamente porque você está inativo há mais de 4 horas. Se estiver pronto para trabalhar, fique online novamente.",
+  "common_logout": "SAIR",
+  "common_logout_confirm": "Tem certeza que deseja sair? Você precisará digitar seu e-mail e senha novamente para atualizar a segurança.",
+  "common_exit": "SAIR",
+  "common_continue": "CONTINUAR",
+  "auth_verification_required_title": "🛡️ VERIFICAÇÃO OBRIGATÓRIA",
+  "auth_verification_required_body": "Por segurança, você deve validar sua identidade con uma selfie e sua impressão digital para começar a trabalhar.",
+  "client_dash_negotiations_title": "NEGOCIAÇÕES",
+  "client_dash_no_negotiations": "Sem negociações pendentes",
+  "client_dash_no_active_missions": "Sem missões ativas",
+  "client_dash_order_active": "ORDEM ATIVA",
+  "client_dash_driver_resting_body": "O MOTORISTA {name} NÃO ESTÁ RECEBENDO PEDIDOS NO MOMENTO. DESEJA PROCURAR OUTRO MOTORISTA DISPONÍVEL?",
+  "@client_dash_driver_resting_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_invite_code_label": "INSIRA O CÓDIGO DE VINCULAÇÃO DO MOTORISTA:"
 }

@@ -26,6 +26,7 @@ class UserModel {
   final int referralCountLite;
   final int referralCountPro;
   final GeoPoint? lastKnownLocation; 
+  final Timestamp? lastActiveAt; // 🛡️ SISTEMA LAD: Para control de inactividad
   
   // 🛡️ BLINDAJE LEGAL LAD DIGITAL SYSTEMS LLC
   final bool acceptedTerms;
@@ -87,6 +88,7 @@ class UserModel {
     this.referralCountLite = 0,
     this.referralCountPro = 0,
     this.lastKnownLocation,
+    this.lastActiveAt,
     this.acceptedTerms = false,
     this.acceptedTermsDate,
     this.acceptedTermsIP,
@@ -140,6 +142,7 @@ class UserModel {
       referralCountLite: data['referralCountLite'] ?? 0,
       referralCountPro: data['referralCountPro'] ?? 0,
       lastKnownLocation: data['lastKnownLocation'],
+      lastActiveAt: data['lastActiveAt'], // 🛡️ SISTEMA LAD
       acceptedTerms: data['acceptedTerms'] ?? false,
       acceptedTermsDate: data['acceptedTermsDate'],
       acceptedTermsIP: data['acceptedTermsIP'],
@@ -193,6 +196,7 @@ class UserModel {
       'referralCountLite': referralCountLite,
       'referralCountPro': referralCountPro,
       'lastKnownLocation': lastKnownLocation,
+      'lastActiveAt': lastActiveAt, // 🛡️ SISTEMA LAD
       'acceptedTerms': acceptedTerms,
       'acceptedTermsDate': acceptedTermsDate,
       'acceptedTermsIP': acceptedTermsIP,
@@ -245,6 +249,7 @@ class UserModel {
     int? referralCountLite,
     int? referralCountPro,
     GeoPoint? lastKnownLocation,
+    Timestamp? lastActiveAt, // 🛡️ SISTEMA LAD
     bool? acceptedTerms,
     Timestamp? acceptedTermsDate,
     String? acceptedTermsIP,
@@ -295,6 +300,7 @@ class UserModel {
       referralCountLite: referralCountLite ?? this.referralCountLite,
       referralCountPro: referralCountPro ?? this.referralCountPro,
       lastKnownLocation: lastKnownLocation ?? this.lastKnownLocation,
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt, // 🛡️ SISTEMA LAD
       acceptedTerms: acceptedTerms ?? this.acceptedTerms,
       acceptedTermsDate: acceptedTermsDate ?? this.acceptedTermsDate,
       acceptedTermsIP: acceptedTermsIP ?? this.acceptedTermsIP,

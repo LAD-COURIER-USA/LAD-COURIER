@@ -71,11 +71,43 @@ class _DriverDashboardState extends State<DriverDashboard> {
           _driverProfile = profile;
           _isLoadingProfile = false;
         });
+
         if (profile?.isMessengerActive ?? false) {
+          // 🛡️ SISTEMA LAD: Verificación de Inactividad (Cierre automático tras 4h)
+          if (profile?.lastActiveAt != null) {
+            final lastActive = profile!.lastActiveAt!.toDate();
+            final now = DateTime.now();
+            final difference = now.difference(lastActive).inHours;
+
+            if (difference >= 4) {
+              debugPrint("SISTEMA LAD: Detectadas $difference horas de inactividad. Cerrando turno.");
+              _processStatusChange(false);
+              _showInactivityNotice();
+              return;
+            }
+          }
           _startGlobalOrderListener(profile!.uid);
         }
       }
     }
+  }
+
+  void _showInactivityNotice() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("💤 MODO DESCANSO", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.orange)),
+        content: const Text("Tu disponibilidad se ha cerrado automáticamente por llevar más de 4 horas sin actividad. Si estás listo para trabajar, vuelve a ponerte online.", style: TextStyle(fontWeight: FontWeight.bold)),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("ENTENDIDO", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
+          )
+        ],
+      ),
+    );
   }
 
   void _startGlobalOrderListener(String uid) {
@@ -125,15 +157,16 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 
   Future<void> _logout() async {
+    final l10n = AppLocalizations.of(context)!;
     bool? confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("CERRAR SESIÓN", style: TextStyle(fontWeight: FontWeight.w900)),
-        content: const Text("¿Estás seguro de que quieres salir? Tendrás que poner tu email y contraseña de nuevo para refrescar la seguridad."),
+        title: Text(l10n.common_logout, style: const TextStyle(fontWeight: FontWeight.w900)),
+        content: Text(l10n.common_logout_confirm),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("CANCELAR")),
-          TextButton(onPressed: () => Navigator.pop(context, true), child: const Text("SALIR", style: TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.common_cancel.toUpperCase())),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.common_exit, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
         ],
       ),
     );
@@ -248,13 +281,14 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 
   void _showBiometricPrompt() {
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("🛡️ VERIFICACIÓN OBLIGATORIA", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.blueAccent)),
-        content: const Text("Por seguridad, debes validar tu identidad con una selfie y tu huella dactilar para comenzar a trabajar.", style: TextStyle(fontWeight: FontWeight.bold)),
+        title: Text(l10n.auth_verification_required_title, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.blueAccent)),
+        content: Text(l10n.auth_verification_required_body, style: const TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           TextButton(
             onPressed: () async {
@@ -267,7 +301,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 _processStatusChange(true);
               }
             },
-            child: const Text("CONTINUAR", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.blueAccent)),
+            child: Text(l10n.common_continue, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.blueAccent)),
           )
         ],
       ),

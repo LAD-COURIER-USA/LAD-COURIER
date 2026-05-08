@@ -1915,6 +1915,102 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Por seguridad, debes iniciar sesión de nuevo antes de borrar tu cuenta.'**
   String get delete_account_reauth_required;
+
+  /// No description provided for @common_payment_required_title.
+  ///
+  /// In es, this message translates to:
+  /// **'VINCULACIÓN DE PAGO'**
+  String get common_payment_required_title;
+
+  /// No description provided for @common_payment_required_msg.
+  ///
+  /// In es, this message translates to:
+  /// **'Para garantizar la seguridad de tus pedidos, debes vincular un método de pago en tu perfil.'**
+  String get common_payment_required_msg;
+
+  /// No description provided for @driver_inactivity_title.
+  ///
+  /// In es, this message translates to:
+  /// **'MODO DESCANSO'**
+  String get driver_inactivity_title;
+
+  /// No description provided for @driver_inactivity_msg.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu disponibilidad se ha cerrado automáticamente por llevar más de 4 horas sin actividad. Si estás listo para trabajar, vuelve a ponerte online.'**
+  String get driver_inactivity_msg;
+
+  /// No description provided for @common_logout.
+  ///
+  /// In es, this message translates to:
+  /// **'CERRAR SESIÓN'**
+  String get common_logout;
+
+  /// No description provided for @common_logout_confirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Estás seguro de que quieres salir? Tendrás que poner tu email y contraseña de nuevo para refrescar la seguridad.'**
+  String get common_logout_confirm;
+
+  /// No description provided for @common_exit.
+  ///
+  /// In es, this message translates to:
+  /// **'SALIR'**
+  String get common_exit;
+
+  /// No description provided for @common_continue.
+  ///
+  /// In es, this message translates to:
+  /// **'CONTINUAR'**
+  String get common_continue;
+
+  /// No description provided for @auth_verification_required_title.
+  ///
+  /// In es, this message translates to:
+  /// **'🛡️ VERIFICACIÓN OBLIGATORIA'**
+  String get auth_verification_required_title;
+
+  /// No description provided for @auth_verification_required_body.
+  ///
+  /// In es, this message translates to:
+  /// **'Por seguridad, debes validar tu identidad con una selfie y tu huella dactilar para comenzar a trabajar.'**
+  String get auth_verification_required_body;
+
+  /// No description provided for @client_dash_negotiations_title.
+  ///
+  /// In es, this message translates to:
+  /// **'NEGOCIACIONES'**
+  String get client_dash_negotiations_title;
+
+  /// No description provided for @client_dash_no_negotiations.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin negociaciones pendientes'**
+  String get client_dash_no_negotiations;
+
+  /// No description provided for @client_dash_no_active_missions.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin misiones activas'**
+  String get client_dash_no_active_missions;
+
+  /// No description provided for @client_dash_order_active.
+  ///
+  /// In es, this message translates to:
+  /// **'ORDEN ACTIVA'**
+  String get client_dash_order_active;
+
+  /// No description provided for @client_dash_driver_resting_body.
+  ///
+  /// In es, this message translates to:
+  /// **'EL DRIVER {name} NO ESTÁ RECIBIENDO ÓRDENES EN ESTE MOMENTO. ¿DESEAS BUSCAR OTRO DRIVER DISPONIBLE?'**
+  String client_dash_driver_resting_body(String name);
+
+  /// No description provided for @client_dash_invite_code_label.
+  ///
+  /// In es, this message translates to:
+  /// **'INGRESE EL CÓDIGO DE VINCULACIÓN DEL DRIVER:'**
+  String get client_dash_invite_code_label;
 }
 
 class _AppLocalizationsDelegate

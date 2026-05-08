@@ -469,5 +469,28 @@
   "delete_account_confirm_title": "SIPRIME KONT LAN NÈT ALE?",
   "delete_account_confirm_body": "Aksyon sa a ap efase tout done ou yo, istorik ak koneksyon. Sa pa ka anile.",
   "delete_account_btn_confirm": "WI, EFÈSE TOUT BAGAY",
-  "delete_account_reauth_required": "Pou sekirite, ou dwe konekte ankò anvan ou siprime kont ou."
+  "delete_account_reauth_required": "Pou sekirite, ou dwe konekte ankò anvan ou siprime kont ou.",
+  "common_payment_required_title": "PÈMAN OBLIGATWA",
+  "common_payment_required_msg": "Pou garanti sekirite kòmand ou yo, ou dwe lye yon metòd pèman nan pwofil ou.",
+  "driver_inactivity_title": "MÒD REPO",
+  "driver_inactivity_msg": "Disponibilite w fèmen otomatikman paske w inaktif depi plis pase 4 èdtan. Si w pare pou w travay, tanpri tounen an liy ankò.",
+  "common_logout": "DEKONEKTE",
+  "common_logout_confirm": "Èske ou sèten ou vle dekonekte? Ou pral bezwen antre imèl ak modpas ou ankò pou rafrechi sekirite a.",
+  "common_exit": "SOTI",
+  "common_continue": "KONTINYE",
+  "auth_verification_required_title": "🛡️ VERIFIKASYON OBLIGATWA",
+  "auth_verification_required_body": "Pou sekirite, ou dwe valide idantite w ak yon selfie ak anprent dwèt ou pou w kòmanse travay.",
+  "client_dash_negotiations_title": "NEGOSYASYON",
+  "client_dash_no_negotiations": "Pa gen negosyasyon pandan",
+  "client_dash_no_active_missions": "Pa gen misyon aktif",
+  "client_dash_order_active": "KÒMAND AKTIF",
+  "client_dash_driver_resting_body": "CHOFÈ {name} PA RESEVWA KÒMAND NAN MOMAN SA A. ÈSKE OU VLE CHÈCHE YON LÒT CHOFÈ DISPONIB?",
+  "@client_dash_driver_resting_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_invite_code_label": "ANTRE KÒD LYEZON CHOFÈ A:"
 }

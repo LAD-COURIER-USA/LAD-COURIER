@@ -1003,4 +1003,59 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get delete_account_reauth_required =>
       'Par sécurité, vous devez vous reconnecter avant de supprimer votre compte.';
+
+  @override
+  String get common_payment_required_title => 'PAIEMENT REQUIS';
+
+  @override
+  String get common_payment_required_msg =>
+      'Pour garantir la sécurité de vos commandes, vous devez lier un mode de paiement dans votre profil.';
+
+  @override
+  String get driver_inactivity_title => 'MODE REPOS';
+
+  @override
+  String get driver_inactivity_msg =>
+      'Votre disponibilité a été automatiquement fermée car vous avez été inactif pendant plus de 4 heures. Si vous êtes prêt à travailler, veuillez vous remettre en ligne.';
+
+  @override
+  String get common_logout => 'DÉCONNEXION';
+
+  @override
+  String get common_logout_confirm =>
+      'Êtes-vous sûr de vouloir vous déconnecter ? Vous devrez saisir à nouveau votre e-mail et votre mot de passe pour rafraîchir la sécurité.';
+
+  @override
+  String get common_exit => 'QUITTER';
+
+  @override
+  String get common_continue => 'CONTINUER';
+
+  @override
+  String get auth_verification_required_title => '🛡️ VÉRIFICATION OBLIGATOIRE';
+
+  @override
+  String get auth_verification_required_body =>
+      'Par sécurité, vous devez valider votre identité avec un selfie et votre empreinte digitale pour commencer à travailler.';
+
+  @override
+  String get client_dash_negotiations_title => 'NÉGOCIATIONS';
+
+  @override
+  String get client_dash_no_negotiations => 'Aucune négociation en cours';
+
+  @override
+  String get client_dash_no_active_missions => 'Aucune mission active';
+
+  @override
+  String get client_dash_order_active => 'COMMANDE ACTIVE';
+
+  @override
+  String client_dash_driver_resting_body(String name) {
+    return 'LE DRIVER $name NE REÇOIT PAS DE COMMANDES POUR LE MOMENT. VOULEZ-VOUS CHERCHER UN AUTRE DRIVER DISPONIBLE ?';
+  }
+
+  @override
+  String get client_dash_invite_code_label =>
+      'ENTREZ LE CODE DE LIAISON DU DRIVER :';
 }

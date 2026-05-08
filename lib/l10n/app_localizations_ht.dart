@@ -990,4 +990,58 @@ class AppLocalizationsHt extends AppLocalizations {
   @override
   String get delete_account_reauth_required =>
       'Pou sekirite, ou dwe konekte ankò anvan ou siprime kont ou.';
+
+  @override
+  String get common_payment_required_title => 'PÈMAN OBLIGATWA';
+
+  @override
+  String get common_payment_required_msg =>
+      'Pou garanti sekirite kòmand ou yo, ou dwe lye yon metòd pèman nan pwofil ou.';
+
+  @override
+  String get driver_inactivity_title => 'MÒD REPO';
+
+  @override
+  String get driver_inactivity_msg =>
+      'Disponibilite w fèmen otomatikman paske w inaktif depi plis pase 4 èdtan. Si w pare pou w travay, tanpri tounen an liy ankò.';
+
+  @override
+  String get common_logout => 'DEKONEKTE';
+
+  @override
+  String get common_logout_confirm =>
+      'Èske ou sèten ou vle dekonekte? Ou pral bezwen antre imèl ak modpas ou ankò pou rafrechi sekirite a.';
+
+  @override
+  String get common_exit => 'SOTI';
+
+  @override
+  String get common_continue => 'KONTINYE';
+
+  @override
+  String get auth_verification_required_title => '🛡️ VERIFIKASYON OBLIGATWA';
+
+  @override
+  String get auth_verification_required_body =>
+      'Pou sekirite, ou dwe valide idantite w ak yon selfie ak anprent dwèt ou pou w kòmanse travay.';
+
+  @override
+  String get client_dash_negotiations_title => 'NEGOSYASYON';
+
+  @override
+  String get client_dash_no_negotiations => 'Pa gen negosyasyon pandan';
+
+  @override
+  String get client_dash_no_active_missions => 'Pa gen misyon aktif';
+
+  @override
+  String get client_dash_order_active => 'KÒMAND AKTIF';
+
+  @override
+  String client_dash_driver_resting_body(String name) {
+    return 'CHOFÈ $name PA RESEVWA KÒMAND NAN MOMAN SA A. ÈSKE OU VLE CHÈCHE YON LÒT CHOFÈ DISPONIB?';
+  }
+
+  @override
+  String get client_dash_invite_code_label => 'ANTRE KÒD LYEZON CHOFÈ A:';
 }

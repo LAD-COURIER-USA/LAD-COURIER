@@ -45,6 +45,7 @@ class UserService {
       if (isActive) {
         final position = await _locationService.getCurrentLocation(context);
         dataToUpdate['workZoneCenter'] = GeoPoint(position.latitude, position.longitude);
+        dataToUpdate['lastActiveAt'] = FieldValue.serverTimestamp(); // 🛡️ SISTEMA LAD: Marca de inicio de turno
       } else {
         dataToUpdate['workZoneCenter'] = null;
       }

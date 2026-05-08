@@ -469,5 +469,28 @@
   "delete_account_confirm_title": "DELETE ACCOUNT PERMANENTLY?",
   "delete_account_confirm_body": "This action will delete all your data, history, and connections. It cannot be undone.",
   "delete_account_btn_confirm": "YES, DELETE EVERYTHING",
-  "delete_account_reauth_required": "For security, you must log in again before deleting your account."
+  "delete_account_reauth_required": "For security, you must log in again before deleting your account.",
+  "common_payment_required_title": "PAYMENT LINK REQUIRED",
+  "common_payment_required_msg": "To ensure the security of your orders, you must link a payment method in your profile.",
+  "driver_inactivity_title": "REST MODE",
+  "driver_inactivity_msg": "Your availability has been automatically closed because you have been inactive for more than 4 hours. If you are ready to work, please go online again.",
+  "common_logout": "LOG OUT",
+  "common_logout_confirm": "Are you sure you want to log out? You will need to enter your email and password again to refresh security.",
+  "common_exit": "EXIT",
+  "common_continue": "CONTINUE",
+  "auth_verification_required_title": "🛡️ MANDATORY VERIFICATION",
+  "auth_verification_required_body": "For security, you must validate your identity with a selfie and your fingerprint to start working.",
+  "client_dash_negotiations_title": "NEGOTIATIONS",
+  "client_dash_no_negotiations": "No pending negotiations",
+  "client_dash_no_active_missions": "No active missions",
+  "client_dash_order_active": "ACTIVE ORDER",
+  "client_dash_driver_resting_body": "DRIVER {name} IS NOT RECEIVING ORDERS AT THIS TIME. WOULD YOU LIKE TO SEARCH FOR ANOTHER AVAILABLE DRIVER?",
+  "@client_dash_driver_resting_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "client_dash_invite_code_label": "ENTER DRIVER LINKING CODE:"
 }

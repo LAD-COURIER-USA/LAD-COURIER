@@ -56,12 +56,12 @@ class _ClientDashboardState extends State<ClientDashboard> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("INGRESE EL CÓDIGO DE VINCULACIÓN DEL DRIVER:", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
+            Text(l10n.client_dash_invite_code_label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
             const SizedBox(height: 15),
             TextField(
               controller: codeController,
               decoration: InputDecoration(
-                hintText: "Código ID",
+                hintText: l10n.client_dash_invite_hint,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
               ),
             ),
@@ -85,6 +85,39 @@ class _ClientDashboardState extends State<ClientDashboard> {
         ],
       ),
     );
+  }
+
+  /// 🛡️ SISTEMA LAD: Verificación de Método de Pago antes de ordenar
+  bool _checkPaymentMethodStatus(AppLocalizations l10n) {
+    if (_clientProfile?.defaultPaymentMethodId == null) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+          title: Row(
+            children: [
+              const Icon(Icons.credit_card_off_outlined, color: Colors.redAccent),
+              const SizedBox(width: 10),
+              Text(l10n.common_payment_required_title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+            ],
+          ),
+          content: Text(l10n.common_payment_required_msg, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.blueGrey)),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.common_cancel.toUpperCase())),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ClientProfilePage())).then((_) => _loadProfile());
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+              child: Text(l10n.prof_btn_save.toUpperCase(), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold)),
+            ),
+          ],
+        ),
+      );
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -118,7 +151,11 @@ class _ClientDashboardState extends State<ClientDashboard> {
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateOrderPage(autoStartOCR: false))),
+        onPressed: () {
+          if (_checkPaymentMethodStatus(l10n)) {
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateOrderPage(autoStartOCR: false)));
+          }
+        },
         backgroundColor: Colors.black,
         icon: const Icon(Icons.add_circle_outline, color: Colors.greenAccent),
         label: Text(l10n.client_dash_order_here.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
@@ -137,7 +174,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
               _buildSectionTitle(l10n.client_dash_active_missions.toUpperCase(), Icons.radar, Colors.indigo[900]!),
               _buildActiveOrdersList(l10n),
               const SizedBox(height: 25),
-              _buildSectionTitle("NEGOCIACIONES", Icons.handshake_outlined, Colors.orange[900]!),
+              _buildSectionTitle(l10n.client_dash_negotiations_title.toUpperCase(), Icons.handshake_outlined, Colors.orange[900]!),
               _buildNegotiationList(l10n),
               const SizedBox(height: 25),
               _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black),
@@ -205,13 +242,13 @@ class _ClientDashboardState extends State<ClientDashboard> {
           return Container(
             height: 80,
             decoration: BoxDecoration(color: Colors.indigo[50], borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.indigo[100]!)),
-            child: const Center(child: Text("Sin misiones activas", style: TextStyle(color: Colors.indigo, fontSize: 12, fontWeight: FontWeight.bold))),
+            child: Center(child: Text(l10n.client_dash_no_active_missions, style: const TextStyle(color: Colors.indigo, fontSize: 12, fontWeight: FontWeight.bold))),
           );
         }
         return Column(
           children: orders.map((order) {
             double progress = order.status == 'picked_up' ? 0.7 : 0.3;
-            String statusText = order.statusMessage?.toUpperCase() ?? "ORDEN ACTIVA";
+            String statusText = order.statusMessage?.toUpperCase() ?? l10n.client_dash_order_active;
             
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
@@ -260,7 +297,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
           return Container(
             height: 80,
             decoration: BoxDecoration(color: Colors.orange[50], borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.orange[100]!)),
-            child: const Center(child: Text("Sin negociaciones pendientes", style: TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold))),
+            child: Center(child: Text(l10n.client_dash_no_negotiations, style: const TextStyle(color: Colors.orange, fontSize: 12, fontWeight: FontWeight.bold))),
           );
         }
         return Column(
@@ -320,6 +357,8 @@ class _ClientDashboardState extends State<ClientDashboard> {
         child: InkWell(
           borderRadius: BorderRadius.circular(25),
           onTap: () {
+            if (!_checkPaymentMethodStatus(l10n)) return;
+
             if (!m.isMessengerActive) {
               _showDriverRestingDialog(m, l10n);
               return;
@@ -411,7 +450,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
             Text(l10n.client_dash_driver_resting.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
           ],
         ),
-        content: Text("EL DRIVER ${m.displayName?.toUpperCase()} NO ESTÁ RECIBIENDO ÓRDENES EN ESTE MOMENTO. ¿DESEAS BUSCAR OTRO DRIVER DISPONIBLE?", style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+        content: Text(l10n.client_dash_driver_resting_body(m.displayName ?? 'Driver'), style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.common_cancel.toUpperCase(), style: const TextStyle(color: Colors.black))),
           ElevatedButton(
@@ -420,7 +459,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
               Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateOrderPage(autoStartOCR: false)));
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-            child: const Text("BUSCAR OTRO", style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w900)),
+            child: Text(l10n.create_order_search_available.toUpperCase(), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w900)),
           ),
         ],
       ),

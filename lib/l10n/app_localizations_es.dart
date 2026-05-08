@@ -997,4 +997,59 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get delete_account_reauth_required =>
       'Por seguridad, debes iniciar sesión de nuevo antes de borrar tu cuenta.';
+
+  @override
+  String get common_payment_required_title => 'VINCULACIÓN DE PAGO';
+
+  @override
+  String get common_payment_required_msg =>
+      'Para garantizar la seguridad de tus pedidos, debes vincular un método de pago en tu perfil.';
+
+  @override
+  String get driver_inactivity_title => 'MODO DESCANSO';
+
+  @override
+  String get driver_inactivity_msg =>
+      'Tu disponibilidad se ha cerrado automáticamente por llevar más de 4 horas sin actividad. Si estás listo para trabajar, vuelve a ponerte online.';
+
+  @override
+  String get common_logout => 'CERRAR SESIÓN';
+
+  @override
+  String get common_logout_confirm =>
+      '¿Estás seguro de que quieres salir? Tendrás que poner tu email y contraseña de nuevo para refrescar la seguridad.';
+
+  @override
+  String get common_exit => 'SALIR';
+
+  @override
+  String get common_continue => 'CONTINUAR';
+
+  @override
+  String get auth_verification_required_title => '🛡️ VERIFICACIÓN OBLIGATORIA';
+
+  @override
+  String get auth_verification_required_body =>
+      'Por seguridad, debes validar tu identidad con una selfie y tu huella dactilar para comenzar a trabajar.';
+
+  @override
+  String get client_dash_negotiations_title => 'NEGOCIACIONES';
+
+  @override
+  String get client_dash_no_negotiations => 'Sin negociaciones pendientes';
+
+  @override
+  String get client_dash_no_active_missions => 'Sin misiones activas';
+
+  @override
+  String get client_dash_order_active => 'ORDEN ACTIVA';
+
+  @override
+  String client_dash_driver_resting_body(String name) {
+    return 'EL DRIVER $name NO ESTÁ RECIBIENDO ÓRDENES EN ESTE MOMENTO. ¿DESEAS BUSCAR OTRO DRIVER DISPONIBLE?';
+  }
+
+  @override
+  String get client_dash_invite_code_label =>
+      'INGRESE EL CÓDIGO DE VINCULACIÓN DEL DRIVER:';
 }
