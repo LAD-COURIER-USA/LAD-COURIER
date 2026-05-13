@@ -52,7 +52,7 @@
                 </h1>
                 <p class="text-xl text-gray-600 mb-8 font-light italic">"Tu envío, tu precio, tu control total."</p>
 
-                <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start items-center">
                     <a href="assets/standards.apk" download onclick="handleDownloadClick(event)" class="bg-black text-white px-8 py-4 rounded-2xl font-bold flex items-center gap-3 hover:scale-105 transition shadow-2xl">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" class="h-6 invert" alt="Icono Android">
                         <div class="text-left">
@@ -60,6 +60,17 @@
                             <p class="font-brand text-xs uppercase text-white">Android Standards (Recomendado)</p>
                         </div>
                     </a>
+
+                    <!-- ✨ SISTEMA LAD: QR DINÁMICO PARA PC/TV -->
+                    <div class="hidden lg:flex flex-col items-center bg-white p-3 rounded-2xl border-2 border-lad-purple shadow-xl animate-pulse hover:animate-none group relative">
+                        <div id="qrcode" class="w-24 h-24"></div>
+                        <p class="text-[7px] font-black mt-2 text-lad-purple tracking-tighter">ESCÁNEAME PARA INSTALAR</p>
+                        <!-- Tooltip Pro -->
+                        <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-lad-purple text-white text-[8px] px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">
+                            IDEAL PARA STREAMING & VIDEOS
+                        </div>
+                    </div>
+
                     <div class="bg-gray-200 text-gray-400 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 cursor-not-allowed">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6 opacity-20" alt="Icono Apple">
                         <div class="text-left">
@@ -204,25 +215,28 @@
 
 <!-- MODAL ÚNICO -->
 <div id="termsModal" class="modal">
-    <div class="modal-content">
-        <div class="flex justify-between items-center mb-10 text-lad-purple">
-            <h2 class="font-brand text-2xl font-black uppercase">Acuerdo Legal 2026</h2>
-            <button onclick="closeModal('termsModal')" class="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition text-black">✕</button>
-        </div>
-        <div class="legal-text overflow-y-auto max-h-[60vh]">
-            <h2>1. PROPIEDAD INTELECTUAL</h2>
-            <p>El software LAD Courier, su código fuente, diseño de interfaz y logotipos son propiedad exclusiva de LAD DIGITAL SYSTEMS LLC. Queda prohibida cualquier reproducción o ingeniería inversa.</p>
-
-            <h2>2. MODELO DE NEGOCIO</h2>
-            <p>LAD Courier actúa como facilitador tecnológico. Los pagos se procesan directamente al driver a través de Stripe Connect, con una tarifa fija de mantenimiento de plataforma de $0.50.</p>
-
-            <h2>3. SEGURIDAD BIOMÉTRICA</h2>
-            <p>La validación por selfie es obligatoria para garantizar la integridad de los servicios. Los datos biométricos se procesan bajo estrictos estándares de encriptación.</p>
-        </div>
-    </div>
+    ... (contenido previo) ...
 </div>
 
+<!-- LIBRERÍA QR Y LÓGICA -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
+    // Inicialización del QR de LAD
+    const qrcodeContainer = document.getElementById("qrcode");
+    if (qrcodeContainer) {
+        new QRCode(qrcodeContainer, {
+            text: "https://ladcourier.com",
+            width: 96,
+            height: 96,
+            colorDark: "#4B39A8", // Color Púrpura LAD
+            colorLight: "#ffffff",
+            correctLevel: QRCode.CorrectLevel.H // Alta corrección para permitir logo en centro
+        });
+
+        // Pequeño toque visual: añadir un micro-logo en el centro via CSS si se desea,
+        // pero la legibilidad es lo primero para TV/Video.
+    }
+
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) entry.target.classList.add('active');

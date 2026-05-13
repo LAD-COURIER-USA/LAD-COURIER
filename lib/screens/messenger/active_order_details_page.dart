@@ -195,7 +195,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
   }
 
   Future<void> _startNavigation(GeoPoint dest, String id, bool isPickup) async {
-    // 🛡️ SISTEMA LAD: VALIDACIÓN DE PAGO (SOLO AL RECOGER) - BLINDAJE FINANCIERO
+    /* 🛡️ SISTEMA LAD: BLOQUE DE RETENCIÓN COMENTADO TEMPORALMENTE PARA PRUEBAS DE FLUJO FINANCIERO
     if (isPickup) {
       setState(() => _isUploading = true);
       try {
@@ -211,10 +211,9 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
 
         debugPrint("🚀 SISTEMA LAD: Intentando autorizar cobro de \$${widget.order.price}...");
 
-        // Llamamos a la Cloud Function de Retención (Authorize)
         final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('authorizeOrderPayment');
         final result = await callable.call({
-          'amount': ((widget.order.price ?? 0.0) * 100).toInt(), // Convertir a centavos
+          'amount': ((widget.order.price ?? 0.0) * 100).toInt(),
           'driverStripeAccountId': stripeAcc,
           'orderId': id,
           'paymentMethodId': paymentMethod,
@@ -228,33 +227,31 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
         debugPrint("✅ SISTEMA LAD: Pago autorizado y fondos retenidos en Stripe.");
       } catch (e) {
         if (mounted) {
-          _showErrorDialog("Blindaje Financiero LAD", "No pudimos retener los fondos del cliente. La orden será registrada en el historial como fallida por seguridad.\n\nDetalle: $e");
-          
-          await _orderService.updateOrderStatus(
-            id, 
-            OrderStatus.cancelled, 
-            message: "⚠️ ORDEN DETENIDA: La tarjeta del cliente fue rechazada. Motivo: $e"
-          );
-
+          _showErrorDialog("Blindaje Financiero LAD", "No pudimos retener los fondos. Detalle: $e");
+          await _orderService.updateOrderStatus(id, OrderStatus.cancelled, message: "⚠️ ORDEN DETENIDA: Error de fondos.");
           await _notifyPaymentFailure(id, e.toString());
-
-          if (mounted) {
-            Navigator.pop(context); // Sacamos al driver para que no pierda tiempo
-          }
         }
         if (mounted) setState(() => _isUploading = false);
         return;
       }
     }
+    */
 
     final uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${dest.latitude},${dest.longitude}&travelmode=driving');
     await _orderService.updateOrderStatus(
         id, isPickup ? OrderStatus.enRouteToPickup : OrderStatus.enRouteToDelivery,
         message: isPickup ? "🚀 Iniciando ruta de recogida." : "🚚 Iniciando ruta de entrega.");
+    
     setState(() => _isUploading = false);
-    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (await canLaunchUrl(uri)) {
+      // 🛡️ SISTEMA LAD: Usamos LaunchMode.externalApplication para que Android 
+      // mantenga nuestra app viva en segundo plano de forma más robusta.
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
   }
 
+  /* 🛡️ SISTEMA LAD: Comentado temporalmente junto con el bloque de retención
   void _showErrorDialog(String title, String msg) {
     showDialog(
       context: context,
@@ -265,21 +262,31 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
       ),
     );
   }
+  */
 
   Future<void> _completeOrder(OrderModel order) async {
     if (_deliveryPhoto == null) return;
     setState(() => _isUploading = true);
     try {
-      // 1. CAPTURAR EL PAGO EN STRIPE
-      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('captureOrderPayment');
+      // 1. EJECUTAR EL COBRO REAL E INMEDIATO (MODELO SAAS DIRECTO)
+      final messenger = await _userService.getUser(FirebaseAuth.instance.currentUser!.uid);
+      final client = await _userService.getUser(widget.order.clientId);
+
+      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('processImmediatePayment');
       try {
-        final result = await callable.call({'orderId': order.id});
+        final result = await callable.call({
+          'amount': ((order.price ?? 0.0) * 100).toInt(),
+          'driverStripeAccountId': messenger?.stripeAccountId,
+          'orderId': order.id,
+          'paymentMethodId': client?.defaultPaymentMethodId,
+          'customerId': client?.stripeCustomerId,
+        });
+
         if (result.data['success'] != true) {
           throw result.data['error'] ?? "Error desconocido en Stripe";
         }
       } catch (stripeError) {
-        debugPrint("SISTEMA LAD: Error capturando pago: $stripeError");
-        // 🛡️ MODO DESARROLLADOR: Permitir bypass si falla el pago en TEST
+        debugPrint("SISTEMA LAD: Error cobrando: $stripeError");
         bool bypass = await _showBypassDialog(stripeError.toString());
         if (!bypass) {
           setState(() => _isUploading = false);
@@ -287,7 +294,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
         }
       }
 
-      // 2. SUBIR EVIDENCIA Y COMPLETAR ORDEN (Solo si el pago fue OK o se hizo bypass)
+      // 2. SUBIR EVIDENCIA Y COMPLETAR ORDEN
       final String fileName = _deliveryPhotoName ?? "delivery_${order.id}_${DateTime.now().millisecondsSinceEpoch}.jpg";
       final ref = FirebaseStorage.instance.ref().child('delivery_evidence').child(fileName);
 
@@ -349,12 +356,14 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     if (await canLaunchUrl(smsUri)) await launchUrl(smsUri);
   }
 
+  /* 🛡️ SISTEMA LAD: Comentado temporalmente junto con el bloque de retención
   Future<void> _notifyPaymentFailure(String orderId, String error) async {
     if (_clientProfile?.phoneNumber == null) return;
     final String message = "LAD COURIER: Tu orden #${orderId.substring(0, 5)} ha sido cancelada. Tu banco rechazó la retención de fondos. Por favor actualiza tu tarjeta en el perfil.";
     final Uri smsUri = Uri.parse("sms:${_clientProfile!.phoneNumber}?body=${Uri.encodeComponent(message)}");
     if (await canLaunchUrl(smsUri)) await launchUrl(smsUri);
   }
+  */
 
   @override
   Widget build(BuildContext context) {
@@ -593,42 +602,58 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
             if (isPickupPhase && _isNearPoint)
               _btn(l10n.order_details_btn_arrived, Icons.check_box, Colors.green, () async {
 
-                // 🚀 ENGRANAJE DE AUTO-APRENDIZAJE SOBERANO REPARADO
+                // 🚀 ENGRANAJE DE AUTO-APRENDIZAJE SOBERANO REPARADO (V3 - ROBUSTO)
                 try {
-                  final pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
                   final String? driverId = FirebaseAuth.instance.currentUser?.uid;
-
                   if (driverId != null) {
                     final String fullAddr = order.pickupAddress.toUpperCase();
-                    // Extraer número (primer bloque de dígitos)
-                    final String streetNum = fullAddr.split(' ')[0].replaceAll(RegExp(r'\D'), '');
-                    // Regex Flexible: Acepta ZIP de 5 o 5+4 dígitos (Florida 32, 33, 34)
+                    
+                    // 🧠 Extracción Robusta: Buscamos el ZIP (5 dígitos)
                     final RegExp zipRegex = RegExp(r'\b(\d{5}(?:-\d{4})?)\b');
                     final String? zip = zipRegex.firstMatch(fullAddr)?.group(0);
 
-                    String store = "Comercio Local";
-                    if (order.packageDetails != null && order.packageDetails!.contains("RECOGER EN ")) {
-                      final parts = order.packageDetails!.split("RECOGER EN ");
-                      if (parts.length > 1) {
-                        store = parts[1].split(".")[0].trim();
+                    // 🧠 Extracción Robusta: Buscamos el Número de Calle (1-6 dígitos que no sea el ZIP)
+                    String? streetNum;
+                    final allNumMatches = RegExp(r'\b\d{1,6}\b').allMatches(fullAddr);
+                    for (var m in allNumMatches) {
+                      if (m.group(0) != zip) {
+                        streetNum = m.group(0);
+                        break;
                       }
                     }
 
-                    if (zip != null && streetNum.isNotEmpty) {
+                    if (zip != null && streetNum != null) {
+                      // Intentamos obtener el GPS para máxima precisión de LAD
+                      Position? pos;
+                      try {
+                        pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 3));
+                      } catch (_) {
+                        // Si falla el GPS, usamos el del pedido original (menos preciso pero sirve)
+                        debugPrint("LAD: GPS falló en aprendizaje, usando fallback.");
+                      }
+
+                      String store = "Comercio Local";
+                      if (order.packageDetails != null && order.packageDetails!.contains("RECOGER EN ")) {
+                        final parts = order.packageDetails!.split("RECOGER EN ");
+                        if (parts.length > 1) {
+                          store = parts[1].split(".")[0].trim();
+                        }
+                      }
+
                       await _geodataService.registerNewValidatedStore(
                         zip: zip,
                         streetNumber: streetNum,
                         storeName: store,
                         fullAddress: order.pickupAddress,
-                        lat: pos.latitude,
-                        lng: pos.longitude,
+                        lat: pos?.latitude ?? order.pickupLatLng!.latitude,
+                        lng: pos?.longitude ?? order.pickupLatLng!.longitude,
                         driverId: driverId,
                       );
-                      debugPrint("LAD: Inteligencia Soberana alimentada.");
+                      debugPrint("LAD: Inteligencia Soberana alimentada con éxito.");
                     }
                   }
                 } catch (e) {
-                  debugPrint("LAD: Error en Auto-Aprendizaje: $e");
+                  debugPrint("LAD: Error en Auto-Aprendizaje (V3): $e");
                 }
                 // -------------------------------------------
 

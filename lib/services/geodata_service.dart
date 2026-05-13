@@ -110,7 +110,7 @@ class GeodataService {
     return null;
   }
 
-  /// RESTAURADO: Permite que el Driver enseñe nuevas direcciones al sistema
+  /// RESTAURADO: Permite que el sistema aprenda nuevas direcciones validadas
   Future<void> registerNewValidatedStore({
     required String zip,
     required String streetNumber,
@@ -118,14 +118,19 @@ class GeodataService {
     required String fullAddress,
     required double lat,
     required double lng,
-    required String driverId,
+    required String driverId, // Puede ser UID de Driver o Cliente
     String countryCode = "US",
     String? stateCode,
   }) async {
     try {
+      // 🧹 Limpieza de ZIP: Nos quedamos con los primeros 5 dígitos para el ADN
       final cleanZip = zip.replaceAll(RegExp(r'[^0-9]'), '').trim();
-      final finalZip = cleanZip.length > 5 ? cleanZip.substring(0, 5) : cleanZip;
+      final finalZip = cleanZip.length >= 5 ? cleanZip.substring(0, 5) : cleanZip;
+      
+      if (finalZip.isEmpty) return;
+
       final cleanNum = streetNumber.trim().toUpperCase();
+      if (cleanNum.isEmpty) return;
 
       String state = (stateCode == null || stateCode.isEmpty || stateCode == "XX")
           ? _inferStateFromZip(finalZip)
@@ -139,27 +144,33 @@ class GeodataService {
         'name': storeName.toUpperCase(),
         'active': true,
         'is_verified': true,
-        'source': 'driver_validated',
+        'source': 'auto_learned',
         'validated_by': driverId,
         'validation_date': FieldValue.serverTimestamp(),
         'address': {
           'number': cleanNum,
           'street': fullAddress.toUpperCase().replaceFirst(cleanNum, '').trim(),
-          'city': '',
+          'city': '', 
           'state': state,
           'zip': finalZip,
-          'country': 'US',
+          'country': countryCode,
         },
         'gps': {'lat': lat, 'lon': lng},
         'search_key': docId,
       };
 
       await _db.collection(collectionName).doc(docId).set(storeData, SetOptions(merge: true));
+      
+      // Fallback para Florida (Compatibilidad con sistema viejo)
+      if (state == "FL") {
+        await _db.collection('geodata_fl').doc(docId).set(storeData, SetOptions(merge: true));
+      }
+
       _enrichData(storeData);
       _memoryCache[docId] = storeData;
-      debugPrint("LAD: Dirección aprendida con éxito: $docId");
+      debugPrint("LAD: Dirección incorporada al ADN: $docId");
     } catch (e) {
-      debugPrint("LAD ERROR en Auto-Aprendizaje: $e");
+      debugPrint("LAD ERROR en Incorporación ADN: $e");
     }
   }
 

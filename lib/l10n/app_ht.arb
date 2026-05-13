@@ -470,6 +470,8 @@
   "delete_account_confirm_body": "Aksyon sa a ap efase tout done ou yo, istorik ak koneksyon. Sa pa ka anile.",
   "delete_account_btn_confirm": "WI, EFÈSE TOUT BAGAY",
   "delete_account_reauth_required": "Pou sekirite, ou dwe konekte ankò anvan ou siprime kont ou.",
+  "driver_agreement_title": "AKÒ LICANS SaaS",
+  "driver_agreement_body": "LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Lisans sa a ka anile nenpòt lè ak pou nenpòt sikonstans dapre diskresyon LAD. Frè Sèvis ($0.50) ak kondisyon yo ka chanje avèk yon avi dijital davans.",
   "common_payment_required_title": "PÈMAN OBLIGATWA",
   "common_payment_required_msg": "Pou garanti sekirite kòmand ou yo, ou dwe lye yon metòd pèman nan pwofil ou.",
   "driver_inactivity_title": "MÒD REPO",

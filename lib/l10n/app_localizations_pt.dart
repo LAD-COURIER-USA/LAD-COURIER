@@ -998,6 +998,13 @@ class AppLocalizationsPt extends AppLocalizations {
       'Por segurança, você deve iniciar sessão de novo antes de apagar sua conta.';
 
   @override
+  String get driver_agreement_title => 'CONTRATO DE LICENÇA SaaS';
+
+  @override
+  String get driver_agreement_body =>
+      'A LAD DIGITAL SYSTEMS LLC concede a você uma licença de uso de software limitada, não exclusiva e revogável. Você reconhece que a LAD não é seu empregador. Esta licença pode ser cancelada a qualquer momento e por qualquer circunstância a critério da LAD. A Taxa de Serviço (\$0,50) e os termos podem mudar com aviso digital prévio.';
+
+  @override
   String get common_payment_required_title => 'PAGAMENTO NECESSÁRIO';
 
   @override

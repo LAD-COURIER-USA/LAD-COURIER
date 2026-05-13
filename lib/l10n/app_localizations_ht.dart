@@ -992,6 +992,13 @@ class AppLocalizationsHt extends AppLocalizations {
       'Pou sekirite, ou dwe konekte ankò anvan ou siprime kont ou.';
 
   @override
+  String get driver_agreement_title => 'AKÒ LICANS SaaS';
+
+  @override
+  String get driver_agreement_body =>
+      'LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Lisans sa a ka anile nenpòt lè ak pou nenpòt sikonstans dapre diskresyon LAD. Frè Sèvis (\$0.50) ak kondisyon yo ka chanje avèk yon avi dijital davans.';
+
+  @override
   String get common_payment_required_title => 'PÈMAN OBLIGATWA';
 
   @override

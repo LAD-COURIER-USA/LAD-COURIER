@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:lad_courier/models/order_model.dart';
@@ -10,6 +11,8 @@ import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/services.dart';
 
 class ClientDashboard extends StatefulWidget {
   const ClientDashboard({super.key});
@@ -22,13 +25,66 @@ class _ClientDashboardState extends State<ClientDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final UserService _userService = UserService();
   final OrderService _orderService = OrderService();
+  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  
   UserModel? _clientProfile;
   bool _isLoading = true;
+
+  StreamSubscription? _negotiationSubscription;
+  Map<String, int> _lastKnownOffersState = {};
 
   @override
   void initState() {
     super.initState();
+    _initializeNotifications();
     _loadProfile();
+    _startNegotiationListener();
+  }
+
+  Future<void> _initializeNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+    AndroidInitializationSettings('@mipmap/ic_launcher');
+    const InitializationSettings initializationSettings =
+    InitializationSettings(android: initializationSettingsAndroid);
+    await _localNotifications.initialize(initializationSettings);
+  }
+
+  void _startNegotiationListener() {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    _negotiationSubscription?.cancel();
+    _negotiationSubscription = _orderService.getOrdersForClientResponseStream(user.uid).listen((orders) {
+      if (!mounted) return;
+
+      if (_lastKnownOffersState.isNotEmpty) {
+        for (var o in orders) {
+          bool isUpdated = _lastKnownOffersState.containsKey(o.id) && 
+                           o.negotiationHistory.length > _lastKnownOffersState[o.id]!;
+
+          if (isUpdated && o.lastPriceOfferedBy == 'driver') {
+            _triggerAlert("💰 NUEVA OFERTA", "El driver ${o.messengerName} ha enviado una propuesta.");
+          }
+        }
+      }
+      _lastKnownOffersState = {for (var o in orders) o.id: o.negotiationHistory.length};
+    });
+  }
+
+  void _triggerAlert(String title, String body) async {
+    HapticFeedback.vibrate();
+    const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
+      'high_importance_channel', 'Alertas de Pedidos Urgentes',
+      importance: Importance.max, priority: Priority.high, playSound: true,
+    );
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    await _localNotifications.show(DateTime.now().millisecond, title, body, platformChannelSpecifics);
+  }
+
+  @override
+  void dispose() {
+    _negotiationSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadProfile() async {

@@ -16,6 +16,7 @@ class OrderModel {
   final String id;
   final String clientId;
   final String clientName;
+  final String? clientEmail; // 📧 NUEVO: Para registros en Stripe
   final String? clientPhotoUrl;
   final String assignedMessengerId;
   final String? messengerName;
@@ -40,12 +41,17 @@ class OrderModel {
   final String? productPhotoUrl;
   final String countryCode; // 🌍 SOPORTE INTERNACIONAL
 
+  // 🛡️ COPIA DE SEGURIDAD FINANCIERA (BLINDAJE LAD)
+  final String? stripeCustomerId;
+  final String? paymentMethodId;
+
   List<Map<String, dynamic>> get priceOffers => negotiationHistory;
 
   OrderModel({
     required this.id,
     required this.clientId,
     required this.clientName,
+    this.clientEmail,
     this.clientPhotoUrl,
     required this.assignedMessengerId,
     this.messengerName,
@@ -69,6 +75,8 @@ class OrderModel {
     this.deliveryProofUrl,
     this.productPhotoUrl,
     this.countryCode = "US",
+    this.stripeCustomerId,
+    this.paymentMethodId,
   });
 
   factory OrderModel.fromFirestore(DocumentSnapshot doc) {
@@ -77,6 +85,7 @@ class OrderModel {
       id: doc.id,
       clientId: data['clientId'] ?? '',
       clientName: data['clientName'] ?? '',
+      clientEmail: data['clientEmail'],
       clientPhotoUrl: data['clientPhotoUrl'],
       assignedMessengerId: data['assignedMessengerId'] ?? '',
       messengerName: data['messengerName'],
@@ -100,6 +109,8 @@ class OrderModel {
       deliveryProofUrl: data['deliveryProofUrl'],
       productPhotoUrl: data['productPhotoUrl'],
       countryCode: data['countryCode'] ?? "US",
+      stripeCustomerId: data['stripeCustomerId'],
+      paymentMethodId: data['paymentMethodId'],
     );
   }
 
@@ -107,6 +118,7 @@ class OrderModel {
     return {
       'clientId': clientId,
       'clientName': clientName,
+      'clientEmail': clientEmail,
       'clientPhotoUrl': clientPhotoUrl,
       'assignedMessengerId': assignedMessengerId,
       'messengerName': messengerName,
@@ -130,6 +142,8 @@ class OrderModel {
       'deliveryProofUrl': deliveryProofUrl,
       'productPhotoUrl': productPhotoUrl,
       'countryCode': countryCode,
+      'stripeCustomerId': stripeCustomerId,
+      'paymentMethodId': paymentMethodId,
     };
   }
 }

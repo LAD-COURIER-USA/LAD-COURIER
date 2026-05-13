@@ -470,6 +470,8 @@
   "delete_account_confirm_body": "Esta ação apagará todos os seus dados, histórico e conexões. Não pode ser desfeita.",
   "delete_account_btn_confirm": "SIM, ELIMINAR TUDO",
   "delete_account_reauth_required": "Por segurança, você deve iniciar sessão de novo antes de apagar sua conta.",
+  "driver_agreement_title": "CONTRATO DE LICENÇA SaaS",
+  "driver_agreement_body": "A LAD DIGITAL SYSTEMS LLC concede a você uma licença de uso de software limitada, não exclusiva e revogável. Você reconhece que a LAD não é seu empregador. Esta licença pode ser cancelada a qualquer momento e por qualquer circunstância a critério da LAD. A Taxa de Serviço ($0,50) e os termos podem mudar com aviso digital prévio.",
   "common_payment_required_title": "PAGAMENTO NECESSÁRIO",
   "common_payment_required_msg": "Para garantir a segurança dos seus pedidos, você deve vincular um método de pagamento no seu perfil.",
   "driver_inactivity_title": "MODO DESCANSO",

@@ -12,6 +12,7 @@ class OrderService {
   Future<String> createOrder({
     required String clientId,
     required String clientName,
+    String? clientEmail,
     String? clientPhotoUrl,
     required String assignedMessengerId,
     String? messengerName,
@@ -24,12 +25,15 @@ class OrderService {
     String? packageDetails,
     String? productPhotoUrl,
     String countryCode = "US",
+    String? stripeCustomerId, // 🛡️ CAPA SEGURIDAD 1
+    String? paymentMethodId,  // 🛡️ CAPA SEGURIDAD 1
   }) async {
     try {
       final newOrder = OrderModel(
         id: '',
         clientId: clientId,
         clientName: clientName,
+        clientEmail: clientEmail,
         clientPhotoUrl: clientPhotoUrl,
         assignedMessengerId: assignedMessengerId,
         messengerName: messengerName,
@@ -46,6 +50,8 @@ class OrderService {
         createdAt: Timestamp.now(),
         lastPriceOfferedBy: 'client',
         countryCode: countryCode,
+        stripeCustomerId: stripeCustomerId, // 🔑 GUARDADO EN LA ORDEN
+        paymentMethodId: paymentMethodId,    // 🔑 GUARDADO EN LA ORDEN
       );
       final docRef = await _ordersRef.add(newOrder);
       return docRef.id;

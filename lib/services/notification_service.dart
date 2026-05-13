@@ -32,6 +32,7 @@ class NotificationService {
         importance: Importance.max,
         playSound: true,
         enableVibration: true,
+        showBadge: true,
       );
 
       // Creamos el canal físicamente en el Android de Lucrecio

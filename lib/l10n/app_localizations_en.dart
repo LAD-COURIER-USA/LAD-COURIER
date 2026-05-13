@@ -993,6 +993,13 @@ class AppLocalizationsEn extends AppLocalizations {
       'For security, you must log in again before deleting your account.';
 
   @override
+  String get driver_agreement_title => 'SaaS LICENSE AGREEMENT';
+
+  @override
+  String get driver_agreement_body =>
+      'LAD DIGITAL SYSTEMS LLC grants you a limited, non-exclusive and revocable software use license. You acknowledge that LAD is not your employer. This license can be canceled at any time and for any circumstance at LAD\'s discretion. The Service Fee (\$0.50) and terms may change with prior digital notice.';
+
+  @override
   String get common_payment_required_title => 'PAYMENT LINK REQUIRED';
 
   @override

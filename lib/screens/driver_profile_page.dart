@@ -461,7 +461,6 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
               Text(l10n.prof_section_pay, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black)),
               const SizedBox(height: 15),
               _buildStripeConnectCard(l10n),
-              _buildPaymentCard(title: l10n.prof_pay_paypal, subtitle: l10n.prof_pay_paypal_sub, icon: Icons.payment, color: Colors.blue[800]!),
 
               const SizedBox(height: 40),
               SizedBox(

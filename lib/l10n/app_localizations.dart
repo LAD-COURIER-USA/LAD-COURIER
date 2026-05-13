@@ -1916,6 +1916,18 @@ abstract class AppLocalizations {
   /// **'Por seguridad, debes iniciar sesión de nuevo antes de borrar tu cuenta.'**
   String get delete_account_reauth_required;
 
+  /// No description provided for @driver_agreement_title.
+  ///
+  /// In es, this message translates to:
+  /// **'ACUERDO DE LICENCIA SaaS'**
+  String get driver_agreement_title;
+
+  /// No description provided for @driver_agreement_body.
+  ///
+  /// In es, this message translates to:
+  /// **'LAD DIGITAL SYSTEMS LLC le otorga una licencia de uso de software limitada, no exclusiva y revocable. Usted reconoce que LAD no es su empleador. Esta licencia puede ser cancelada en cualquier momento y por cualquier circunstancia a discreción de LAD. El Service Fee (\$0.50) y los términos pueden cambiar con previo aviso digital.'**
+  String get driver_agreement_body;
+
   /// No description provided for @common_payment_required_title.
   ///
   /// In es, this message translates to:

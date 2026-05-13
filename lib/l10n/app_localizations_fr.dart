@@ -1005,6 +1005,13 @@ class AppLocalizationsFr extends AppLocalizations {
       'Par sécurité, vous devez vous reconnecter avant de supprimer votre compte.';
 
   @override
+  String get driver_agreement_title => 'ACCORD DE LICENCE SaaS';
+
+  @override
+  String get driver_agreement_body =>
+      'LAD DIGITAL SYSTEMS LLC vous accorde une licence d\'utilisation logicielle limitée, non exclusive et révocable. Vous reconnaissez que LAD n\'est pas votre employeur. Cette licence peut être annulée à tout moment et pour toute circonstance à la discrétion de LAD. Les frais de service (0,50 \$) et les conditions peuvent changer avec un préavis numérique.';
+
+  @override
   String get common_payment_required_title => 'PAIEMENT REQUIS';
 
   @override

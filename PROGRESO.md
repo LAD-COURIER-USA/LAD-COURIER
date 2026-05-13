@@ -1,31 +1,28 @@
 # 📋 Bitácora de Progreso - LAD DIGITAL SYSTEMS LLC
 
-## 🛡️ Estado de la Misión: OPERACIÓN "REGRESO MAESTRO Y DISEÑO EXQUISITO" (6 de Mayo, 2026) 🚀
+## 🛡️ Estado de la Misión: OPERACIÓN "MARKETPLACE PURO Y SEGURIDAD TOTAL" (7 de Mayo, 2026) 🚀
 
-### 🟢 LOGROS CUMPLIDOS HOY (AUDITORÍA Y BLINDAJE)
-- ✅ **Auditoría de Secuencia:** Identificación del fallo de DNS/Red como causante del "mareo" de la App.
-- ✅ **Cerebro de Resiliencia:** Implementación de `WidgetsBindingObserver` para auto-sincronización de Stripe al volver a la App.
-- ✅ **Bypass de Seguridad:** Botón de reintento en carga inicial para evitar bloqueos por App Check en desarrollo.
-- ✅ **Stripe Express Activado:** Drivers ya pueden acceder a su Dashboard de ganancias real.
-- ✅ **Sincronización de Llaves:** Alineación de Secret Keys (SK) y Public Keys (PK) para eliminar errores de API.
-- ✅ **Diseño Pulido:** Acortamiento de textos en botones ("VERIFICACIÓN", "PROCESANDO") para mayor elegancia visual.
+### 🟢 LOGROS CUMPLIDOS HOY (INGENIERÍA FINANCIERA Y MARKETING)
+- ✅ **Ingeniería Financiera (Direct Charges):** Transición exitosa al modelo de Marketplace Puro. El Driver es ahora el responsable fiscal (Merchant of Record). Stripe cobra su comisión directamente al Driver, y LAD Digital Systems LLC recibe sus **$0.50 netos** limpios. ¡Seguridad total ante el IRS!
+- ✅ **Barrera de Pago Preventiva:** Implementación de bloqueo de órdenes para clientes sin tarjeta vinculada. Protegemos el tiempo de los Drivers asegurando la solvencia antes de la negociación.
+- ✅ **Cierre de Turno Automático (4h):** Sistema de higiene del mapa activo. Los drivers se ponen en "Modo Descanso" automáticamente tras 4 horas de inactividad, garantizando un radar fresco para el cliente.
+- ✅ **Marketing de Próxima Generación (QR Dinámico):** Inyección de generador QR en la Landing Page. Diseñado con alta corrección (Level H) y colores LAD para ser escaneado desde TVs, YouTube o transmisiones de influencers.
+- ✅ **Localización Global (5 Idiomas):** Auditoría total de textos. La App ya habla perfectamente **Español, Inglés, Francés, Portugués y Haitiano**, sin mensajes "hardcoded".
+- ✅ **Vinculación con Memoria:** El sistema de "Rescate de Referidos" ahora es inteligente; requiere prefijo `ref=` y recuerda si un usuario ya rechazó una invitación para no molestarlo de nuevo.
+- ✅ **Repositorio Blindado:** Limpieza profunda de secretos (Stripe Keys y Google Master Keys) en el historial de Git. Lanzamiento del nuevo repositorio oficial en GitHub para **LAD-COURIER-USA**.
 
 ---
 
-## 🌐 FASE 2: EXPANSIÓN Y ESTRATEGIA DE RED 🚀
+## 🌐 FASE 3: LANZAMIENTO Y ESCALABILIDAD 🚀
 
 ### 🟢 ACTUALIZACIONES ESTRATÉGICAS
-- ✅ **Transparencia B (Driver paga Stripe):** Implementación del modelo de fee fijo de $0.50 para LAD y comisión técnica para Stripe asumida por el driver.
-- ✅ **Borrado Blindado:** Función de eliminación de cuenta que limpia Firebase Auth, Firestore y Stripe simultáneamente.
+- ✅ **Infraestructura Cloud:** Despliegue de Cloud Functions actualizadas con lógica de beneficios netos.
+- ✅ **Sincronización Web-App:** Landing page actualizada para copiar IDs en el formato de seguridad `ref=ID`.
 
-### 🔴 PRÓXIMOS PASOS (MAÑANA EN LA MAÑANA)
-- 🔄 **Sellado de Asset Links:** Actualizar `assetlinks.json` con SHA-256 actuales y desplegar hosting para regreso automático.
-- 🔄 **Solución de Overflow:** Hacer scrollable el panel de "PAGOS DIRECTOS" en el perfil del driver.
-- 🔄 **Prueba de Fuego Final:** Ciclo completo de orden con driver nuevo y regreso automático desde el navegador.
-
----
-**"LAD COURIER: ¡NEGOCIACIÓN DIRECTA, PAGOS SEGUROS Y UN SISTEMA QUE RESCATA CADA CLIENTE!"**
-🛡️🚀💳🌎🏁
+### 🔴 PRÓXIMOS PASOS (FASE DE CAMPO)
+- 🔄 **Monitoreo de Stripe Connect:** Verificar los primeros reportes de "Application Fees" netos de $0.50 en el dashboard de LAD.
+- 🔄 **Test de Estrés de Radar:** Simular múltiples drivers en diferentes ciudades para asegurar que la flexibilidad de servicios ("Mensajería" vs "Courier") no cause fricción.
+- 🔄 **Distribución de APK:** Subir las versiones finales Standards, Legacy y Future a la plataforma de distribución masiva.
 
 ---
 **"LAD COURIER: ¡NEGOCIACIÓN DIRECTA, PAGOS SEGUROS Y UN SISTEMA QUE RESCATA CADA CLIENTE!"**

@@ -171,15 +171,6 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
                   }
                 },
               ),
-              
-              _buildPaymentCard(
-                title: l10n.client_prof_paypal_title,
-                subtitle: l10n.client_prof_paypal_subtitle,
-                icon: Icons.payment,
-                color: Colors.blue[800]!,
-                onTap: () {},
-              ),
-              const SizedBox(height: 20),
 
               _buildMenuTile(
                 title: l10n.client_prof_completed_orders,
