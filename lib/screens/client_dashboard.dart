@@ -31,7 +31,9 @@ class _ClientDashboardState extends State<ClientDashboard> {
   bool _isLoading = true;
 
   StreamSubscription? _negotiationSubscription;
+  StreamSubscription? _rejectionSubscription; 
   Map<String, int> _lastKnownOffersState = {};
+  Map<String, String> _lastKnownRejectedState = {}; // 🔄 NUEVO: Para no repetir avisos
 
   @override
   void initState() {
@@ -39,6 +41,24 @@ class _ClientDashboardState extends State<ClientDashboard> {
     _initializeNotifications();
     _loadProfile();
     _startNegotiationListener();
+    _startRejectionListener(); 
+  }
+
+  void _startRejectionListener() {
+    final user = _auth.currentUser;
+    if (user == null) return;
+
+    _rejectionSubscription?.cancel();
+    _rejectionSubscription = _orderService.getRejectedOrdersStream(user.uid).listen((orders) {
+      if (!mounted) return;
+      
+      for (var o in orders) {
+        if (!_lastKnownRejectedState.containsKey(o.id)) {
+          _triggerAlert("⚠️ MISIÓN RECHAZADA", "El driver ${o.messengerName ?? ''} ha declinado tu solicitud.");
+        }
+      }
+      _lastKnownRejectedState = {for (var o in orders) o.id: o.status};
+    });
   }
 
   Future<void> _initializeNotifications() async {
@@ -233,6 +253,9 @@ class _ClientDashboardState extends State<ClientDashboard> {
               _buildSectionTitle(l10n.client_dash_negotiations_title.toUpperCase(), Icons.handshake_outlined, Colors.orange[900]!),
               _buildNegotiationList(l10n),
               const SizedBox(height: 25),
+              _buildSectionTitle("SOLICITUDES RECHAZADAS", Icons.warning_amber_rounded, Colors.red[900]!),
+              _buildRejectedOrdersList(l10n),
+              const SizedBox(height: 25),
               _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black),
               _buildMessengerDetailedList(l10n),
               const SizedBox(height: 80),
@@ -371,6 +394,64 @@ class _ClientDashboardState extends State<ClientDashboard> {
                 subtitle: Text("OFERTA DE ${order.messengerName?.toUpperCase()}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.orange)),
                 trailing: const Icon(Icons.chevron_right, color: Colors.orange),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ClientNegotiationPage(orderId: order.id))),
+              ),
+            );
+          }).toList(),
+        );
+      },
+    );
+  }
+
+  Widget _buildRejectedOrdersList(AppLocalizations l10n) {
+    final uid = _auth.currentUser?.uid ?? '';
+    return StreamBuilder<List<OrderModel>>(
+      stream: _orderService.getRejectedOrdersStream(uid),
+      builder: (context, snapshot) {
+        final orders = snapshot.data ?? [];
+        if (orders.isEmpty) return const SizedBox.shrink();
+
+        return Column(
+          children: orders.map((order) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.red[50],
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.red[100]!),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.cancel_outlined, color: Colors.red),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("MISIÓN RECHAZADA", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.red)),
+                        Text("Por: ${order.messengerName ?? 'Driver'}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54)),
+                      ],
+                    ),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      // 🚀 REASIGNACIÓN INTELIGENTE
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateOrderPage(reassignOrder: order),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red[900],
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                    ),
+                    child: const Text("REASIGNAR", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                  ),
+                ],
               ),
             );
           }).toList(),

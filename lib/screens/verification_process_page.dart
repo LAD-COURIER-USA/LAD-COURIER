@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart'; // 🛡️ IMPORTACIÓN PARA FIRESTORE
 import 'package:lad_courier/services/stripe_service.dart';
 import 'package:lad_courier/services/user_service.dart';
+import 'package:lad_courier/services/storage_service.dart';
 import 'package:lad_courier/models/user_model.dart';
 
 class VerificationProcessPage extends StatefulWidget {
@@ -15,8 +17,8 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
   final StripeService _stripeService = StripeService();
   final UserService _userService = UserService();
 
-  bool _isStripeLoading = false;
   bool _isOnboardingLoading = false;
+  bool _isBiometricLoading = false;
 
   @override
   void initState() {
@@ -40,25 +42,64 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
     }
   }
 
-  Future<void> _startStripeIdentity(UserModel user) async {
-    if (user.stripeAccountId == null || user.stripeAccountId!.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("⚠️ Debes iniciar la Vinculación Bancaria primero.")),
-      );
-      return;
-    }
+  Future<void> _startBiometricVerification(UserModel user) async {
+    final storage = StorageService();
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    setState(() => _isStripeLoading = true);
     try {
-      await _stripeService.verifyIdentity(context);
+      setState(() => _isBiometricLoading = true);
+
+      // 1. CAPTURAR SELFIE DE LA JORNADA
+      // 🤳 Esta foto será la evidencia legal de quién operó el sistema hoy.
+      final String? sessionSelfieUrl = await storage.uploadProductPhoto(
+        "session_${user.uid}_${DateTime.now().millisecondsSinceEpoch}", 
+        context, 
+        customTitle: "AUDITORÍA DE JORNADA", 
+        customSubtitle: "Tómate una selfie clara para iniciar tu turno de hoy."
+      );
+
+      if (sessionSelfieUrl == null) {
+        setState(() => _isBiometricLoading = false);
+        return;
+      }
+
+      // 2. VALIDACIÓN POR HUELLA DACTILAR (Dueño del dispositivo)
+      // ☝️ El sensor del teléfono confirma que el usuario es el autorizado.
+      final bool isAuthentic = await _userService.authenticateBiometric(
+        reason: "Confirma tu identidad con tu huella para validar la selfie de hoy."
+      );
+
+      if (!isAuthentic) {
+        if (mounted) {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text("❌ FALLO DE IDENTIDAD: La huella no coincide."), backgroundColor: Colors.red),
+          );
+        }
+        return;
+      }
+
+      // 3. ACTUALIZACIÓN FINAL (SISTEMA LAD 24H)
+      // Guardamos la evidencia y marcamos el éxito.
+      await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+        'lastSessionSelfieUrl': sessionSelfieUrl,
+        'last_biometric_verification': FieldValue.serverTimestamp(),
+        'verificationStatus': 'APROBADO_DOC',
+        'isIdentityVerified': true,
+      });
+
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text("✅ VERIFICACIÓN DE JORNADA EXITOSA"), backgroundColor: Colors.green),
+        );
+      }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error de Identidad: $e")),
+        scaffoldMessenger.showSnackBar(
+          SnackBar(content: Text("Error de Verificación: $e"), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted) setState(() => _isStripeLoading = false);
+      if (mounted) setState(() => _isBiometricLoading = false);
     }
   }
 
@@ -197,8 +238,8 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
                     description: "Escanea tu ID y tómate una selfie.",
                     icon: isIdentityVerified ? Icons.check_circle : Icons.face_retouching_natural,
                     buttonLabel: isIdentityVerified ? "IDENTIDAD VERIFICADA" : "INICIAR ESCANEO ID",
-                    isLoading: _isStripeLoading,
-                    onPressed: hasStripeAccount ? () => _startStripeIdentity(userModel) : () {},
+                    isLoading: _isBiometricLoading,
+                    onPressed: hasStripeAccount ? () => _startBiometricVerification(userModel) : () {},
                     color: isIdentityVerified ? Colors.green : (hasStripeAccount ? Colors.indigo : Colors.grey),
                     isEnabled: hasStripeAccount && !isIdentityVerified,
                     isCompleted: isIdentityVerified,

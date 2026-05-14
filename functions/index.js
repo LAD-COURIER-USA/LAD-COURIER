@@ -10,11 +10,11 @@ if (admin.apps.length === 0) {
 
 /**
  * 🛡️ CONFIGURACIÓN GLOBAL LAD DIGITAL SYSTEMS LLC
- * REGIÓN: us-central1 (Baja latencia para USA)
+ * REGIÓN: us-central1
  */
 const REGION = "us-central1";
 
-// --- HELPERS PARA CARGA PERESOZA (OPTIMIZACIÓN DE RECURSOS) ---
+// --- HELPERS ---
 let stripeInstance;
 function getStripe() {
     if (!stripeInstance) {
@@ -24,75 +24,25 @@ function getStripe() {
     return stripeInstance;
 }
 
-let rekognitionInstance;
-function getRekognition() {
-    if (!rekognitionInstance) {
-        const AWS = require('aws-sdk');
-        rekognitionInstance = new AWS.Rekognition({
-            accessKeyId: process.env.AWS_ACCESS_KEY || null,
-            secretAccessKey: process.env.AWS_SECRET_KEY || null,
-            region: process.env.AWS_REGION || 'us-east-1'
-        });
-    }
-    return rekognitionInstance;
-}
-
 /**
- * 🛡️ 1. VÍNCULO INVISIBLE DE INVITACIÓN (RESILIENCIA DE REFERIDOS)
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO - SISTEMA DE REFERIDOS PROBADO
  */
 exports.logReferral = onRequest({ region: REGION, invoker: "public" }, async (req, res) => {
     const driverId = req.query.id;
     const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
-    console.log(`[LOG REFERIDO] Procesando IP: ${ip} para Driver: ${driverId}`);
     if (driverId && ip) {
         const docId = ip.replace(/\./g, "_").replace(/:/g, "_");
         await admin.firestore().collection("temp_referrals").doc(docId).set({
             driverId: driverId,
-            timestamp: admin.firestore.FieldValue.serverTimestamp(),
-            userAgent: req.headers['user-agent']
+            timestamp: admin.firestore.FieldValue.serverTimestamp()
         });
     }
     res.status(200).send("Referral logged");
 });
 
 /**
- * 🛡️ 2. VALIDACIÓN BIOMÉTRICA REFORZADA (AMAZON REKOGNITION)
- */
-exports.verifyBiometricIdentity = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
-    let uid = request.auth?.uid || request.data.uid;
-    if (!uid) throw new HttpsError("unauthenticated", "Sesión inválida.");
-    const { selfieUrl, masterPhotoUrl } = request.data;
-    if (!selfieUrl || !masterPhotoUrl) throw new HttpsError("invalid-argument", "Faltan imágenes.");
-    try {
-        const axios = require('axios');
-        const stripeSecret = process.env.STRIPE_SECRET_TEST;
-        const [masterRes, selfieRes] = await Promise.all([
-            axios.get(masterPhotoUrl, { responseType: 'arraybuffer', headers: { 'Authorization': `Bearer ${stripeSecret}` } }),
-            axios.get(selfieUrl, { responseType: 'arraybuffer' })
-        ]);
-        const params = {
-            SourceImage: { Bytes: Buffer.from(masterRes.data, 'binary') },
-            TargetImage: { Bytes: Buffer.from(selfieRes.data, 'binary') },
-            SimilarityThreshold: 70
-        };
-        const response = await getRekognition().compareFaces(params).promise();
-        const isMatch = response.FaceMatches && response.FaceMatches.length > 0;
-        const confidence = isMatch ? response.FaceMatches[0].Similarity : 0;
-        await admin.firestore().collection("users").doc(uid).update({
-            lastIdentityVerification: admin.firestore.FieldValue.serverTimestamp(),
-            biometric_confidence: confidence,
-            verificationStatus: isMatch ? 'APROBADO' : 'FALLO_BIOMETRICO',
-            isIdentityVerified: isMatch
-        });
-        return { success: isMatch, confidence: confidence };
-    } catch (error) {
-        logger.error("❌ [BIOMETRÍA] Error Rekognition:", error);
-        throw new HttpsError("internal", error.message);
-    }
-});
-
-/**
- * 💳 3. STRIPE CONNECT: ONBOARDING (EXPRESS)
+ * 💳 3. STRIPE CONNECT: ONBOARDING
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO - FLUJO DE REGISTRO BANCARIO PROBADO
  */
 exports.createStripeAccount = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "No logueado.");
@@ -104,10 +54,7 @@ exports.createStripeAccount = onCall({ region: REGION, invoker: "public", secret
         if (!stripeAccountId) {
             const account = await stripe.accounts.create({
                 type: 'express',
-                email: request.auth.token.email,
-                business_profile: { name: `LAD Driver - ${uid}` },
                 capabilities: { card_payments: { requested: true }, transfers: { requested: true } },
-                controller: { fees: { payer: 'account' }, losses: { payments: 'account' } },
                 metadata: { firebaseUid: uid }
             });
             stripeAccountId = account.id;
@@ -124,58 +71,53 @@ exports.createStripeAccount = onCall({ region: REGION, invoker: "public", secret
 });
 
 /**
- * 💳 4. RETENCIÓN (HOLD): MODO DIRECT CHARGE CON CLONACIÓN
+ * 💳 4. RETENCIÓN (HOLD)
+ * 🟡 ÁREA DE TRABAJO ACTUAL - MODELO SAAS DIRECTO
  */
 exports.authorizeOrderPayment = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "No logueado.");
-    const { amount, driverStripeAccountId, orderId, paymentMethodId } = request.data;
+    const { amount, driverStripeAccountId, orderId } = request.data;
     const stripe = getStripe();
     try {
         const orderDoc = await admin.firestore().collection("orders").doc(orderId).get();
         const orderData = orderDoc.data();
-        const clientEmail = orderData.clientEmail || `cliente_${orderData.clientId}@ladcourier.com`;
+        const clientDoc = await admin.firestore().collection("users").doc(orderData.clientId).get();
+        const platformCustomerId = clientDoc.data()?.stripeCustomerId;
+        const platformPaymentMethodId = clientDoc.data()?.defaultPaymentMethodId;
 
-        // 1. Crear el Cliente "Espejo" en la cuenta del Driver
-        const customerMirror = await stripe.customers.create({
-            email: clientEmail,
-            metadata: { platformClientId: orderData.clientId }
-        }, { stripeAccount: driverStripeAccountId });
+        if (!platformCustomerId || !platformPaymentMethodId) throw new Error("Cliente no configurado.");
 
-        // 2. Clonar el método de pago VINCULÁNDOLO al cliente espejo
+        const mirror = await stripe.customers.create({ email: clientDoc.data().email }, { stripeAccount: driverStripeAccountId });
         const clonedMethod = await stripe.paymentMethods.create({
-            payment_method: paymentMethodId,
-            customer: customerMirror.id,
+            payment_method: platformPaymentMethodId,
+            customer: platformCustomerId
         }, { stripeAccount: driverStripeAccountId });
 
-        // 3. Crear el cobro con captura manual (HOLD)
+        await stripe.paymentMethods.attach(clonedMethod.id, { customer: mirror.id }, { stripeAccount: driverStripeAccountId });
+
         const paymentIntent = await stripe.paymentIntents.create({
             amount,
             currency: 'usd',
+            customer: mirror.id,
             payment_method: clonedMethod.id,
-            customer: customerMirror.id,
             capture_method: 'manual',
             confirm: true,
             off_session: true,
             application_fee_amount: 50,
-            metadata: { orderId: orderId, type: 'LAD_HOLD_DIRECT_SECURE' }
+            metadata: { orderId, type: 'LAD_HOLD_DIRECT' }
         }, { stripeAccount: driverStripeAccountId });
 
         await admin.firestore().collection("orders").doc(orderId).update({
             stripePaymentIntentId: paymentIntent.id,
-            stripeMirrorCustomerId: customerMirror.id,
-            paymentStatus: 'authorized',
-            ladNetProfit: 50,
-            chargeType: 'direct_cloned_secure'
+            paymentStatus: 'authorized'
         });
         return { success: true, paymentIntentId: paymentIntent.id };
-    } catch (error) {
-        console.error("❌ [STRIPE HOLD ERROR]:", error.message);
-        return { success: false, error: error.message };
-    }
+    } catch (error) { return { success: false, error: error.message }; }
 });
 
 /**
- * 💳 5. COBRO (CAPTURE): EJECUTAR EL COBRO AL ENTREGAR
+ * 💳 5. COBRO (CAPTURE)
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE CIERRE PROBADA
  */
 exports.captureOrderPayment = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     const { orderId } = request.data;
@@ -184,11 +126,8 @@ exports.captureOrderPayment = onCall({ region: REGION, invoker: "public", secret
         const orderDoc = await admin.firestore().collection("orders").doc(orderId).get();
         const orderData = orderDoc.data();
         const piId = orderData?.stripePaymentIntentId;
-        const driverFirebaseId = orderData?.assignedMessengerId;
-        if (!piId) throw new Error("No hay PaymentIntent para capturar.");
-        const driverDoc = await admin.firestore().collection("users").doc(driverFirebaseId).get();
+        const driverDoc = await admin.firestore().collection("users").doc(orderData.assignedMessengerId).get();
         const stripeAccountId = driverDoc.data()?.stripeAccountId;
-        if (!stripeAccountId) throw new Error("El Driver no tiene cuenta de Stripe.");
 
         await stripe.paymentIntents.capture(piId, {}, { stripeAccount: stripeAccountId });
         await admin.firestore().collection("orders").doc(orderId).update({
@@ -201,16 +140,17 @@ exports.captureOrderPayment = onCall({ region: REGION, invoker: "public", secret
 });
 
 /**
- * 💳 6. CANCELAR (CANCEL): LIBERAR FONDOS
+ * 💳 6. CANCELAR (CANCEL)
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LIBERACIÓN DE FONDOS PROBADA
  */
 exports.cancelOrderPayment = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     const { orderId } = request.data;
     const stripe = getStripe();
     try {
         const orderDoc = await admin.firestore().collection("orders").doc(orderId).get();
-        const piId = orderDoc.data()?.stripePaymentIntentId;
-        const driverId = orderData?.assignedMessengerId;
-        const driverDoc = await admin.firestore().collection("users").doc(driverId).get();
+        const orderData = orderDoc.data();
+        const piId = orderData?.stripePaymentIntentId;
+        const driverDoc = await admin.firestore().collection("users").doc(orderData.assignedMessengerId).get();
         const stripeAccountId = driverDoc.data()?.stripeAccountId;
 
         if (piId && stripeAccountId) {
@@ -222,7 +162,8 @@ exports.cancelOrderPayment = onCall({ region: REGION, invoker: "public", secrets
 });
 
 /**
- * 💳 7. SETUP INTENT (BÓVEDA DE TARJETAS)
+ * 💳 7. SETUP INTENT
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO - BÓVEDA DE SEGURIDAD PROBADA
  */
 exports.createSetupIntent = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "No logueado.");
@@ -243,7 +184,8 @@ exports.createSetupIntent = onCall({ region: REGION, invoker: "public", secrets:
 });
 
 /**
- * 💳 8. DASHBOARD LOGIN LINK (EXPRESS)
+ * 💳 8. DASHBOARD LOGIN LINK
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO
  */
 exports.createStripeLoginLink = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "No logueado.");
@@ -259,16 +201,13 @@ exports.createStripeLoginLink = onCall({ region: REGION, invoker: "public", secr
 });
 
 /**
- * 🗑️ 9. ELIMINAR CUENTA (BORRADO TÁCTICO)
+ * 🗑️ 9. ELIMINAR CUENTA
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO
  */
 exports.deleteUserAccount = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
-    if (!request.auth) throw new HttpsError("unauthenticated", "Debe iniciar sesión.");
+    if (!request.auth) throw new HttpsError("unauthenticated", "No logueado.");
     const uid = request.auth.uid;
-    const stripe = getStripe();
     try {
-        const userDoc = await admin.firestore().collection("users").doc(uid).get();
-        const stripeAccountId = userDoc.data()?.stripeAccountId;
-        if (stripeAccountId) { try { await stripe.accounts.del(stripeAccountId); } catch (e) {} }
         await admin.firestore().collection("users").doc(uid).delete();
         await admin.auth().deleteUser(uid);
         return { success: true };
@@ -276,7 +215,8 @@ exports.deleteUserAccount = onCall({ region: REGION, invoker: "public", secrets:
 });
 
 /**
- * 🔄 10. SINCRONIZACIÓN MANUAL DE MÉTODO DE PAGO
+ * 🔄 10. SINCRONIZACIÓN MANUAL DE TARJETA
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO
  */
 exports.syncPaymentMethod = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     const uid = request.auth?.uid;
@@ -285,7 +225,7 @@ exports.syncPaymentMethod = onCall({ region: REGION, invoker: "public", secrets:
     try {
         const userDoc = await admin.firestore().collection("users").doc(uid).get();
         const customerId = userDoc.data()?.stripeCustomerId;
-        if (!customerId) throw new Error("No hay CustomerId de Stripe.");
+        if (!customerId) throw new Error("No hay CustomerId.");
         const paymentMethods = await stripe.paymentMethods.list({ customer: customerId, type: 'card' });
         if (paymentMethods.data.length > 0) {
             const latestMethodId = paymentMethods.data[0].id;
@@ -298,6 +238,7 @@ exports.syncPaymentMethod = onCall({ region: REGION, invoker: "public", secrets:
 
 /**
  * 🔄 11. SINCRONIZACIÓN MANUAL STRIPE (STATUS DRIVER)
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO
  */
 exports.syncStripeStatus = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
     const uid = request.auth?.uid || request.data?.uid;
@@ -309,15 +250,14 @@ exports.syncStripeStatus = onCall({ region: REGION, invoker: "public", secrets: 
         if (!stripeAccountId) return { status: 'no_account' };
         const account = await stripe.accounts.retrieve(stripeAccountId);
         const isActive = account.details_submitted && account.charges_enabled;
-        if (isActive) {
-            await admin.firestore().collection("users").doc(uid).update({ stripeStatus: 'active', isStripeConnected: true });
-        }
+        if (isActive) { await admin.firestore().collection("users").doc(uid).update({ stripeStatus: 'active', isStripeConnected: true }); }
         return { status: isActive ? 'active' : 'pending' };
     } catch (error) { throw new HttpsError("internal", error.message); }
 });
 
 /**
  * 💳 12. WEBHOOK DE STRIPE
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO
  */
 exports.stripeWebhook = onRequest({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST", "STRIPE_WEBHOOK_SECRET_TEST"] }, async (req, res) => {
     const sig = req.headers['stripe-signature'];
@@ -331,6 +271,7 @@ exports.stripeWebhook = onRequest({ region: REGION, invoker: "public", secrets: 
 
 /**
  * 🔔 13. NOTIFICACIÓN DE NUEVA MISIÓN
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO
  */
 exports.notifyDriverOnNewOrder = onDocumentCreated({ region: REGION, document: "orders/{orderId}" }, async (event) => {
     const orderData = event.data.data();
@@ -351,6 +292,7 @@ exports.notifyDriverOnNewOrder = onDocumentCreated({ region: REGION, document: "
 
 /**
  * 🔔 14. NOTIFICACIÓN DE NEGOCIACIÓN
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO
  */
 exports.notifyOnNegotiationUpdate = onDocumentUpdated({ region: REGION, document: "orders/{orderId}" }, async (event) => {
     const newData = event.data.after.data();
@@ -373,57 +315,82 @@ exports.notifyOnNegotiationUpdate = onDocumentUpdated({ region: REGION, document
 });
 
 /**
- * 💳 15. COBRO INMEDIATO (SaaS MODEL - PRUEBA)
+ * 💳 15. COBRO DIRECTO (SAAS MODEL - EL QUE PROTEGE TU LLC)
+ * 🛡️ SISTEMA LAD: Amanda le paga DIRECTO a Lucrecio.
+ * 🟡 ÁREA DE TRABAJO ACTUAL - BLINDAJE FINANCIERO V6
  */
 exports.processImmediatePayment = onCall({ region: REGION, invoker: "public", secrets: ["STRIPE_SECRET_TEST"] }, async (request) => {
-    const { amount, driverStripeAccountId, orderId, paymentMethodId, customerId } = request.data;
+    const { amount, driverStripeAccountId, orderId } = request.data;
     const stripe = getStripe();
-
-    console.log(`[PAGO INMEDIATO] Iniciando cobro de $${amount/100} para Orden: ${orderId}`);
-
+    console.log(`[LAD SAAS] Iniciando Cobro Directo para Orden: ${orderId}`);
     try {
-        // 1. Intentar crear el Cliente Espejo (Mirror) con seguridad ante IDs huérfanos
-        let customerMirrorId;
-        try {
-            const customerMirror = await stripe.customers.create({
-                description: `Mirror for Order ${orderId}`,
-                metadata: { platformClientId: customerId || "unknown" }
-            }, { stripeAccount: driverStripeAccountId });
-            customerMirrorId = customerMirror.id;
-            console.log(`[PAGO INMEDIATO] Cliente Mirror creado: ${customerMirrorId}`);
-        } catch (e) {
-            console.warn("[PAGO INMEDIATO] No se pudo crear mirror con customerId base, intentando modo emergencia...");
-            const emergencyMirror = await stripe.customers.create({
-                description: `Emergency Mirror for Order ${orderId}`
-            }, { stripeAccount: driverStripeAccountId });
-            customerMirrorId = emergencyMirror.id;
-        }
+        const orderRef = admin.firestore().collection("orders").doc(orderId);
+        const orderDoc = await orderRef.get();
+        if (!orderDoc.exists) throw new Error("La orden no existe.");
+        const orderData = orderDoc.data();
 
-        // 2. Clonar el método de pago vinculado al nuevo espejo
+        // 1. Obtener al cliente real de la plataforma
+        const clientDoc = await admin.firestore().collection("users").doc(orderData.clientId).get();
+        const platformCustomerId = clientDoc.data()?.stripeCustomerId;
+        const platformPaymentMethodId = clientDoc.data()?.defaultPaymentMethodId;
+
+        if (!platformCustomerId || !platformPaymentMethodId) throw new Error("Falta método de pago.");
+
+        // 2. CREAR ESPEJO (MIRROR)
+        const mirror = await stripe.customers.create({ email: clientDoc.data().email }, { stripeAccount: driverStripeAccountId });
+
+        // 3. CLONAR TARJETA (LA LLAVE MAESTRA)
         const clonedMethod = await stripe.paymentMethods.create({
-            payment_method: paymentMethodId,
-            customer: customerMirrorId,
+            payment_method: platformPaymentMethodId,
+            customer: platformCustomerId, // ✅ LLAVE DE SEGURIDAD
         }, { stripeAccount: driverStripeAccountId });
 
-        console.log(`[PAGO INMEDIATO] Tarjeta clonada: ${clonedMethod.id}`);
+        // 4. VINCULAR TARJETA AL ESPEJO
+        await stripe.paymentMethods.attach(clonedMethod.id, {
+            customer: mirror.id,
+        }, { stripeAccount: driverStripeAccountId });
 
-        // 3. Ejecutar el cobro real e inmediato
+        // 5. EJECUTAR EL COBRO (DIRECT CHARGE)
         const charge = await stripe.paymentIntents.create({
             amount,
             currency: 'usd',
+            customer: mirror.id,
             payment_method: clonedMethod.id,
-            customer: customerMirrorId,
             confirm: true,
             off_session: true,
-            application_fee_amount: 50,
-            metadata: { orderId: orderId, type: 'LAD_IMMEDIATE_SECURE' }
+            application_fee_amount: 50, // 💵 Tu comisión de $0.50
+            metadata: { orderId, type: 'LAD_DIRECT_CHARGE_V6_FINAL' }
         }, { stripeAccount: driverStripeAccountId });
 
-        console.log(`[PAGO INMEDIATO EXITOSO] Charge ID: ${charge.id}`);
-        return { success: true, chargeId: charge.id };
+        await orderRef.update({
+            paymentStatus: 'captured',
+            stripePaymentIntentId: charge.id,
+            completedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
 
+        console.log(`[ÉXITO] Cobro Directo realizado. ID: ${charge.id}`);
+        return { success: true, chargeId: charge.id };
     } catch (error) {
-        console.error("❌ [PAGO INMEDIATO CRÍTICO]:", error.message);
+        console.error("❌ [LAD SAAS ERROR]:", error.message);
         return { success: false, error: error.message };
     }
+});
+
+/**
+ * 🧹 16. EL BARRENDERO LAD
+ * 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE LIMPIEZA PROBADA
+ */
+const { onSchedule } = require("firebase-functions/v2/scheduler");
+exports.autoCleanupOrders = onSchedule({ schedule: "every 5 minutes", region: REGION }, async (event) => {
+    const now = admin.firestore.Timestamp.now().toMillis();
+    const expiryTime = 30 * 60 * 1000;
+    const snapshot = await admin.firestore().collection("orders")
+        .where("status", "in", ["rejected", "cancelled", "negotiating"])
+        .get();
+    const batch = admin.firestore().batch();
+    let count = 0;
+    snapshot.forEach(doc => {
+        if (now - doc.data().createdAt.toMillis() > expiryTime) { batch.delete(doc.ref); count++; }
+    });
+    if (count > 0) await batch.commit();
 });

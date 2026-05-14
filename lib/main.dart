@@ -151,14 +151,15 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleInvitation(Uri uri) async {
-    String? referrerId = uri.queryParameters['ref'] ?? uri.queryParameters['id'];
+    // 🔍 Soporta: ladcourier://invite?id=XXX o https://ladcourier.com/invite?id=XXX
+    String? referrerId = uri.queryParameters['id'] ?? uri.queryParameters['ref'];
 
     if (referrerId == null || referrerId.isEmpty) {
       String fullUrl = uri.toString();
-      if (fullUrl.contains('ref=')) {
-        referrerId = fullUrl.split('ref=').last.split('&').first.split('/').first;
-      } else if (fullUrl.contains('id=')) {
+      if (fullUrl.contains('id=')) {
         referrerId = fullUrl.split('id=').last.split('&').first.split('/').first;
+      } else if (fullUrl.contains('ref=')) {
+        referrerId = fullUrl.split('ref=').last.split('&').first.split('/').first;
       }
     }
 

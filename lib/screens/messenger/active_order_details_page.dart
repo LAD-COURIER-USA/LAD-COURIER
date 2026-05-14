@@ -84,6 +84,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     if (mounted) setState(() => _clientProfile = profile);
   }
 
+  // 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE RADAR Y GPS PROBADA (GEODEFENSA)
   Future<void> _checkProximity() async {
     GeoPoint? targetLatLng;
     if (widget.order.status == OrderStatus.enRouteToPickup || widget.order.status == OrderStatus.active) {
@@ -157,6 +158,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     );
   }
 
+  // 🔴 NO TOCAR BAJO NINGUN CONCEPTO - SISTEMA DE CAPTURA Y RENOMBRADO DE EVIDENCIA
   Future<void> _takePhoto(AppLocalizations l10n) async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
@@ -194,6 +196,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     } catch (e) { debugPrint("Error foto: $e"); }
   }
 
+  // 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE INICIO DE RUTA Y NAVEGACIÓN EXTERNA
   Future<void> _startNavigation(GeoPoint dest, String id, bool isPickup) async {
     /* 🛡️ SISTEMA LAD: BLOQUE DE RETENCIÓN COMENTADO TEMPORALMENTE PARA PRUEBAS DE FLUJO FINANCIERO
     if (isPickup) {
@@ -264,22 +267,26 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
   }
   */
 
+  // 🟡 ÁREA DE TRABAJO CRÍTICA - FINALIZACIÓN Y COBRO (REVISAR CON CUIDADO)
   Future<void> _completeOrder(OrderModel order) async {
     if (_deliveryPhoto == null) return;
     setState(() => _isUploading = true);
     try {
       // 1. EJECUTAR EL COBRO REAL E INMEDIATO (MODELO SAAS DIRECTO)
       final messenger = await _userService.getUser(FirebaseAuth.instance.currentUser!.uid);
-      final client = await _userService.getUser(widget.order.clientId);
 
-      final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('processImmediatePayment');
+
+      // 🛡️ SISTEMA LAD: Forzamos la región us-central1 para evitar el error NOT_FOUND
+      final HttpsCallable callable = FirebaseFunctions.instanceFor(region: 'us-central1')
+          .httpsCallable('processImmediatePayment');
+
       try {
         final result = await callable.call({
           'amount': ((order.price ?? 0.0) * 100).toInt(),
           'driverStripeAccountId': messenger?.stripeAccountId,
           'orderId': order.id,
-          'paymentMethodId': client?.defaultPaymentMethodId,
-          'customerId': client?.stripeCustomerId,
+          // 🛡️ SISTEMA LAD: Ya no enviamos paymentMethodId ni customerId.
+          // El servidor los buscará directamente en Firestore para evitar IDs viejos.
         });
 
         if (result.data['success'] != true) {
@@ -301,11 +308,23 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
       await ref.putFile(_deliveryPhoto!);
       final String downloadUrl = await ref.getDownloadURL();
 
+      // 🛡️ CAPA AUDITORÍA PERFECTA LAD: Capturamos GPS y Selfie de Auditoría
+      Position? completionPos;
+      try {
+        completionPos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 3));
+      } catch (e) {
+        debugPrint("LAD AUDIT: Error capturando GPS final: $e");
+      }
+
       await FirebaseFirestore.instance.collection('orders').doc(order.id).set({
         'status': OrderStatus.completed,
         'statusMessage': '✅ ¡Pedido entregado con éxito!',
         'completionTimestamp': Timestamp.now(),
         'deliveryProofUrl': downloadUrl,
+        'driverAuditSelfieUrl': messenger?.lastSessionSelfieUrl, // 🤳 Selfie del día (Sin Amazon IA)
+        'completionLatLng': completionPos != null 
+            ? GeoPoint(completionPos.latitude, completionPos.longitude) 
+            : null,
       }, SetOptions(merge: true));
 
       await _notifyClientCompletion(order.id);
@@ -662,12 +681,20 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
               }),
             if (isDeliveryPhase && !_isNearPoint)
               _btn(l10n.order_details_btn_go_delivery, Icons.directions_car, Colors.deepPurple, () => _startNavigation(order.dropoffLatLng!, order.id, false)),
-            if (isDeliveryPhase && _isNearPoint) ...[
+            if (isDeliveryPhase) ...[
               if (_deliveryPhoto == null)
-                _btn(l10n.order_details_btn_photo, Icons.camera_alt, Colors.orange, () => _takePhoto(l10n))
+                // 🛡️ SOBERANÍA GPS: Botón deshabilitado si no está en el punto
+                _btn(
+                  _isNearPoint ? l10n.order_details_btn_photo : "LLEGUE AL DESTINO PARA ACTIVAR CÁMARA", 
+                  Icons.camera_alt, 
+                  _isNearPoint ? Colors.orange : Colors.grey[400]!, 
+                  _isNearPoint ? () => _takePhoto(l10n) : null
+                )
               else
+                // SI YA HAY FOTO (tomada bajo geodefensa), PERMITIMOS FINALIZAR
                 _btn(l10n.order_details_btn_finish, Icons.verified, Colors.green, () => _completeOrder(order)),
             ],
+
           ],
         ),
       ),

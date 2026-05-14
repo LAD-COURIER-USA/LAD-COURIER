@@ -98,8 +98,10 @@ class CompletedOrdersPage extends StatelessWidget {
                 Row(
                   children: [
                     if (order.productPhotoUrl != null) Expanded(child: _photoBox(context, "FOTO RECIBO", order.productPhotoUrl!)),
-                    const SizedBox(width: 10),
+                    if (order.productPhotoUrl != null && (order.deliveryProofUrl != null || order.driverAuditSelfieUrl != null)) const SizedBox(width: 10),
                     if (order.deliveryProofUrl != null) Expanded(child: _photoBox(context, "PRUEBA ENTREGA", order.deliveryProofUrl!)),
+                    if (order.deliveryProofUrl != null && order.driverAuditSelfieUrl != null) const SizedBox(width: 10),
+                    if (order.driverAuditSelfieUrl != null) Expanded(child: _photoBox(context, "AUDITORÍA DRIVER", order.driverAuditSelfieUrl!)),
                   ],
                 ),
 
@@ -113,6 +115,11 @@ class CompletedOrdersPage extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(order.statusMessage ?? "ENTREGA REALIZADA CON ÉXITO", textAlign: TextAlign.center,
                         style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black, fontSize: 13)),
+                    if (order.completionLatLng != null) ...[
+                      const SizedBox(height: 10),
+                      Text("📍 GPS FINAL: ${order.completionLatLng!.latitude.toStringAsFixed(4)}, ${order.completionLatLng!.longitude.toStringAsFixed(4)}",
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 10, color: Colors.indigo)),
+                    ]
                   ]),
                 ),
                 const SizedBox(height: 15),
@@ -139,13 +146,16 @@ class CompletedOrdersPage extends StatelessWidget {
 
   Widget _photoBox(BuildContext context, String label, String url) {
     return Column(children: [
-      Text(label, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1)),
-      const SizedBox(height: 6),
+      Text(
+        label, 
+        style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 11, color: Colors.black, letterSpacing: 1.2)
+      ), // 🎨 CONTRASTE MÁXIMO
+      const SizedBox(height: 8),
       GestureDetector(
         onTap: () => _showFullImage(context, url),
         child: Container(
-          decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 2), borderRadius: BorderRadius.circular(10)),
-          child: ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.network(url, height: 110, width: double.infinity, fit: BoxFit.cover)),
+          decoration: BoxDecoration(border: Border.all(color: Colors.black, width: 3), borderRadius: BorderRadius.circular(12)),
+          child: ClipRRect(borderRadius: BorderRadius.circular(10), child: Image.network(url, height: 120, width: double.infinity, fit: BoxFit.cover)),
         ),
       ),
     ]);

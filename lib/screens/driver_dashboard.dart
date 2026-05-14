@@ -242,8 +242,24 @@ class _DriverDashboardState extends State<DriverDashboard> {
         return;
       }
 
-      // 🤳 SEGURIDAD MANDATORIA: Selfie + Huella SIEMPRE al iniciar
-      _showBiometricPrompt();
+      // 🛡️ SEGURIDAD MANDATORIA 24H: Selfie + Huella
+      if (_driverProfile!.lastBiometricVerification != null) {
+        final lastVerification = _driverProfile!.lastBiometricVerification!.toDate();
+        final now = DateTime.now();
+        final difference = now.difference(lastVerification).inHours;
+
+        if (difference >= 24) {
+          debugPrint("SISTEMA LAD: Han pasado $difference horas. Se requiere nueva validación.");
+          _showBiometricPrompt();
+          return;
+        }
+      } else {
+        // Si nunca se ha verificado, obligamos la primera vez
+        _showBiometricPrompt();
+        return;
+      }
+
+      _processStatusChange(true);
 
     } else {
       final activeOrders = await _orderService.getActiveOrdersOnce(_driverProfile!.uid);

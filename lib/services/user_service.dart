@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_functions/cloud_functions.dart'; // 🚀 IMPORTACIÓN NECESARIA
+import 'package:cloud_functions/cloud_functions.dart'; 
+import 'package:local_auth/local_auth.dart'; // 🔐 NUEVA IMPORTACIÓN BIOMÉTRICA
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/location_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -11,7 +12,30 @@ class UserService {
   FirebaseFirestore.instance.collection('users');
 
   final LocationService _locationService = LocationService();
-  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'us-central1'); // 🛡️ REGIÓN LAD
+  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'us-central1'); 
+  final LocalAuthentication _auth = LocalAuthentication(); // 🔐 INSTANCIA BIOMÉTRICA
+
+  /// 🔐 VALIDACIÓN DE IDENTIDAD POR HUELLA DACTILAR
+  /// Se usa para cambios de foto y candado de 24 horas.
+  Future<bool> authenticateBiometric({required String reason}) async {
+    try {
+      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
+      final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+
+      if (!canAuthenticate) return true; // Si el tlf no tiene sensor, permitimos el paso (Modo Legacy)
+
+      return await _auth.authenticate(
+          localizedReason: reason,
+          options: const AuthenticationOptions(
+            stickyAuth: true,
+            biometricOnly: true,
+          )
+      );
+    } catch (e) {
+      debugPrint("SISTEMA LAD ERROR Biometría: $e");
+      return false;
+    }
+  }
 
   /// 🔄 SINCRONIZACIÓN MANUAL CON STRIPE
   Future<String> syncStripeStatus(String uid) async {
@@ -21,6 +45,23 @@ class UserService {
     } catch (e) {
       debugPrint("Error en syncStripeStatus: $e");
       return 'error';
+    }
+  }
+
+  /// 🛡️ VERIFICACIÓN BIOMÉTRICA (AMAZON REKOGNITION)
+  Future<Map<String, dynamic>> verifyBiometricIdentity({
+    required String selfieUrl,
+    required String masterPhotoUrl,
+  }) async {
+    try {
+      final result = await _functions.httpsCallable('verifyBiometricIdentity').call({
+        'selfieUrl': selfieUrl,
+        'masterPhotoUrl': masterPhotoUrl,
+      });
+      return Map<String, dynamic>.from(result.data);
+    } catch (e) {
+      debugPrint("Error en verifyBiometricIdentity: $e");
+      return {'success': false, 'error': e.toString()};
     }
   }
 

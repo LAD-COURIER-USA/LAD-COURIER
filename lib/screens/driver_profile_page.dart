@@ -8,6 +8,7 @@ import '../l10n/app_localizations.dart';
 import '../models/user_model.dart';
 import '../auth_service.dart';
 import '../services/storage_service.dart';
+import '../services/user_service.dart'; // 🛡️ IMPORTACIÓN AÑADIDA
 import '../pages/client/completed_orders_page.dart';
 import 'driver_terms_acceptance_page.dart';
 import 'verification_process_page.dart';
@@ -25,6 +26,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
   final _vehicleController = TextEditingController();
   final StorageService _storageService = StorageService();
   final AuthService _authService = AuthService();
+  final UserService _userService = UserService(); // 🛡️ SERVICIO AÑADIDO
 
   bool _isLoading = true;
   bool _isSaving = false;
@@ -287,7 +289,9 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
 
   void _showBusinessCard() {
     if (_userModel == null) return;
-    final String referralUrl = "https://ladcourier.com/invite?id=${_userModel!.uid}&type=referral";
+    
+    // 🛡️ SISTEMA LAD: Usamos el esquema personalizado en el QR para forzar la apertura de la App.
+    final String qrData = "ladcourier://invite?id=${_userModel!.uid}";
 
     showDialog(
       context: context,
@@ -344,7 +348,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                     borderRadius: BorderRadius.circular(15),
                   ),
                   child: QrImageView(
-                    data: referralUrl,
+                    data: qrData,
                     version: QrVersions.auto,
                     size: 140.0,
                     gapless: false,
@@ -675,25 +679,6 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
     );
   }
 
-  Widget _buildPaymentCard({required String title, required String subtitle, required IconData icon, required Color color}) {
-    return Card(
-      elevation: 0,
-      margin: const EdgeInsets.only(bottom: 10),
-      color: color.withAlpha(26),
-      shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
-          side: BorderSide(color: color.withAlpha(77), width: 1.5)
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: color, size: 28),
-        title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black)),
-        subtitle: Text(subtitle, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)),
-        trailing: const Icon(Icons.add_circle_outline, color: Colors.black),
-        onTap: () {},
-      ),
-    );
-  }
-
   Future<void> _saveProfile() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
@@ -721,10 +706,30 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
   Future<void> _changeProfilePicture() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
+
+    // 🔒 CAPA DE SEGURIDAD LAD: Huella dactilar obligatoria para cambiar foto
+    final bool isAuthentic = await _userService.authenticateBiometric(
+      reason: "Confirma tu identidad para cambiar la foto oficial del perfil."
+    );
+
+    if (!isAuthentic) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("❌ ACCESO DENEGADO: Identidad no verificada."), backgroundColor: Colors.red)
+        );
+      }
+      return;
+    }
+
+    if (!mounted) return; // 🛡️ COMPROBACIÓN DE CONTEXTO
+
     try {
       final url = await _storageService.uploadProfilePicture(user.uid, context);
       if (url != null) {
-        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({'photoURL': url});
+        await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
+          'photoURL': url,
+          'lastBiometricVerification': FieldValue.serverTimestamp(), 
+        });
         if (mounted) setState(() => _photoUrl = url);
       }
     } catch (e) { debugPrint(e.toString()); }
@@ -732,6 +737,8 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
 
   void _switchToClientRole() async {
     final res = await _authService.switchUserRole(newRole: 'CLIENT');
-    if (res == "SUCCESS" && mounted) Navigator.pop(context);
+    if (res == "SUCCESS" && mounted) {
+      Navigator.of(context).pop();
+    }
   }
 }

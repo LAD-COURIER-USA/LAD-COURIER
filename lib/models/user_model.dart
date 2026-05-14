@@ -40,6 +40,7 @@ class UserModel {
   final bool isIdentityVerified;
   final Timestamp? lastIdentityVerification;
   final Timestamp? lastBiometricVerification;
+  final String? lastSessionSelfieUrl; // 🤳 NUEVO: Selfie de la jornada actual
 
   // 💳 PAGOS DIRECTOS (Stripe Connect / Customer)
   final String? stripeAccountId;
@@ -98,6 +99,7 @@ class UserModel {
     this.isIdentityVerified = false,
     this.lastIdentityVerification,
     this.lastBiometricVerification,
+    this.lastSessionSelfieUrl,
     this.stripeAccountId,
     this.stripeCustomerId,
     this.defaultPaymentMethodId,
@@ -152,6 +154,7 @@ class UserModel {
       isIdentityVerified: data['isIdentityVerified'] ?? false,
       lastIdentityVerification: data['lastIdentityVerification'],
       lastBiometricVerification: data['last_biometric_verification'],
+      lastSessionSelfieUrl: data['lastSessionSelfieUrl'],
       stripeAccountId: data['stripeAccountId'],
       stripeCustomerId: data['stripeCustomerId'],
       defaultPaymentMethodId: data['defaultPaymentMethodId'],
@@ -206,6 +209,7 @@ class UserModel {
       'isIdentityVerified': isIdentityVerified,
       'lastIdentityVerification': lastIdentityVerification,
       'last_biometric_verification': lastBiometricVerification,
+      'lastSessionSelfieUrl': lastSessionSelfieUrl,
       'stripeAccountId': stripeAccountId,
       'stripeCustomerId': stripeCustomerId,
       'defaultPaymentMethodId': defaultPaymentMethodId,
@@ -259,6 +263,7 @@ class UserModel {
     bool? isIdentityVerified,
     Timestamp? lastIdentityVerification,
     Timestamp? lastBiometricVerification,
+    String? lastSessionSelfieUrl,
     String? stripeAccountId,
     String? stripeCustomerId,
     String? defaultPaymentMethodId,
@@ -310,6 +315,7 @@ class UserModel {
       isIdentityVerified: isIdentityVerified ?? this.isIdentityVerified,
       lastIdentityVerification: lastIdentityVerification ?? this.lastIdentityVerification,
       lastBiometricVerification: lastBiometricVerification ?? this.lastBiometricVerification,
+      lastSessionSelfieUrl: lastSessionSelfieUrl ?? this.lastSessionSelfieUrl,
       stripeAccountId: stripeAccountId ?? this.stripeAccountId,
       stripeCustomerId: stripeCustomerId ?? this.stripeCustomerId,
       defaultPaymentMethodId: defaultPaymentMethodId ?? this.defaultPaymentMethodId,

@@ -54,13 +54,17 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- SISTEMA LAD: IMÁN DE INVITACIONES (Sin autoVerify para evitar bloqueos de firma) -->
-            <intent-filter>
+            <!-- SISTEMA LAD: IMÁN DE INVITACIONES (App Instalada) -->
+            <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
+
+                <!-- Soporte para ladcourier.com y www.ladcourier.com -->
                 <data android:scheme="http" android:host="ladcourier.com" />
                 <data android:scheme="https" android:host="ladcourier.com" />
+                <data android:scheme="http" android:host="www.ladcourier.com" />
+                <data android:scheme="https" android:host="www.ladcourier.com" />
             </intent-filter>
 
             <!-- SISTEMA LAD: IMÁN DE STRIPE -->

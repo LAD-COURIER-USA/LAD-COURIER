@@ -194,6 +194,27 @@ class OrderService {
         .snapshots().map((s) => s.docs.map((d) => d.data()).toList());
   }
 
+  // ✨ SISTEMA LAD: Órdenes que requieren acción del cliente (rechazadas o huérfanas)
+  Stream<List<OrderModel>> getRejectedOrdersStream(String clientId) {
+    return _ordersRef.where('clientId', isEqualTo: clientId)
+        .snapshots()
+        .map((s) {
+          final now = DateTime.now();
+          return s.docs.map((d) => d.data()).where((order) {
+            // 1. Si está rechazada o cancelada explícitamente
+            if (order.status == OrderStatus.rejected || order.status == OrderStatus.cancelled) return true;
+            
+            // 2. Si es huérfana: estado negotiating por más de 10 min sin respuesta
+            if (order.status == OrderStatus.negotiating && order.lastPriceOfferedBy == 'client') {
+              final diff = now.difference(order.createdAt.toDate()).inMinutes;
+              return diff >= 10; // Si el driver no responde en 10 min, permitimos reasignar
+            }
+            
+            return false;
+          }).toList();
+        });
+  }
+
   Stream<List<OrderModel>> getRecentCompletedOrdersStream(String clientId) {
     return _ordersRef
         .where('clientId', isEqualTo: clientId)

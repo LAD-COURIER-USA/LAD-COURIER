@@ -12,15 +12,18 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/pages/client/driver_selection_page.dart';
 import 'package:lad_courier/models/user_model.dart';
+import 'package:lad_courier/models/order_model.dart'; // 🛡️ IMPORTACIÓN AÑADIDA
 
 class CreateOrderPage extends StatefulWidget {
   final Map<String, dynamic>? selectedMessenger;
   final bool autoStartOCR;
+  final OrderModel? reassignOrder; // 🔄 NUEVO: Soporte para reasignación
 
   const CreateOrderPage({
     super.key,
     this.selectedMessenger,
-    this.autoStartOCR = false
+    this.autoStartOCR = false,
+    this.reassignOrder,
   });
 
   @override
@@ -71,6 +74,20 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     super.initState();
     _currentMessenger = widget.selectedMessenger;
     _showDriverSelection = widget.selectedMessenger == null;
+
+    if (widget.reassignOrder != null) {
+      _pickupController.text = widget.reassignOrder!.pickupAddress;
+      _dropoffController.text = widget.reassignOrder!.dropoffAddress;
+      _descriptionController.text = widget.reassignOrder!.packageDetails ?? '';
+      _selectedService = widget.reassignOrder!.serviceType;
+      _productPhotoUrl = widget.reassignOrder!.productPhotoUrl;
+      _validatedPickupLatLng = widget.reassignOrder!.pickupLatLng;
+      _validatedDropoffLatLng = widget.reassignOrder!.dropoffLatLng;
+      _isPickupVerified = true; 
+      _isDropoffVerified = true;
+      _currentMessenger = null; 
+      _showDriverSelection = true;
+    }
 
     _loadClientData();
     _loadLinkedMessengers();
@@ -373,6 +390,12 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     );
     if (_pickupGoogleRes != null) _geodataService.registerNewValidatedStore(zip: _pickupGoogleRes!.zipCode ?? "", streetNumber: _pickupGoogleRes!.streetNumber ?? "", storeName: "Punto de Recogida", fullAddress: _pickupGoogleRes!.fullAddress, lat: _pickupGoogleRes!.latLng.latitude, lng: _pickupGoogleRes!.latLng.longitude, driverId: _currentMessenger!['id'], stateCode: _pickupGoogleRes!.state);
     if (_dropoffGoogleRes != null) _geodataService.registerNewValidatedStore(zip: _dropoffGoogleRes!.zipCode ?? "", streetNumber: _dropoffGoogleRes!.streetNumber ?? "", storeName: "Punto de Entrega", fullAddress: _dropoffGoogleRes!.fullAddress, lat: _dropoffGoogleRes!.latLng.latitude, lng: _dropoffGoogleRes!.latLng.longitude, driverId: _currentMessenger!['id'], stateCode: _dropoffGoogleRes!.state);
+    
+    // 🛡️ SISTEMA LAD: Si es una reasignación, eliminamos la orden rechazada anterior
+    if (widget.reassignOrder != null) {
+      await FirebaseFirestore.instance.collection('orders').doc(widget.reassignOrder!.id).delete();
+    }
+
     if (mounted) { Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("🚀 ¡ORDEN ENVIADA EXITOSAMENTE!"), backgroundColor: Colors.green)); }
   }
 
@@ -402,16 +425,50 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(title: Text(l10n.create_order_title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)), centerTitle: true, backgroundColor: Colors.white, elevation: 0.5),
-      body: SingleChildScrollView(padding: const EdgeInsets.symmetric(horizontal: 24), child: Form(key: _formKey, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const SizedBox(height: 20), _buildSectionTitle(l10n.create_order_service_type, Icons.layers_outlined, Colors.indigo), _buildServiceSelector(l10n),
-        const SizedBox(height: 30), _buildSectionTitle(l10n.create_order_add_photo, Icons.camera_alt_outlined, Colors.teal), _buildPhotoPicker(l10n),
-        const SizedBox(height: 30), _buildSectionTitle(l10n.create_order_pickup_label, Icons.location_on_outlined, Colors.deepPurple), _buildModernField(_pickupController, "PUNTO DE ORIGEN", Icons.storefront, Colors.deepPurple, isPickup: true, lines: 2),
-        const SizedBox(height: 30), _buildSectionTitle(l10n.create_order_dropoff_label, Icons.flag_outlined, Colors.orange), _buildModernField(_dropoffController, "PUNTO DE DESTINO", Icons.home_outlined, Colors.orange, isDropoff: true, lines: 2),
-        const SizedBox(height: 30), _buildSectionTitle(l10n.create_order_description_label, Icons.assignment_outlined, Colors.blue), _buildModernField(_descriptionController, "DETALLES DEL PAQUETE / RECIBO", Icons.edit_note, Colors.blue, lines: 3),
-        if (_showDriverSelection) ...[const SizedBox(height: 30), _buildSectionTitle(l10n.create_order_section_messenger, Icons.person_search_outlined, Colors.black), _buildDriverSwitcher(l10n)],
-        const SizedBox(height: 40), _buildActionButton(l10n), const SizedBox(height: 50),
-      ]))),
+      appBar: AppBar(
+        title: Text(
+          l10n.create_order_title.toUpperCase(), 
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black, letterSpacing: 1.5)
+        ), 
+        centerTitle: true, 
+        backgroundColor: Colors.white, 
+        elevation: 0.5,
+        foregroundColor: Colors.black, // Asegura contraste en botones de regreso
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: 24), 
+        child: Form(
+          key: _formKey, 
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch, 
+            children: [
+              const SizedBox(height: 20), 
+              _buildSectionTitle(l10n.create_order_service_type, Icons.layers_outlined, Colors.indigo[900]!), 
+              _buildServiceSelector(l10n),
+              const SizedBox(height: 30), 
+              _buildSectionTitle(l10n.create_order_add_photo, Icons.camera_alt_outlined, Colors.teal[900]!), 
+              _buildPhotoPicker(l10n),
+              const SizedBox(height: 30), 
+              _buildSectionTitle(l10n.create_order_pickup_label, Icons.location_on_outlined, Colors.deepPurple[900]!), 
+              _buildModernField(_pickupController, "PUNTO DE ORIGEN", Icons.storefront, Colors.deepPurple[900]!, isPickup: true, lines: 2),
+              const SizedBox(height: 30), 
+              _buildSectionTitle(l10n.create_order_dropoff_label, Icons.flag_outlined, Colors.orange[900]!), 
+              _buildModernField(_dropoffController, "PUNTO DE DESTINO", Icons.home_outlined, Colors.orange[900]!, isDropoff: true, lines: 2),
+              const SizedBox(height: 30), 
+              _buildSectionTitle(l10n.create_order_description_label, Icons.assignment_outlined, Colors.blue[900]!), 
+              _buildModernField(_descriptionController, "DETALLES DEL PAQUETE / RECIBO", Icons.edit_note, Colors.blue[900]!, lines: 3),
+              if (_showDriverSelection) ...[
+                const SizedBox(height: 30), 
+                _buildSectionTitle(l10n.create_order_section_messenger, Icons.person_search_outlined, Colors.black), 
+                _buildDriverSwitcher(l10n)
+              ],
+              const SizedBox(height: 40), 
+              _buildActionButton(l10n), 
+              const SizedBox(height: 50),
+            ]
+          )
+        )
+      ),
     );
   }
 
@@ -447,8 +504,26 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     bool isVer = (isPickup && _isPickupVerified) || (isDropoff && _isDropoffVerified);
     bool isKnown = (isPickup && _validatedPickupLatLng != null) || (isDropoff && _validatedDropoffLatLng != null);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Container(decoration: BoxDecoration(color: isVer ? Colors.green[50] : (isKnown ? Colors.amber[50] : Colors.white), borderRadius: BorderRadius.circular(18), border: Border.all(color: isVer ? Colors.green[300]! : (isKnown ? Colors.amber[300]! : Colors.grey[100]!), width: isKnown ? 2 : 1)), child: TextFormField(controller: controller, maxLines: lines, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15), decoration: InputDecoration(labelText: label.toUpperCase(), labelStyle: const TextStyle(color: Colors.blueGrey, fontWeight: FontWeight.w900, fontSize: 10), prefixIcon: Icon(icon, color: isVer ? Colors.green : color, size: 22), border: InputBorder.none, contentPadding: const EdgeInsets.all(20)))),
-      if (controller.text.isNotEmpty && isKnown) Padding(padding: const EdgeInsets.only(top: 8, left: 12), child: Text(isVer ? "✓ UBICACIÓN EXACTA VERIFICADA (SISTEMA LAD)" : "⚠ LA DIRECCIÓN NO ES TAN PRECISA, EL DRIVER HARÁ LO POSIBLE POR ENCONTRARLA.", style: TextStyle(fontSize: 9, fontWeight: FontWeight.bold, color: isVer ? Colors.green[700] : Colors.amber[800]))),
+      Container(
+        decoration: BoxDecoration(
+          color: isVer ? Colors.green[50] : (isKnown ? Colors.amber[50] : Colors.white), 
+          borderRadius: BorderRadius.circular(18), 
+          border: Border.all(color: isVer ? Colors.green[700]! : (isKnown ? Colors.amber[700]! : Colors.grey[400]!), width: isKnown ? 2 : 1)
+        ), 
+        child: TextFormField(
+          controller: controller, 
+          maxLines: lines, 
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black), // Texto más grande y negro sólido
+          decoration: InputDecoration(
+            labelText: label.toUpperCase(), 
+            labelStyle: TextStyle(color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w900, fontSize: 11), // Etiquetas con el color de la sección pero más fuertes
+            prefixIcon: Icon(icon, color: isVer ? Colors.green[900] : color, size: 24), 
+            border: InputBorder.none, 
+            contentPadding: const EdgeInsets.all(20)
+          )
+        )
+      ),
+      if (controller.text.isNotEmpty && isKnown) Padding(padding: const EdgeInsets.only(top: 8, left: 12), child: Text(isVer ? "✓ UBICACIÓN EXACTA VERIFICADA (SISTEMA LAD)" : "⚠ LA DIRECCIÓN NO ES TAN PRECISA, EL DRIVER HARÁ LO POSIBLE POR ENCONTRARLA.", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isVer ? Colors.green[900] : Colors.amber[900]))),
     ]);
   }
 

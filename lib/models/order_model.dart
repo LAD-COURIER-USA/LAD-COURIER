@@ -39,6 +39,7 @@ class OrderModel {
   final Timestamp createdAt;
   final String? deliveryProofUrl;
   final String? productPhotoUrl;
+  final String? driverAuditSelfieUrl; // 🤳 NUEVO: Selfie del driver del día del servicio
   final String countryCode; // 🌍 SOPORTE INTERNACIONAL
 
   // 🛡️ COPIA DE SEGURIDAD FINANCIERA (BLINDAJE LAD)
@@ -74,6 +75,7 @@ class OrderModel {
     this.rating,
     this.deliveryProofUrl,
     this.productPhotoUrl,
+    this.driverAuditSelfieUrl,
     this.countryCode = "US",
     this.stripeCustomerId,
     this.paymentMethodId,
@@ -108,6 +110,7 @@ class OrderModel {
       rating: data['rating'],
       deliveryProofUrl: data['deliveryProofUrl'],
       productPhotoUrl: data['productPhotoUrl'],
+      driverAuditSelfieUrl: data['driverAuditSelfieUrl'],
       countryCode: data['countryCode'] ?? "US",
       stripeCustomerId: data['stripeCustomerId'],
       paymentMethodId: data['paymentMethodId'],
@@ -141,6 +144,7 @@ class OrderModel {
       'rating': rating,
       'deliveryProofUrl': deliveryProofUrl,
       'productPhotoUrl': productPhotoUrl,
+      'driverAuditSelfieUrl': driverAuditSelfieUrl,
       'countryCode': countryCode,
       'stripeCustomerId': stripeCustomerId,
       'paymentMethodId': paymentMethodId,

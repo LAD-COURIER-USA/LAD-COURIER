@@ -66,8 +66,8 @@ class StorageService {
 
       final XFile? image = await _picker.pickImage(
         source: source,
-        imageQuality: 50,
-        maxWidth: 800,
+        imageQuality: 40, // 📉 Reducimos un poco más para ahorrar RAM en el S24
+        maxWidth: 720,    // 📉 Tamaño óptimo para IA sin saturar el buffer
       );
 
       if (image == null) return null;
