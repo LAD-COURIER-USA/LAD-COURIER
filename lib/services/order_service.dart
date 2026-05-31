@@ -194,15 +194,16 @@ class OrderService {
         .snapshots().map((s) => s.docs.map((d) => d.data()).toList());
   }
 
-  // ✨ SISTEMA LAD: Órdenes que requieren acción del cliente (rechazadas o huérfanas)
+  // ✨ SISTEMA LAD: Órdenes que requieren acción del cliente (rechazadas por driver o huérfanas)
   Stream<List<OrderModel>> getRejectedOrdersStream(String clientId) {
     return _ordersRef.where('clientId', isEqualTo: clientId)
         .snapshots()
         .map((s) {
           final now = DateTime.now();
           return s.docs.map((d) => d.data()).where((order) {
-            // 1. Si está rechazada o cancelada explícitamente
-            if (order.status == OrderStatus.rejected || order.status == OrderStatus.cancelled) return true;
+            // 1. Solo mostramos si el DRIVER la rechazó (rejected)
+            // Excluimos 'cancelled' porque eso significa que el cliente la descartó
+            if (order.status == OrderStatus.rejected) return true;
             
             // 2. Si es huérfana: estado negotiating por más de 10 min sin respuesta
             if (order.status == OrderStatus.negotiating && order.lastPriceOfferedBy == 'client') {

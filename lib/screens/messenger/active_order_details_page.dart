@@ -95,7 +95,8 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
 
     if (targetLatLng != null) {
       try {
-        Position pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        Position pos = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
         double distance = Geolocator.distanceBetween(
             pos.latitude, pos.longitude, targetLatLng.latitude, targetLatLng.longitude);
 
@@ -164,7 +165,8 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
       final XFile? image = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
       if (image != null) {
         // 📍 CAPTURAR GPS PARA VINCULACIÓN FÍSICA
-        Position pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
+        Position pos = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
         final String dateStr = "${DateTime.now().day}-${DateTime.now().month}";
         final String lat = pos.latitude.toStringAsFixed(2);
         final String lng = pos.longitude.toStringAsFixed(2);
@@ -311,7 +313,8 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
       // 🛡️ CAPA AUDITORÍA PERFECTA LAD: Capturamos GPS y Selfie de Auditoría
       Position? completionPos;
       try {
-        completionPos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 3));
+        completionPos = await Geolocator.getCurrentPosition(
+            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)).timeout(const Duration(seconds: 3));
       } catch (e) {
         debugPrint("LAD AUDIT: Error capturando GPS final: $e");
       }
@@ -645,7 +648,8 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                       // Intentamos obtener el GPS para máxima precisión de LAD
                       Position? pos;
                       try {
-                        pos = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high).timeout(const Duration(seconds: 3));
+                        pos = await Geolocator.getCurrentPosition(
+                            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)).timeout(const Duration(seconds: 3));
                       } catch (_) {
                         // Si falla el GPS, usamos el del pedido original (menos preciso pero sirve)
                         debugPrint("LAD: GPS falló en aprendizaje, usando fallback.");

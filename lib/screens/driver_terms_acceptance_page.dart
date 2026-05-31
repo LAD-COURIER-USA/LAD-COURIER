@@ -61,14 +61,14 @@ class _DriverTermsAcceptancePageState extends State<DriverTermsAcceptancePage> {
     try {
       final ip = await _getIPAddress();
       final now = Timestamp.now();
-      const version = "2026-04-26"; 
+      const version = "2026-05-17"; 
 
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'acceptedTerms': true,
         'acceptedTermsDate': now,
         'acceptedTermsIP': ip,
         'acceptedTermsVersion': version,
-        'subscriptionStatus': 'trial',
+        'subscriptionStatus': 'active',
         'trialEndDate': Timestamp.fromDate(DateTime.now().add(const Duration(days: 30))),
         'isEligibleForTrial': false, 
         'verificationStatus': 'ACEPTACIÓN_PENDIENTE',
@@ -116,34 +116,43 @@ class _DriverTermsAcceptancePageState extends State<DriverTermsAcceptancePage> {
                 child: SingleChildScrollView(
                   controller: _scrollController,
                   child: const Text(
-                    "TÉRMINOS DE SERVICIO Y ACUERDO DE OPERADOR INDEPENDIENTE (DRIVER)\n"
-                    "Última actualización: 26 de abril de 2026\n"
-                    "Entidad Propietaria: LAD Digital Systems LLC (Florida, USA)\n\n"
-                    "1. Definición del Servicio: Software, No Logística\n"
-                    "Usted reconoce y acepta que LAD Courier es exclusivamente una plataforma de Software como Servicio (SaaS). LAD Digital Systems LLC no es una empresa de transporte ni un despachador. Proporcionamos la herramienta tecnológica para que usted gestione su propia empresa de entregas.\n\n"
-                    "2. Estatus de Contratista Independiente\n"
-                    "Al aceptar estos términos, usted declara que es un dueño de negocio independiente. No existe relación de empleo con LAD Digital Systems LLC. Usted tiene libertad total para aceptar o rechazar solicitudes, fijar sus precios y elegir sus rutas.\n\n"
-                    "3. Protocolo de Verificación de Confianza (LAD Trust)\n"
-                    "Para proteger la integridad de la red, el Driver acepta:\n"
-                    "• Verificación de Identidad: Uso obligatorio de Stripe Identity para vincular su ID oficial. Esta foto será la única visible para los clientes.\n"
-                    "• Verificación Biométrica Periódica: El sistema solicitará selfies aleatorias (aproximadamente cada 72 horas) para confirmar que el operador autorizado es quien utiliza la cuenta.\n"
-                    "• Récord de Conducción (MVR): Validación de que su licencia está vigente.\n"
-                    "• Costo: El Driver asume el costo técnico de estas validaciones iniciales como inversión para su perfil profesional.\n\n"
-                    "4. Responsabilidad sobre el Vehículo y Seguros\n"
-                    "Es obligación exclusiva del Driver mantener una póliza de Seguro de Automóvil con cobertura comercial requerida por la ley para servicios de entrega. LAD Digital Systems LLC no provee seguro de accidentes ni de carga.\n\n"
-                    "5. Cláusula de Indemnización y Blindaje Legal\n"
-                    "Usted acepta eximir de toda responsabilidad a LAD Digital Systems LLC frente a cualquier reclamo o daño que surja de accidentes de tránsito, pérdida de mercancía o su conducta frente a terceros durante el uso de la App.\n\n"
-                    "6. Política de \"Identidad Real\"\n"
-                    "Para prevenir delitos, el Driver acepta que su ubicación en tiempo real, nombre y foto verificada sean compartidos con el cliente vinculado durante el servicio. El uso de perfiles falsos resultará en la terminación inmediata.\n\n"
-                    "7. Tarifas de Servicio y Suscripción\n"
-                    "El Driver acepta una tarifa fija de \$0.50 USD por cada orden completada con éxito, en concepto de uso de plataforma y mantenimiento de infraestructura.\n"
-                    "Adicionalmente, el Driver asume los costos de procesamiento de la pasarela Stripe (2.9% + \$0.30) sobre el monto total cobrado.\n\n"
-                    "8. Limitación de Responsabilidad\n"
-                    "La responsabilidad total de LAD Digital Systems LLC hacia usted se limita al monto pagado por el uso de la plataforma en los últimos 3 meses.\n\n"
-                    "9. Arbitraje y Renuncia a Acciones Colectivas\n"
-                    "Cualquier disputa se resolverá mediante arbitraje individual vinculado en el Condado de Miami-Dade, Florida. Usted renuncia expresamente a participar en demandas colectivas.\n\n"
-                    "POLÍTICA DE PRIVACIDAD\n"
-                    "Solo rastreamos su ubicación cuando está \"Online\" para efectos de operatividad. Sus datos son procesados bajo estándares de encriptación bancaria por Stripe.",
+                    """ACUERDO DE LICENCIA DE SOFTWARE, TÉRMINOS DE USO Y DESCARGO DE RESPONSABILIDAD (DISCHARGE) – PLATAFORMA LAD COURIER
+Operado por: LAD DIGITAL SYSTEMS LLC
+Jurisdicción: Florida, USA
+Última Actualización: 17 de mayo de 2026
+
+Este documento constituye un contrato legal y vinculante entre LAD DIGITAL SYSTEMS LLC (en adelante, "La Compañía") y el usuario que se registra para operar como conductor (en adelante, "El Driver"). Al completar el registro y presionar "Aceptar", El Driver declara conocer, entender y aceptar la totalidad de las cláusulas aquí expuestas.
+
+ARTÍCULO 1: NATURALEZA DE LA RELACIÓN Y SOBERANÍA COMERCIAL
+1.1 Propiedad del Negocio: El Driver reconoce y acepta de forma expresa que es el único dueño, operador y responsable de su propio negocio independiente de transporte y mensajería.
+1.2 Ausencia de Relación Laboral: Este acuerdo no crea una relación de empleo, agencia, franquicia, joint venture o sociedad entre La Compañía y El Driver. El Driver no es empleado de LAD DIGITAL SYSTEMS LLC. No tiene horario fijo, no recibe salario, ni exclusividad, y opera bajo su propio riesgo comercial.
+
+ARTÍCULO 2: CONCESIÓN DE LICENCIA DE USO DE SOFTWARE Y DERECHO DE ADMISIÓN
+2.1 Licencia Revocable: Al registrarse de forma exitosa, El Driver recibe una licencia de uso limitada, no exclusiva, intransferible y estrictamente revocable para utilizar la aplicación LAD COURIER como herramienta tecnológica de su negocio.
+2.2 Retiro Discrecional de Licencia: LAD DIGITAL SYSTEMS LLC se reserva el derecho absoluto de admisión, denegación, suspensión temporal o revocación permanente de dicha licencia de uso en cualquier momento y por cualquier motivo a su sola discreción, sin necesidad de aviso previo ni derecho a compensación alguna, quedando inhabilitado el Driver para ponerse "Online".
+
+ARTÍCULO 3: RESPONSABILIDAD TOTAL Y CUMPLIMIENTO LEGAL DEL DRIVER
+El Driver es el único y exclusivo responsable de la operación legal y operativa de su negocio, obligándose a poseer, mantener vigentes y cumplir en todo momento con:
+• Documentación Personal y Vehicular: Licencias de conducir vigentes, registros vehiculares, permisos comerciales y coberturas de seguros de auto comerciales o pólizas requeridas por las leyes correspondientes.
+• Jurisdicción Local: Cumplir estrictamente con las normativas, ordenanzas y reglas de tránsito, conducta a seguir y directrices de cada municipio, ciudad, condado, estado o país donde decida ejecutar la aplicación.
+• Protección del Producto: El Driver asume la responsabilidad total sobre la custodia, integridad, seguridad y correcta entrega de los paquetes, mercancías o productos que acepte mover. LAD DIGITAL SYSTEMS LLC queda totalmente descargada de cualquier reclamo por pérdida, robo o daño o destrucción de dichos bienes.
+
+ARTÍCULO 4: MODELO FINANCIERO Y TARIFA DE SERVICIO (SERVICE FEE)
+4.1 Costo por Orden Exitosa: LAD DIGITAL SYSTEMS LLC no cobra mensualidades dinámicas ni comisiones porcentuales sobre el valor total estipulado entre las partes. La Compañía cobrará una tarifa de servicio fija de \$0.50 USD (cincuenta centavos de dólar) por cada orden completada y marcada como exitosa en la plataforma.
+4.2 Independencia del Costo del Envío: Esta tarifa se mantendrá fija independientemente del costo total del servicio negociado entre el Cliente y el Driver.
+4.3 Modificación Discrecional: LAD DIGITAL SYSTEMS LLC se reserva el derecho explícito de modificar el monto de esta tarifa de servicio en el futuro a su sola discreción, notificando los cambios a través de la aplicación.
+
+ARTÍCULO 5: PROCESAMIENTO DE PAGOS MEDIANTE STRIPE (KYC Y CONECTIVIDAD)
+5.1 Pasarela Externa de Pago: El ecosistema financiero de LAD COURIER utiliza la infraestructura de Stripe (mediante sus servicios de procesamiento y conectividad) para canalizar las transacciones. Stripe actúa como el procesador bancario externo tanto para Clientes como para Drivers.
+5.2 Cumplimiento Obligatorio (KYC): Para poder cobrar o procesar fondos, el Driver debe completar satisfactoriamente los requisitos de verificación de identidad, fiscales y bancarios exigidos directamente por Stripe (Know Your Customer / KYC). El Driver acepta someterse a las normativas de Stripe y reconoce que LAD DIGITAL SYSTEMS LLC no almacena ni gestiona datos de cuentas bancarias ni tarjetas de crédito en sus servidores Firebase.
+
+ARTÍCULO 6: POLÍTICA DE DATOS, FOTOS Y VENTANA DE SEGURIDAD (36 HORAS)
+6.1 Consentimiento de Uso de Datos: Tanto los Drivers como los Clientes consienten explícitamente el uso, captura y visualización de fotografías, datos de contacto, geolocalización e información de los puntos de recogida y entrega estrictamente para los fines operativos del proyecto logístico.
+6.2 Ventana de Resguardo por Seguridad (36 Horas): Por motivos de seguridad y resolución de disputas comerciales o técnicas, la información completa de cada orden exitosa (incluyendo imágenes de respaldo y coordenadas) se almacenará en la infraestructura de la plataforma y estará al alcance tanto del Driver como del Cliente por un periodo estricto de 36 horas.
+6.3 Eliminación Automatizada: Transcurrido el plazo de 36 horas, dichos datos operativos serán purgados o desvinculados de la interfaz activa para garantizar la privacidad total y optimización del sistema, siendo responsabilidad del Driver exportar o guardar sus reportes contables o respaldos privados en su propio dispositivo antes de cumplirse este tiempo.
+
+ARTÍCULO 7: CLÁUSULA DE INDEMNIZACIÓN Y DESCARGO DE RESPONSABILIDAD (DISCHARGE)
+El Driver acepta defender, indemnizar y mantener indemne a LAD DIGITAL SYSTEMS LLC, sus gerentes, propietarios y afiliados, frente a cualquier demanda, reclamación, pérdida, multa gubernamental, gasto legal o responsabilidad civil derivada de accidentes de tránsito, disputas comerciales con los clientes, daños a terceros, o violaciones legales cometidas por el Driver durante el uso de la aplicación.""",
                     textAlign: TextAlign.justify,
                     style: TextStyle(fontSize: 11, height: 1.2, color: Colors.black87, fontWeight: FontWeight.w500),
                   ),

@@ -61,16 +61,6 @@
                         </div>
                     </a>
 
-                    <!-- ✨ SISTEMA LAD: QR DINÁMICO PARA PC/TV -->
-                    <div class="hidden lg:flex flex-col items-center bg-white p-3 rounded-2xl border-2 border-lad-purple shadow-xl animate-pulse hover:animate-none group relative">
-                        <div id="qrcode" class="w-24 h-24"></div>
-                        <p class="text-[7px] font-black mt-2 text-lad-purple tracking-tighter">ESCÁNEAME PARA INSTALAR</p>
-                        <!-- Tooltip Pro -->
-                        <div class="absolute -bottom-12 left-1/2 -translate-x-1/2 bg-lad-purple text-white text-[8px] px-3 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap font-bold">
-                            IDEAL PARA STREAMING & VIDEOS
-                        </div>
-                    </div>
-
                     <div class="bg-gray-200 text-gray-400 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 cursor-not-allowed">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6 opacity-20" alt="Icono Apple">
                         <div class="text-left">
@@ -80,41 +70,26 @@
                     </div>
                 </div>
 
-                <!-- SECCIÓN DE COMPATIBILIDAD AVANZADA (ESTRATEGIA LAD) -->
                 <div class="mt-12 max-w-lg mx-auto md:mx-0">
                     <p class="text-[10px] font-brand font-bold text-lad-purple uppercase mb-4 tracking-widest text-center md:text-left">
                         Arquitectura de Sistema 2026:
                     </p>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <!-- LEGACY -->
                         <a href="assets/legacy.apk" download onclick="handleDownloadClick(event)"
                            class="group flex flex-col justify-between bg-indigo-50/50 p-5 rounded-2xl border-2 border-indigo-100 hover:border-lad-purple hover:bg-white transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                             <div>
                                 <p class="text-[10px] font-black text-indigo-400 uppercase mb-2 tracking-tighter group-hover:text-lad-purple">Versión Legacy</p>
                                 <p class="text-[11px] text-gray-600 leading-tight font-medium">Equipos de 32-bit o antiguos. Funcionalidad pura para Clientes.</p>
                             </div>
-                            <div class="mt-4 flex items-center gap-2 text-lad-purple opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span class="text-[9px] font-bold uppercase">Descargar</span>
-                                <span class="text-xs">→</span>
-                            </div>
                         </a>
-
-                        <!-- FUTURE -->
                         <a href="assets/future.apk" download onclick="handleDownloadClick(event)"
                            class="group flex flex-col justify-between bg-indigo-50/50 p-5 rounded-2xl border-2 border-indigo-100 hover:border-lad-purple hover:bg-white transition-all duration-300 shadow-sm hover:shadow-xl h-full">
                             <div>
                                 <p class="text-[10px] font-black text-indigo-400 uppercase mb-2 tracking-tighter group-hover:text-lad-purple">Versión Future</p>
                                 <p class="text-[11px] text-gray-600 leading-tight font-medium">Optimizado para x86_64, Tablets Pro y PC Híbridas.</p>
                             </div>
-                            <div class="mt-4 flex items-center gap-2 text-lad-purple opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span class="text-[9px] font-bold uppercase">Descargar</span>
-                                <span class="text-xs">→</span>
-                            </div>
                         </a>
                     </div>
-                    <p class="text-[9px] mt-5 text-gray-400 italic font-medium text-center md:text-left uppercase tracking-tight">
-                        Soporte Multi-Núcleo: ARMv7, ARMv8-a y X86_64 garantizado.
-                    </p>
                 </div>
             </div>
             <div class="flex justify-center reveal active">
@@ -123,49 +98,35 @@
         </div>
     </section>
 
-    <!-- GRID DE LAS 6 IMÁGENES (OPTIMIZADO 3x2) -->
+    <!-- GRID DE IMÁGENES -->
     <section class="py-20 bg-white">
-        <div class="max-w-7-xl mx-auto px-6">
-            <h2 class="font-brand text-3xl text-center font-black mb-16 uppercase italic text-gray-800 underline decoration-lad-purple decoration-4 underline-offset-8">Experiencia LAD Courier 2.0</h2>
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="font-brand text-3xl text-center font-black mb-16 uppercase italic text-gray-800">Experiencia LAD Courier 2.0</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <!-- Foto 01: Dashboard Principal -->
                 <div class="reveal text-center">
-                    <img src="assets/01.webp" class="app-screenshot mb-4" alt="Dashboard Principal">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold">CENTRO DE MANDO</p>
+                    <img src="assets/01.webp" class="app-screenshot mb-4" alt="Dashboard">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Centro de Mando</p>
                 </div>
-                <!-- Foto 02: Disponibilidad -->
                 <div class="reveal text-center">
                     <img src="assets/02.webp" class="app-screenshot mb-4" alt="Servicios">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold">DISPONIBILIDAD Y SERVICIOS</p>
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Disponibilidad</p>
                 </div>
-                <!-- Foto 03: Negociación -->
                 <div class="reveal text-center">
                     <img src="assets/03.webp" class="app-screenshot mb-4" alt="Negociación">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold">NEGOCIACIÓN REAL-TIME</p>
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Negociación Real-Time</p>
                 </div>
-                <!-- Foto 04: Mapa -->
                 <div class="reveal text-center">
                     <img src="assets/04.webp" class="app-screenshot mb-4" alt="Mapa">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold">MAPA DE OPERACIONES</p>
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Mapa Operativo</p>
                 </div>
-                <!-- Foto 05: Stripe -->
                 <div class="reveal text-center">
                     <img src="assets/05.webp" class="app-screenshot mb-4" alt="Stripe">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold">PAGOS SEGUROS STRIPE</p>
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Pagos Stripe</p>
                 </div>
-                <!-- Foto 06: Dashboard Cliente -->
                 <div class="reveal text-center">
                     <img src="assets/06.webp" class="app-screenshot mb-4" alt="Cliente">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold">DASHBOARD CLIENTE</p>
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Dashboard Cliente</p>
                 </div>
-            </div>
-
-            <!-- Banner Informativo Inferior (Cierra el diseño) -->
-            <div class="mt-20 reveal bg-lad-purple text-white p-8 rounded-[40px] text-center shadow-2xl">
-                <p class="font-brand text-sm font-bold uppercase tracking-widest">
-                    Sistema Binario: Driver y Cliente en una sola App
-                </p>
-                <p class="text-xs mt-2 opacity-80">Tecnología logística de vanguardia diseñada para LAD Digital Systems LLC.</p>
             </div>
         </div>
     </section>
@@ -176,10 +137,10 @@
             <div class="reveal">
                 <div class="bg-green-500/20 text-green-400 border border-green-500/30 px-4 py-1 rounded-full text-[10px] font-brand mb-6 inline-block uppercase">Shield Verified 2026</div>
                 <h2 class="font-brand text-4xl font-black mb-6 uppercase">Validación Biométrica</h2>
-                <p class="text-gray-400 text-lg mb-8 leading-relaxed">Seguridad sin burocracia. Utilizamos reconocimiento facial y huellas digitales para proteger cada entrega.</p>
+                <p class="text-gray-400 text-lg mb-8 leading-relaxed">Seguridad sin burocracia. Utilizamos huellas digitales para proteger cada entrega.</p>
                 <ul class="space-y-4 text-sm font-light">
-                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Identidad verificada por IA.</li>
-                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Validación por Selfie cada 72h.</li>
+                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Identidad verificada.</li>
+                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Validación por Huella 24h.</li>
                     <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Encriptación nivel bancario.</li>
                 </ul>
             </div>
@@ -190,85 +151,154 @@
     </section>
 </main>
 
-<!-- FOOTER LIMPIO -->
+<!-- FOOTER -->
 <footer class="bg-black text-white py-20 px-6 border-t border-lad-purple">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 border-b border-gray-800 pb-16">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 pb-16">
         <div>
             <h3 class="font-brand font-black text-2xl text-lad-purple mb-4">LAD COURIER</h3>
             <p class="text-[11px] text-gray-400 leading-relaxed max-w-md">
-                LAD Courier es una marca registrada y plataforma tecnológica propiedad de <span class="text-white font-bold">LAD DIGITAL SYSTEMS LLC</span>.
-                Todos los derechos de software, diseño y arquitectura están protegidos por las leyes internacionales de <span class="text-white font-bold">© COPYRIGHT 2026</span>.
-            </p>
-            <p class="text-[10px] mt-4 text-gray-500 uppercase tracking-[0.2em]">
-                Propiedad Intelectual Protegida - Miami, Florida.
+                LAD Courier es una plataforma propiedad de <span class="text-white font-bold">LAD DIGITAL SYSTEMS LLC</span>.
+                © COPYRIGHT 2026.
             </p>
         </div>
         <div class="flex flex-col gap-4">
-            <button onclick="openModal('termsModal')" class="text-white font-black text-sm border-b-2 border-lad-purple uppercase hover:text-lad-purple transition text-left">Términos y Privacidad</button>
-            <p class="text-[10px] text-gray-600 font-bold uppercase tracking-widest">Dominio Garantizado 2026-2036</p>
+            <button onclick="openModal('termsModal')" class="text-white font-black text-sm border-b-2 border-lad-purple uppercase">Términos y Privacidad</button>
         </div>
-    </div>
-    <div class="mt-12 text-center text-[10px] font-bold tracking-[0.6em] opacity-30 uppercase">
-        © 2026 LAD Digital Systems LLC.
     </div>
 </footer>
 
-<!-- MODAL ÚNICO -->
+<!-- MODAL TÉRMINOS -->
 <div id="termsModal" class="modal">
-    ... (contenido previo) ...
+    <div class="modal-content">
+        <button onclick="closeModal('termsModal')" class="absolute top-5 right-5 text-2xl font-bold">&times;</button>
+        <div class="legal-text text-sm leading-relaxed">
+            <h1 class="font-brand text-xl font-black text-lad-purple mb-6 uppercase">Documentación Legal LAD Courier</h1>
+
+            <section class="mb-10">
+                <h2 class="font-brand text-lg font-bold text-gray-800 border-b-2 border-lad-purple mb-4">ACUERDO DE LICENCIA Y TÉRMINOS PARA EL DRIVER</h2>
+                <p class="text-[10px] font-bold text-gray-500 mb-4">Última Actualización: 17 de mayo de 2026 | Jurisdicción: Florida, USA</p>
+
+                <p class="mb-4">Este documento constituye un contrato legal y vinculante entre <strong>LAD DIGITAL SYSTEMS LLC</strong> y el usuario que se registra para operar como conductor (<strong>"El Driver"</strong>). Al completar el registro y presionar "Aceptar", El Driver declara conocer, entender y aceptar la totalidad de las cláusulas aquí expuestas.</p>
+
+                <h3 class="font-bold mt-4">ARTÍCULO 1: NATURALEZA DE LA RELACIÓN Y SOBERANÍA COMERCIAL</h3>
+                <p><strong>1.1 Propiedad del Negocio:</strong> El Driver reconoce y acepta de forma expresa que es el único dueño, operador y responsable de su propio negocio independiente de transporte y mensajería.</p>
+                <p><strong>1.2 Ausencia de Relación Laboral:</strong> Este acuerdo no crea una relación de empleo, agencia, franquicia, joint venture o sociedad entre La Compañía y El Driver. El Driver no es empleado de LAD DIGITAL SYSTEMS LLC. No tiene horario fijo, no recibe salario, ni exclusividad, y opera bajo su propio riesgo comercial.</p>
+
+                <h3 class="font-bold mt-4">ARTÍCULO 2: CONCESIÓN DE LICENCIA DE USO DE SOFTWARE Y DERECHO DE ADMISIÓN</h3>
+                <p><strong>2.1 Licencia Revocable:</strong> Al registrarse de forma exitosa, El Driver recibe una licencia de uso limitada, no exclusiva, intransferible y estrictamente revocable para utilizar la aplicación LAD COURIER como herramienta tecnológica de su negocio.</p>
+                <p><strong>2.2 Retiro Discrecional de Licencia:</strong> LAD DIGITAL SYSTEMS LLC se reserva el derecho absoluto de admisión, denegación, suspensión temporal o revocación permanente de dicha licencia de uso en cualquier momento y por cualquier motivo a su sola discreción, sin necesidad de aviso previo ni derecho a compensación alguna.</p>
+
+                <h3 class="font-bold mt-4">ARTÍCULO 3: RESPONSABILIDAD TOTAL Y CUMPLIMIENTO LEGAL DEL DRIVER</h3>
+                <p>El Driver es el único y exclusivo responsable de la operación legal y operativa de su negocio, obligándose a poseer y cumplir con:</p>
+                <ul class="list-disc ml-6 mt-2">
+                    <li><strong>Documentación Personal y Vehicular:</strong> Licencias de conducir vigentes, registros vehiculares y coberturas de seguros de auto comerciales requeridas por ley.</li>
+                    <li><strong>Jurisdicción Local:</strong> Cumplir estrictamente con las normativas, ordenanzas y reglas de tránsito de cada municipio, ciudad o estado donde opere.</li>
+                    <li><strong>Protección del Producto:</strong> El Driver asume la responsabilidad total sobre la custodia e integridad de los paquetes. LAD DIGITAL SYSTEMS LLC queda descargada de cualquier reclamo por pérdida, robo o daño.</li>
+                </ul>
+
+                <h3 class="font-bold mt-4">ARTÍCULO 4: MODELO FINANCIERO Y TARIFA DE SERVICIO (SERVICE FEE)</h3>
+                <p><strong>4.1 Costo por Orden Exitosa:</strong> La Compañía cobrará una tarifa de servicio fija de <strong>$0.50 USD</strong> (cincuenta centavos de dólar) por cada orden completada y marcada como exitosa en la plataforma.</p>
+                <p><strong>4.2 Independencia del Costo:</strong> Esta tarifa se mantendrá fija independientemente del costo total del servicio negociado entre el Cliente y el Driver.</p>
+
+                <h3 class="font-bold mt-4">ARTÍCULO 5: PROCESAMIENTO DE PAGOS MEDIANTE STRIPE</h3>
+                <p><strong>5.1 Pasarela Externa:</strong> El ecosistema utiliza la infraestructura de Stripe para canalizar las transacciones. Stripe actúa como el procesador bancario externo.</p>
+                <p><strong>5.2 Cumplimiento Obligatorio (KYC):</strong> Para cobrar, el Driver debe completar satisfactoriamente los requisitos de verificación de identidad y bancarios exigidos directamente por Stripe. LAD DIGITAL SYSTEMS LLC no almacena ni gestiona datos de tarjetas o cuentas bancarias en sus servidores.</p>
+
+                <h3 class="font-bold mt-4">ARTÍCULO 6: POLÍTICA DE DATOS Y VENTANA DE SEGURIDAD (36 HORAS)</h3>
+                <p><strong>6.1 Consentimiento:</strong> Tanto Drivers como Clientes consienten el uso de fotografías, datos de contacto y geolocalización estrictamente para fines operativos.</p>
+                <p><strong>6.2 Ventana de Resguardo (36 Horas):</strong> Por motivos de seguridad y resolución de disputas, la información completa de cada orden (incluyendo imágenes y coordenadas) se almacenará por un periodo estricto de <strong>36 horas</strong>.</p>
+                <p><strong>6.3 Eliminación Automatizada:</strong> Transcurrido el plazo de 36 horas, los datos serán purgados del sistema para garantizar la privacidad total.</p>
+
+                <h3 class="font-bold mt-4">ARTÍCULO 7: CLÁUSULA DE INDEMNIZACIÓN Y DESCARGO DE RESPONSABILIDAD (DISCHARGE)</h3>
+                <p>El Driver acepta defender, indemnizar y mantener indemne a LAD DIGITAL SYSTEMS LLC, sus gerentes, propietarios y afiliados, frente a cualquier demanda, reclamación, pérdida, multa gubernamental, gasto legal o responsabilidad civil derivada de accidentes de tránsito, disputas comerciales con los clientes, daños a terceros, o violaciones legales cometidas por el Driver durante el uso de la aplicación.</p>
+            </section>
+
+            <section>
+                <h2 class="font-brand text-lg font-bold text-gray-800 border-b-2 border-lad-purple mb-4">ACUERDO DE PRIVACIDAD Y SEGURIDAD PARA EL CLIENTE</h2>
+                <p class="text-[10px] font-bold text-gray-500 mb-4">Última Actualización: 17 de mayo de 2026 | Jurisdicción: Florida, USA</p>
+
+                <h3 class="font-bold mt-4">1. Naturaleza de la Plataforma</h3>
+                <p>El Cliente reconoce que LAD COURIER es una plataforma tecnológica de conexión (SaaS). La Compañía no presta servicios de transporte ni es empleadora de los conductores. Cada Driver opera de forma independiente bajo su propio riesgo.</p>
+
+                <h3 class="font-bold mt-4">2. Uso de Datos, Direcciones y Fotos</h3>
+                <p>Para la correcta ejecución del servicio, El Cliente otorga consentimiento para:</p>
+                <ul class="list-disc ml-6 mt-2">
+                    <li><strong>Uso de Datos Operativos:</strong> Compartir direcciones, nombres y números telefónicos con el Driver asignado.</li>
+                    <li><strong>Fotos de Respaldo:</strong> Autorizar que el Driver tome fotografías de los paquetes como evidencia digital del estado y recepción.</li>
+                </ul>
+
+                <h3 class="font-bold mt-4">3. Ventana de Seguridad y Evidencia de 36 Horas</h3>
+                <p>Toda la información de la orden y las fotos de entrega se mantendrán visibles al Cliente y Driver durante un lapso estricto de <strong>36 horas</strong>. Pasado este tiempo, la información detallada será purgada del historial activo.</p>
+
+                <h3 class="font-bold mt-4">4. Procesamiento Bancario Seguro (Stripe)</h3>
+                <p>Los pagos se procesan de forma externa y segura a través de Stripe. LAD DIGITAL SYSTEMS LLC no almacena, ve ni gestiona sus números de tarjeta o cuentas bancarias.</p>
+            </section>
+        </div>
+    </div>
 </div>
 
-<!-- LIBRERÍA QR Y LÓGICA -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<!-- 🛡️ SISTEMA LAD: TARJETA DE INVITACIÓN WEB -->
+<div id="invitationModal" class="modal" style="display: none; align-items: center; justify-content: center; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 9999;">
+    <div class="modal-content text-center" style="background: white; max-width: 400px; padding: 35px; border-radius: 25px; border: 3px solid #4B39A8; position: relative;">
+        <div class="flex justify-center mb-5">
+            <div class="w-28 h-28 rounded-full border-4 border-lad-purple overflow-hidden shadow-2xl bg-gray-100 flex items-center justify-center">
+                <img src="assets/logo.webp" alt="Driver" class="w-full h-full object-cover">
+            </div>
+        </div>
+        <h2 class="font-brand text-2xl font-black text-black mb-3 uppercase italic tracking-tighter">Invitación de Driver</h2>
+        <p class="text-[12px] text-gray-500 font-bold mb-8 italic leading-tight px-4">
+            "Te invito a unirte a mi red de confianza en LAD Courier para ofrecerte un servicio de logística directo."
+        </p>
+        <div class="space-y-4">
+            <button id="acceptBtn" class="w-full bg-black text-green-400 font-black py-5 rounded-2xl shadow-xl hover:scale-105 transition-all duration-300 uppercase text-sm border-2 border-green-400 tracking-widest">
+                ✅ ACEPTAR Y ABRIR APP
+            </button>
+            <button onclick="closeModal('invitationModal')" class="w-full bg-gray-100 text-gray-400 font-black py-3 rounded-2xl text-[10px] uppercase">
+                Ver la web primero
+            </button>
+        </div>
+    </div>
+</div>
+
 <script>
-    // Inicialización del QR de LAD
-    const qrcodeContainer = document.getElementById("qrcode");
-    if (qrcodeContainer) {
-        new QRCode(qrcodeContainer, {
-            text: "https://ladcourier.com",
-            width: 96,
-            height: 96,
-            colorDark: "#4B39A8", // Color Púrpura LAD
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.H // Alta corrección para permitir logo en centro
-        });
-
-        // Pequeño toque visual: añadir un micro-logo en el centro via CSS si se desea,
-        // pero la legibilidad es lo primero para TV/Video.
-    }
-
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) entry.target.classList.add('active');
-        });
-    }, { threshold: 0.1 });
-
-    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
-
     function openModal(id) { document.getElementById(id).style.display = 'block'; }
     function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-    // ✨ SISTEMA LAD: LÓGICA DE RESCATE DE REFERIDO (PORTAPAPELES)
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+    window.onload = function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get('ref') || urlParams.get('id');
+        if (ref) {
+            document.getElementById('invitationModal').style.display = 'flex';
+            document.getElementById('acceptBtn').onclick = function() {
+                const textArea = document.createElement("textarea");
+                textArea.value = "ref=" + ref;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                window.location.href = "ladcourier://invite?id=" + ref;
+                setTimeout(() => { closeModal('invitationModal'); }, 2000);
+            };
+        }
+    }
+
     function handleDownloadClick(event) {
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get('ref') || urlParams.get('id');
-
         if (ref) {
-            // ✨ SISTEMA LAD: Copiamos con el prefijo 'ref=' para que la App lo reconozca
-            // bajo las nuevas normas de seguridad y evite falsos positivos.
-            navigator.clipboard.writeText("ref=" + ref).then(() => {
-                console.log("SISTEMA LAD: ID de referido copiado con éxito -> " + ref);
-            }).catch(err => {
-                console.error("Error al copiar referido: ", err);
-            });
+            const textArea = document.createElement("textarea");
+            textArea.value = "ref=" + ref;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
         }
-        // El navegador continuará con la descarga automáticamente por el atributo 'download'
-    }
-
-    window.onclick = function(event) {
-        if (event.target.className === 'modal') event.target.style.display = 'none';
     }
 </script>
-
 </body>
 </html>

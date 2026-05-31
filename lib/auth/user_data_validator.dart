@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lad_courier/auth_service.dart';
-import 'package:lad_courier/l10n/app_localizations.dart';
 
 class UserDataValidator extends StatefulWidget {
   final AuthService authService;
@@ -22,7 +21,6 @@ class _UserDataValidatorState extends State<UserDataValidator> {
   @override
   Widget build(BuildContext context) {
     final currentUser = FirebaseAuth.instance.currentUser;
-    final l10n = AppLocalizations.of(context)!;
 
     if (currentUser == null) return widget.builder(context, null);
 
@@ -58,10 +56,11 @@ class _UserDataValidatorState extends State<UserDataValidator> {
           return widget.builder(context, null);
         }
 
+        // 🛡️ SISTEMA LAD: Si el stream está cargando, permitimos que el flujo continúe
+        // entregando 'null'. Esto evita el bloqueo de pantalla con un spinner infinito
+        // y permite que AuthGate redirija a RoleDispatcher de forma fluida.
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator(color: Colors.black)),
-          );
+          return widget.builder(context, null);
         }
 
         final userData = snapshot.data!.data() as Map<String, dynamic>?;

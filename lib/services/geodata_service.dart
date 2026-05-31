@@ -174,6 +174,265 @@ class GeodataService {
     }
   }
 
+  /// 🛰️ ACTUALIZACIÓN DE SEGURIDAD: Permite actualizar un local existente con nuevos datos (ej. Website)
+  Future<void> updateStoreDiscoveryData({
+    required String storeId,
+    required String stateCode,
+    String? website,
+    String? phone,
+    String? instagram,
+  }) async {
+    try {
+      final Map<String, dynamic> updates = {};
+      if (website != null) updates['website'] = website;
+      if (phone != null) updates['phone'] = phone;
+      if (instagram != null) updates['instagram'] = instagram;
+      updates['last_verified'] = FieldValue.serverTimestamp();
+
+      String coll = "geodata_us_${stateCode.toLowerCase()}";
+      await _db.collection(coll).doc(storeId).set(updates, SetOptions(merge: true));
+      
+      debugPrint("LAD ADN: Local $storeId actualizado con inteligencia de campo.");
+    } catch (e) {
+      debugPrint("LAD ADN ERROR: No se pudo actualizar local -> $e");
+    }
+  }
+
+  /// 🧠 MÓDULO DE INTELIGENCIA SEMÁNTICA (SUPER-APP LAD)
+  bool _checkSemanticMatch(String? categoryId, String storeCat, List<String> altCats) {
+    if (categoryId == null) return true;
+
+    final Map<String, List<String>> semanticMap = {
+      'BURGERS': ['FAST_FOOD', 'BURGER', 'SANDWICH', 'AMERICAN', 'MCDONALD', 'WENDY', 'BURGER_KING'],
+      'PIZZA': ['PIZZA', 'ITALIAN', 'PASTA', 'LITTLE_CAESARS', 'DOMINO', 'PAPA_JOHN'],
+      'MEXICAN': ['MEXICAN', 'TACO', 'BURRITO', 'TEX-MEX', 'TACO_BELL', 'CHIPOTLE'],
+      'ASIAN': ['ASIAN', 'SUSHI', 'CHINESE', 'JAPANESE', 'THAI', 'VIETNAMESE'],
+      'CHICKEN': ['CHICKEN', 'WING', 'POULTRY', 'KFC', 'POPEYES', 'CHICK-FIL-A'],
+      'HEALTHY': ['HEALTHY', 'VEGETARIAN', 'VEGAN', 'SALAD', 'ORGANIC', 'JUICE'],
+      'BREAKFAST': ['CAFE', 'COFFEE', 'BREAKFAST', 'BAKERY', 'DONUT', 'STARBUCKS', 'DUNKIN'],
+      'DESSERTS': ['DESSERT', 'ICE_CREAM', 'PASTRY', 'CONFECTIONERY', 'SWEET', 'CHOCOLATE'],
+    };
+
+    final tags = semanticMap[categoryId.toUpperCase()] ?? [categoryId.toUpperCase()];
+    
+    // Verificamos si alguna etiqueta del mapa coincide con la categoría del local o sus alternativas
+    return tags.any((tag) => 
+      storeCat.contains(tag) || 
+      altCats.any((alt) => alt.contains(tag))
+    );
+  }
+
+  /// 🛰️ RADAR DE TRIANGULACIÓN (NIVEL CORPORATIVO)
+  /// Encuentra locales usando: Marca + Ciudad + Número de Calle
+  Future<Map<String, dynamic>?> findStoreByTriangulation({
+    required String brand,
+    required String city,
+    required String streetNumber,
+    required String stateCode,
+  }) async {
+    String collectionName = "geodata_us_${stateCode.toLowerCase()}";
+    
+    try {
+      debugPrint("LAD TRIANGULACIÓN: Buscando $brand en $city con No. $streetNumber");
+      
+      // 🚀 OPCIÓN 1: Búsqueda con Marca (Si el OCR leyó el nombre)
+      if (brand.isNotEmpty) {
+        final query = await _db.collection(collectionName)
+            .where('brand', isEqualTo: brand.toUpperCase())
+            .where('address.number', isEqualTo: streetNumber)
+            .limit(1).get();
+
+        if (query.docs.isNotEmpty) {
+          final data = query.docs.first.data();
+          _enrichData(data);
+          data['id'] = query.docs.first.id;
+          return data;
+        }
+      }
+
+      // 🚀 OPCIÓN 2: Búsqueda Quirúrgica por Número y Ciudad (Si no hay nombre o falló la marca)
+      // Esto sirve para McDonald's que solo tienen logo.
+      final queryByNum = await _db.collection(collectionName)
+          .where('address.number', isEqualTo: streetNumber)
+          .where('address.city', isEqualTo: city.toUpperCase())
+          .limit(5).get(); // Traemos pocos para filtrar en memoria
+
+      if (queryByNum.docs.isNotEmpty) {
+        // Si solo hay uno, es ese.
+        if (queryByNum.docs.length == 1) {
+          final data = queryByNum.docs.first.data();
+          _enrichData(data);
+          data['id'] = queryByNum.docs.first.id;
+          return data;
+        }
+        
+        // Si hay varios, intentamos el que más se parezca a un restaurante/tienda
+        // o si tenemos la marca parcial.
+        for (var doc in queryByNum.docs) {
+          final d = doc.data();
+          final name = (d['name'] as String? ?? '').toUpperCase();
+          if (brand.isNotEmpty && name.contains(brand.toUpperCase())) {
+             _enrichData(d);
+             d['id'] = doc.id;
+             return d;
+          }
+        }
+
+        // Si no podemos desempatar, devolvemos el primero que coincida con la ciudad
+        final data = queryByNum.docs.first.data();
+        _enrichData(data);
+        data['id'] = queryByNum.docs.first.id;
+        return data;
+      }
+
+      return null;
+    } catch (e) {
+      debugPrint("LAD TRIANGULACIÓN ERROR: $e");
+      return null;
+    }
+  }
+
+  /// 🛰️ RADAR SMARTSHOPPER (ESTÁNDAR ÉLITE): Búsqueda por "Cuadrado de Coordenadas"
+  /// Esta técnica es la ganadora: ignora fronteras de ZipCodes y funciona en todo USA.
+  Future<List<Map<String, dynamic>>> searchStoresByRadar({
+    required double userLat,
+    required double userLon,
+    required String stateCode,
+    String? categoryId,
+  }) async {
+    // Definimos el margen del cuadrado (aprox 7.5 millas para asegurar las 7 reales)
+    const double delta = 0.110; 
+
+    final double minLat = userLat - delta;
+    final double maxLat = userLat + delta;
+    final double minLon = userLon - delta;
+    final double maxLon = userLon + delta;
+
+    String collectionName = "geodata_us_${stateCode.toLowerCase()}";
+    
+    try {
+      debugPrint("LAD RADAR: Escaneando zona en $collectionName...");
+      
+      // 🚀 RADAR LIGHTWEIGHT: Bajamos el límite de 500 a 50 para evitar el 'Memory Overflow' en Samsung
+      final query = await _db.collection(collectionName)
+          .where('gps.lat', isGreaterThanOrEqualTo: minLat)
+          .where('gps.lat', isLessThanOrEqualTo: maxLat)
+          .limit(50)
+          .get();
+
+      List<Map<String, dynamic>> results = [];
+
+      for (var doc in query.docs) {
+        final data = doc.data();
+        final gps = data['gps'] as Map<String, dynamic>?;
+        final storeCat = (data['category'] as String?)?.toUpperCase() ?? '';
+        final altCats = (data['alternate_categories'] as List?)?.map((e) => e.toString().toUpperCase()).toList() ?? [];
+        
+        if (gps != null) {
+          double storeLon = (gps['lon'] as num).toDouble();
+          
+          // 🛡️ FILTRO DE PRECISIÓN EN TIEMPO REAL
+          bool matchLon = storeLon >= minLon && storeLon <= maxLon;
+          bool matchCat = _checkSemanticMatch(categoryId, storeCat, altCats);
+
+          if (matchLon && matchCat) {
+            _enrichData(data);
+            data['id'] = doc.id;
+            results.add(data);
+          }
+        }
+      }
+
+      // 🥇 ORDENAR: VIPs (con website) primero para fomentar la compra online
+      results.sort((a, b) {
+        if (a['website'] != null && b['website'] == null) return -1;
+        if (a['website'] == null && b['website'] != null) return 1;
+        return 0;
+      });
+
+      return results;
+    } catch (e) {
+      debugPrint("LAD RADAR ERROR: $e");
+      return [];
+    }
+  }
+
+  /// [DEPRECATED] Mantengo para evitar errores de compilación durante la transición.
+  Future<List<Map<String, dynamic>>> searchByZipCluster({
+    required List<String> zipCodes,
+    required String stateCode,
+    String? categoryId,
+  }) async {
+    return searchStoresByRadar(
+      userLat: 25.5110645, // Homestead fallback
+      userLon: -80.4220201, 
+      stateCode: stateCode,
+      categoryId: categoryId
+    );
+  }
+
+  /// [DEPRECATED] Mantengo el anterior por si Courier lo usa, pero SmartShopper usará el de ZipCodes.
+  Future<List<Map<String, dynamic>>> searchStoresNearby({
+    required double userLat,
+    required double userLon,
+    required String stateCode,
+    String? categoryId,
+  }) async {
+    // Definimos el margen del cuadrado (aprox 7.5 millas para ser generosos)
+    const double delta = 0.110; 
+
+    final double minLat = userLat - delta;
+    final double maxLat = userLat + delta;
+    final double minLon = userLon - delta;
+    final double maxLon = userLon + delta;
+
+    String collectionName = "geodata_us_${stateCode.toLowerCase()}";
+    
+    try {
+      debugPrint("LAD RADAR: Buscando en $collectionName | Cat: $categoryId");
+      
+      Query query = _db.collection(collectionName)
+          .where('gps.lat', isGreaterThanOrEqualTo: minLat)
+          .where('gps.lat', isLessThanOrEqualTo: maxLat);
+
+      if (categoryId != null) {
+        query = query.where('category', isEqualTo: categoryId.toUpperCase());
+      }
+
+      final snapshot = await query.limit(100).get();
+      
+      List<Map<String, dynamic>> results = [];
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data() as Map<String, dynamic>;
+        final gps = data['gps'] as Map<String, dynamic>?;
+        
+        if (gps != null) {
+          double storeLon = (gps['lon'] as num).toDouble();
+          
+          // Filtro de Longitud para cerrar el cuadrado
+          if (storeLon >= minLon && storeLon <= maxLon) {
+            _enrichData(data);
+            data['id'] = doc.id;
+            results.add(data);
+          }
+        }
+      }
+
+      // Ordenar por cercanía básica (Opcional)
+      results.sort((a, b) {
+        double distA = (userLat - a['gps']['lat']).abs() + (userLon - a['gps']['lon']).abs();
+        double distB = (userLat - b['gps']['lat']).abs() + (userLon - b['gps']['lon']).abs();
+        return distA.compareTo(distB);
+      });
+
+      return results;
+    } catch (e) {
+      debugPrint("LAD RADAR ERROR: $e");
+      return [];
+    }
+  }
+
   void _enrichData(Map<String, dynamic> data) {
     if (data['address'] != null) {
       final addr = data['address'];

@@ -67,6 +67,49 @@ class GeocodingService {
     }
   }
 
+  /// 🛰️ [NUEVO] Obtiene el ZipCode y Estado a partir de coordenadas GPS
+  Future<GeocodingResponse?> getDetailsFromCoords(double lat, double lon) async {
+    final url = Uri.parse(
+        'https://maps.googleapis.com/maps/api/geocode/json?latlng=$lat,$lon&key=$googleMapsApiKey');
+
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['status'] == 'OK' && data['results'].isNotEmpty) {
+          final result = data['results'][0];
+          final components = result['address_components'] as List;
+
+          String? streetNumber;
+          String? zipCode;
+          String? state;
+          String? city;
+
+          for (var comp in components) {
+            final types = comp['types'] as List;
+            if (types.contains('street_number')) streetNumber = comp['long_name'];
+            if (types.contains('postal_code')) zipCode = comp['long_name'];
+            if (types.contains('administrative_area_level_1')) state = comp['short_name'];
+            if (types.contains('locality')) city = comp['long_name'];
+          }
+
+          return GeocodingResponse(
+            latLng: GeoPoint(lat, lon),
+            fullAddress: result['formatted_address'],
+            streetNumber: streetNumber,
+            zipCode: zipCode,
+            state: state,
+            city: city,
+          );
+        }
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Error reverse geocoding: $e');
+      return null;
+    }
+  }
+
   /// Mantiene compatibilidad con el código existente
   Future<GeoPoint?> getLatLng(String address) async {
     final res = await getFullDetails(address);

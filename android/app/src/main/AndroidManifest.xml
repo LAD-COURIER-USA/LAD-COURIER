@@ -25,6 +25,15 @@
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
 
+    <!-- 🛡️ VISIBILIDAD PARA EL PUENTE SMART SHOPPER -->
+    <queries>
+        <package android:name="com.laddigital.smartshopper" />
+        <intent>
+            <action android:name="android.intent.action.VIEW" />
+            <data android:scheme="ladcourier" />
+        </intent>
+    </queries>
+
     <application
         android:name="${applicationName}"
         android:label="LAD Courier"
@@ -54,25 +63,25 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- SISTEMA LAD: IMÁN DE INVITACIONES (App Instalada) -->
+            <!-- 🛡️ IMÁN 1: APP LINKS (Enlaces HTTPS de Redes Sociales) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-
-                <!-- Soporte para ladcourier.com y www.ladcourier.com -->
                 <data android:scheme="http" android:host="ladcourier.com" />
                 <data android:scheme="https" android:host="ladcourier.com" />
                 <data android:scheme="http" android:host="www.ladcourier.com" />
                 <data android:scheme="https" android:host="www.ladcourier.com" />
             </intent-filter>
 
-            <!-- SISTEMA LAD: IMÁN DE STRIPE -->
+            <!-- 🛡️ IMÁN 2: DEEP LINKS (Protocolo LAD y QR) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="ladcourier" />
+                <data android:scheme="ladcourier" android:host="invite" />
+                <data android:scheme="ladcourier" android:host="stripe-return" />
+                <data android:scheme="ladcourier" android:host="create_order" />
             </intent-filter>
         </activity>
 

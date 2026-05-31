@@ -1,7 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/foundation.dart'; // 🚀 IMPORTACIÓN PARA debugPrint
 import 'package:lad_courier/services/user_service.dart';
 
 /// Servicio encargado de la autenticación y gestión de perfiles en Firestore.
@@ -47,9 +46,9 @@ class AuthService {
         // 1. Creamos el documento primero
         await _createFirestoreUserDoc(user, email, name, invitingId: referredBy);
         
-        // 2. ⏱️ VÁLVULA DE SEGURIDAD LAD: Aseguramos persistencia antes de liberar el flujo
-        debugPrint("⏱️ SISTEMA LAD: Sincronizando perfiles...");
-        await _firestore.collection('users').doc(user.uid).get(const GetOptions(source: Source.server));
+        // 🛡️ SISTEMA LAD: Eliminamos la espera bloqueante del servidor. 
+        // Firestore se encarga de la sincronización en segundo plano, 
+        // permitiendo que la UI fluya sin interrupciones.
 
         if (referredBy != null) {
           await prefs.remove('pending_messenger_invitation');

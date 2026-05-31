@@ -28,7 +28,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   
   UserModel? _clientProfile;
-  bool _isLoading = true;
+  
 
   StreamSubscription? _negotiationSubscription;
   StreamSubscription? _rejectionSubscription; 
@@ -104,6 +104,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
   @override
   void dispose() {
     _negotiationSubscription?.cancel();
+    _rejectionSubscription?.cancel();
     super.dispose();
   }
 
@@ -114,54 +115,11 @@ class _ClientDashboardState extends State<ClientDashboard> {
       if (mounted) {
         setState(() {
           _clientProfile = profile;
-          _isLoading = false;
         });
       }
     }
   }
 
-  void _showInviteDialog() {
-    final l10n = AppLocalizations.of(context)!;
-    final TextEditingController codeController = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text(l10n.prof_radar_title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(l10n.client_dash_invite_code_label, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 15),
-            TextField(
-              controller: codeController,
-              decoration: InputDecoration(
-                hintText: l10n.client_dash_invite_hint,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.common_cancel.toUpperCase())),
-          ElevatedButton(
-            onPressed: () async {
-              if (codeController.text.isNotEmpty) {
-                final navigator = Navigator.of(context);
-                await _userService.linkMessengerToClient(_auth.currentUser!.uid, codeController.text.trim());
-                if (!mounted) return;
-                navigator.pop();
-                _loadProfile();
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.black),
-            child: Text(l10n.driver_btn_confirm.toUpperCase(), style: const TextStyle(color: Colors.greenAccent)),
-          ),
-        ],
-      ),
-    );
-  }
 
   /// 🛡️ SISTEMA LAD: Verificación de Método de Pago antes de ordenar
   bool _checkPaymentMethodStatus(AppLocalizations l10n) {
@@ -198,71 +156,78 @@ class _ClientDashboardState extends State<ClientDashboard> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
+    final user = _auth.currentUser;
+    if (user == null) return const Scaffold(body: Center(child: Text("Sesión expirada")));
     final l10n = AppLocalizations.of(context)!;
 
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text("LAD COURIER", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 2)),
-        centerTitle: true,
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.person_add_alt_1, color: Colors.black, size: 26),
-            onPressed: _showInviteDialog,
-          ),
-          IconButton(
-            icon: const Icon(Icons.history, color: Colors.black, size: 26),
-            tooltip: "Historial 36h",
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedOrdersPage())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.account_circle_outlined, color: Colors.black, size: 26),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const ClientProfilePage())).then((_) => _loadProfile()),
-          ),
-          const SizedBox(width: 10),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () {
-          if (_checkPaymentMethodStatus(l10n)) {
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateOrderPage(autoStartOCR: false)));
-          }
-        },
-        backgroundColor: Colors.black,
-        icon: const Icon(Icons.add_circle_outline, color: Colors.greenAccent),
-        label: Text(l10n.client_dash_order_here.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
-      ),
-      body: RefreshIndicator(
-        onRefresh: _loadProfile,
-        color: Colors.black,
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildWelcomeSection(l10n),
-              const SizedBox(height: 25),
-              _buildSectionTitle(l10n.client_dash_active_missions.toUpperCase(), Icons.radar, Colors.indigo[900]!),
-              _buildActiveOrdersList(l10n),
-              const SizedBox(height: 25),
-              _buildSectionTitle(l10n.client_dash_negotiations_title.toUpperCase(), Icons.handshake_outlined, Colors.orange[900]!),
-              _buildNegotiationList(l10n),
-              const SizedBox(height: 25),
-              _buildSectionTitle("SOLICITUDES RECHAZADAS", Icons.warning_amber_rounded, Colors.red[900]!),
-              _buildRejectedOrdersList(l10n),
-              const SizedBox(height: 25),
-              _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black),
-              _buildMessengerDetailedList(l10n),
-              const SizedBox(height: 80),
+    return StreamBuilder<UserModel?>(
+      stream: _userService.getUserStream(user.uid),
+      builder: (context, profileSnapshot) {
+        if (profileSnapshot.connectionState == ConnectionState.waiting && _clientProfile == null) {
+          return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
+        }
+        
+        // Actualizamos el perfil local cada vez que el stream emite
+        if (profileSnapshot.hasData) {
+          _clientProfile = profileSnapshot.data;
+        }
+
+        return Scaffold(
+          backgroundColor: Colors.white,
+          appBar: AppBar(
+            title: const Text("LAD COURIER", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 2)),
+            centerTitle: true,
+            backgroundColor: Colors.white,
+            foregroundColor: Colors.black,
+            elevation: 0,
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.history, color: Colors.black, size: 26),
+                tooltip: "Historial 36h",
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedOrdersPage())),
+              ),
+              const SizedBox(width: 10),
             ],
           ),
-        ),
-      ),
+          floatingActionButton: FloatingActionButton.extended(
+            onPressed: () {
+              if (_checkPaymentMethodStatus(l10n)) {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateOrderPage(autoStartOCR: false)));
+              }
+            },
+            backgroundColor: Colors.black,
+            icon: const Icon(Icons.add_circle_outline, color: Colors.greenAccent),
+            label: Text(l10n.client_dash_order_here.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+          ),
+          body: RefreshIndicator(
+            onRefresh: _loadProfile,
+            color: Colors.black,
+            child: SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _buildWelcomeSection(l10n),
+                  const SizedBox(height: 25),
+                  _buildSectionTitle(l10n.client_dash_active_missions.toUpperCase(), Icons.radar, Colors.indigo[900]!),
+                  _buildActiveOrdersList(l10n),
+                  const SizedBox(height: 25),
+                  _buildSectionTitle(l10n.client_dash_negotiations_title.toUpperCase(), Icons.handshake_outlined, Colors.orange[900]!),
+                  _buildNegotiationList(l10n),
+                  const SizedBox(height: 25),
+                  _buildSectionTitle("SOLICITUDES RECHAZADAS", Icons.warning_amber_rounded, Colors.red[900]!),
+                  _buildRejectedOrdersList(l10n),
+                  const SizedBox(height: 25),
+                  _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black),
+                  _buildMessengerDetailedList(l10n),
+                  const SizedBox(height: 80),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -280,33 +245,54 @@ class _ClientDashboardState extends State<ClientDashboard> {
   }
 
   Widget _buildWelcomeSection(AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.black,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8))],
-      ),
-      child: Row(
-        children: [
-          CircleAvatar(
-            radius: 28,
-            backgroundColor: Colors.grey[900],
-            backgroundImage: _clientProfile?.photoURL != null ? NetworkImage(_clientProfile!.photoURL!) : null,
-            child: _clientProfile?.photoURL == null ? const Icon(Icons.person, size: 30, color: Colors.white) : null,
-          ),
-          const SizedBox(width: 15),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context, 
+        MaterialPageRoute(builder: (context) => const ClientProfilePage())
+      ).then((_) => _loadProfile()),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.black,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.2), blurRadius: 15, offset: const Offset(0, 8))],
+          border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.3), width: 1),
+        ),
+        child: Row(
+          children: [
+            Stack(
               children: [
-                Text(l10n.client_dash_welcome.toUpperCase(), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.5)),
-                Text(_clientProfile?.displayName ?? 'CLIENTE', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+                CircleAvatar(
+                  radius: 32, // Tamaño aumentado
+                  backgroundColor: Colors.grey[900],
+                  backgroundImage: _clientProfile?.photoURL != null ? NetworkImage(_clientProfile!.photoURL!) : null,
+                  child: _clientProfile?.photoURL == null ? const Icon(Icons.person, size: 35, color: Colors.white) : null,
+                ),
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle),
+                    child: const Icon(Icons.edit, size: 12, color: Colors.black),
+                  ),
+                ),
               ],
             ),
-          ),
-          const Icon(Icons.verified_user, color: Colors.greenAccent, size: 28),
-        ],
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.client_dash_welcome.toUpperCase(), style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.5)),
+                  Text(_clientProfile?.displayName ?? 'CLIENTE', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22)),
+                  const Text("VER PERFIL Y PAGOS", style: TextStyle(color: Colors.white60, fontWeight: FontWeight.bold, fontSize: 9, letterSpacing: 1)),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: Colors.greenAccent, size: 30),
+          ],
+        ),
       ),
     );
   }

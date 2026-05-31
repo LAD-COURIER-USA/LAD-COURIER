@@ -25,6 +25,7 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
   final StripeService _stripeService = StripeService();
 
   bool _isSaving = false;
+  bool _acceptedPrivacy = true; // El checkbox de privacidad
   UserModel? _userModel;
   String? _photoUrl;
 
@@ -179,13 +180,18 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
               ),
 
               const SizedBox(height: 30),
+              
+              // 🛡️ ACUERDO DE PRIVACIDAD LAD
+              _buildPrivacyAgreement(l10n),
+              
+              const SizedBox(height: 30),
               _buildMessengerCTA(l10n),
               const SizedBox(height: 40),
               SizedBox(
                   width: double.infinity,
                   height: 55,
                   child: FilledButton(
-                      onPressed: _isSaving ? null : _saveProfile,
+                      onPressed: (_isSaving || !_acceptedPrivacy) ? null : _saveProfile,
                       style: FilledButton.styleFrom(backgroundColor: Colors.black, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
                       child: Text(l10n.client_prof_save_button, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.greenAccent))
                   )
@@ -331,6 +337,43 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
       await FirebaseFirestore.instance.collection('users').doc(u.uid).update({'photoURL': url});
       if (mounted) setState(() => _photoUrl = url);
     }
+  }
+
+  Widget _buildPrivacyAgreement(AppLocalizations l10n) {
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(15),
+        border: Border.all(color: Colors.grey[300]!),
+      ),
+      child: Column(
+        children: [
+          const Text(
+            "ACUERDO DE PRIVACIDAD Y SEGURIDAD",
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.black),
+          ),
+          const SizedBox(height: 10),
+          const Text(
+            "Al guardar tu perfil, autorizas el uso de tus direcciones, datos de contacto y la captura de fotos de entrega para el funcionamiento de tus órdenes. Entiendo que esta evidencia estará disponible por 36 horas por motivos de seguridad y que los pagos se procesan de forma externa vía Stripe.",
+            textAlign: TextAlign.justify,
+            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54),
+          ),
+          const SizedBox(height: 10),
+          CheckboxListTile(
+            value: _acceptedPrivacy,
+            onChanged: (val) => setState(() => _acceptedPrivacy = val!),
+            title: const Text(
+              "ACEPTO LOS TÉRMINOS Y POLÍTICA DE PRIVACIDAD",
+              style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black),
+            ),
+            controlAffinity: ListTileControlAffinity.leading,
+            activeColor: Colors.blue[700],
+            contentPadding: EdgeInsets.zero,
+          ),
+        ],
+      ),
+    );
   }
 
   void _switchToDriverRole() async {

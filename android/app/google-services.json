@@ -21,9 +21,6 @@
       "api_key": [
         {
           "current_key": "AIzaSyBYK7yOxwZvg2zYuxkK828a53kAy2Fg0Fk"
-        },
-        {
-          "current_key": "AIzaSyAwEbTmJBTXmo9nVSFWKVG3YAL0zg0ir9g"
         }
       ],
       "services": {
@@ -68,9 +65,6 @@
       "api_key": [
         {
           "current_key": "AIzaSyBYK7yOxwZvg2zYuxkK828a53kAy2Fg0Fk"
-        },
-        {
-          "current_key": "AIzaSyAwEbTmJBTXmo9nVSFWKVG3YAL0zg0ir9g"
         }
       ],
       "services": {
@@ -116,6 +110,14 @@
           }
         },
         {
+          "client_id": "666821658855-jsa0jrqr4fmv9jmjlik7f47jr3hd4vsl.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.elmensajero.app.messenger",
+            "certificate_hash": "e115de6ab6116fe786dd2906388641ace67b0b6c"
+          }
+        },
+        {
           "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
           "client_type": 3
         }
@@ -123,9 +125,42 @@
       "api_key": [
         {
           "current_key": "AIzaSyBYK7yOxwZvg2zYuxkK828a53kAy2Fg0Fk"
-        },
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "666821658855-0m595to4q7orrj9vqkk54g4t9v7i5pqg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.digitalScanFill"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:666821658855:android:a5c92ce0281f9979fffa42",
+        "android_client_info": {
+          "package_name": "com.laddigital.smartshopper"
+        }
+      },
+      "oauth_client": [
         {
-          "current_key": "AIzaSyAwEbTmJBTXmo9nVSFWKVG3YAL0zg0ir9g"
+          "client_id": "666821658855-ad4gce25i5vvdbn6p14q9grdl7p32cc4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBYK7yOxwZvg2zYuxkK828a53kAy2Fg0Fk"
         }
       ],
       "services": {

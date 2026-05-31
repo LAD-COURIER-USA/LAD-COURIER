@@ -290,8 +290,10 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
   void _showBusinessCard() {
     if (_userModel == null) return;
     
-    // 🛡️ SISTEMA LAD: Usamos el esquema personalizado en el QR para forzar la apertura de la App.
-    final String qrData = "ladcourier://invite?id=${_userModel!.uid}";
+    // 🛡️ SISTEMA LAD: Usamos la URL de la Landing Page en el QR.
+    // Esto unifica la experiencia: si el cliente NO tiene la App, lo manda a descargar.
+    // Si SÍ la tiene, el AndroidManifest lo captura y abre la App con la tarjeta.
+    final String qrData = "https://ladcourier.com/invite?id=${_userModel!.uid}";
 
     showDialog(
       context: context,

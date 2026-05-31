@@ -37,7 +37,7 @@ class LocationService {
     // 3. Si los permisos están concedidos, obtenemos la ubicación.
     // Se usa alta precisión para máxima efectividad en campo.
     return await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high
+        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)
     );
   }
 }
