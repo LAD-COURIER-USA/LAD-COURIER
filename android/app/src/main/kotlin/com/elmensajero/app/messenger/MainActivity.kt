@@ -35,32 +35,32 @@ class MainActivity: FlutterFragmentActivity() {
         }
     }
 
-    private fun startWatchingScreenshots() {
-        if (screenshotObserver != null) {
-            Log.i("SISTEMA LAD NATIVO", "⚠️ El vigilante ya estaba activo.")
-            return
+    // 🚀 BINGO: Si la App ya estaba abierta, detectamos el click en la notificación aquí
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (intent.getBooleanExtra("BINGO_ACTION", false)) {
+            Log.i("SISTEMA LAD NATIVO", "🎯 Click en notificación detectado (onNewIntent)")
+            methodChannel?.invokeMethod("onScreenshotDetected", null)
         }
+    }
+
+    private fun startWatchingScreenshots() {
+        if (screenshotObserver != null) return
         
-        Log.i("SISTEMA LAD NATIVO", "🛰️ Iniciando registro del vigilante de Screenshots...")
+        Log.i("SISTEMA LAD NATIVO", "🛰️ Vigilante Global ACTIVADO")
 
         screenshotObserver = object : ContentObserver(Handler(Looper.getMainLooper())) {
             override fun onChange(selfChange: Boolean, uri: Uri?) {
                 super.onChange(selfChange, uri)
-                Log.i("SISTEMA LAD NATIVO", "📸 Cambio detectado en galería: $uri")
+                Log.i("SISTEMA LAD NATIVO", "📸 Cambio en galería detectado: $uri")
                 
-                // Filtramos para que solo reaccione a imágenes nuevas
-                if (uri.toString().contains("images/media")) {
-                    Log.i("SISTEMA LAD NATIVO", "🎯 Screenshot confirmado. Enviando notificación...")
-                    showBingoNotification()
-                }
+                // 🛡️ REGLA UNIVERSAL: Si hay un cambio en la base de datos de fotos, avisamos.
+                // Quitamos el filtro 'images/media' para máxima compatibilidad con Samsung.
+                showBingoNotification()
             }
         }
         
-        // Vigilamos tanto memoria interna como externa para no fallar
         contentResolver.registerContentObserver(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, true, screenshotObserver!!)
-        contentResolver.registerContentObserver(MediaStore.Images.Media.INTERNAL_CONTENT_URI, true, screenshotObserver!!)
-        
-        Log.i("SISTEMA LAD NATIVO", "✅ Vigilante registrado exitosamente en INTERNAL y EXTERNAL URIs")
     }
 
     private fun showBingoNotification() {
@@ -71,11 +71,15 @@ class MainActivity: FlutterFragmentActivity() {
             val channel = NotificationChannel(channelId, "LAD SmartShopper", NotificationManager.IMPORTANCE_HIGH)
             channel.description = "Canal para detección de tickets SmartShopper"
             channel.enableVibration(true)
+            // 📳 PATRÓN DE VIBRACIÓN LAD: Espera 0ms, Vibra 500ms, Espera 200ms, Vibra 500ms
+            channel.vibrationPattern = longArrayOf(0, 500, 200, 500)
+            channel.lightColor = 0xFF6200EE.toInt() // Morado LAD
+            channel.enableLights(true)
             notificationManager.createNotificationChannel(channel)
         }
 
         val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        intent.addFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         intent.putExtra("BINGO_ACTION", true)
 
         val pendingIntent = PendingIntent.getActivity(this, 1001, intent, 
@@ -83,16 +87,18 @@ class MainActivity: FlutterFragmentActivity() {
 
         val notification = NotificationCompat.Builder(this, channelId)
             .setSmallIcon(android.R.drawable.ic_menu_camera)
-            .setContentTitle("¡BINGO! TICKET DETECTADO")
-            .setContentText("Toca aquí para procesar tu orden automáticamente con LAD.")
+            .setContentTitle("🚀 TICKET DETECTADO")
+            .setContentText("Haz click para procesar tu ticket.")
             .setAutoCancel(true)
-            .setOngoing(false)
+            .setColor(0xFF6200EE.toInt()) // Tinte de color LAD
             .setPriority(NotificationCompat.PRIORITY_MAX)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setVibrate(longArrayOf(0, 500, 200, 500))
             .setDefaults(NotificationCompat.DEFAULT_ALL)
+            .setFullScreenIntent(pendingIntent, true)
             .setContentIntent(pendingIntent)
             .build()
 
-        Log.i("SISTEMA LAD NATIVO", "🔔 Disparando notificación 1001...")
         notificationManager.notify(1001, notification)
     }
 }

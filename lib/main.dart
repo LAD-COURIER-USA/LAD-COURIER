@@ -98,12 +98,7 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _checkIfReturningFromBingo() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (prefs.getBool('pending_bingo_process') == true) {
-      await prefs.remove('pending_bingo_process');
-      debugPrint("SISTEMA LAD: Regresando de Notificación. Activando OCR.");
-      _navigateToCreateOrder({'autoStartOCR': true});
-    }
+    // 🛡️ REFUERZO: En Android 14 el Intent ya trae la orden, no necesitamos SharedPreferences
   }
 
   /// Vigilancia constante: En cuanto el usuario se loguea, soltamos la invitación pendiente

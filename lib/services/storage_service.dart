@@ -102,7 +102,21 @@ class StorageService {
     return _uploadImage('order_photos', orderId, context, customTitle: customTitle, customSubtitle: customSubtitle, onLocalPathPicked: onLocalPathPicked);
   }
 
-  /// Elimina archivos de Storage (Sin cambios)
+  /// 🎯 SUBIDA DE ARCHIVO DIRECTO (Para el BINGO de Screenshots)
+  Future<String?> uploadFile(String folder, String fileName, File file) async {
+    try {
+      final String filePath = '$folder/$fileName.jpg';
+      final Reference storageRef = _storage.ref().child(filePath);
+      final UploadTask uploadTask = storageRef.putFile(file);
+      final TaskSnapshot snapshot = await uploadTask;
+      return await snapshot.ref.getDownloadURL();
+    } catch (e) {
+      debugPrint("Error al subir archivo directo: $e");
+      return null;
+    }
+  }
+
+  /// Elimina archivos de Storage
   Future<void> deleteFile(String? url) async {
     if (url == null || url.isEmpty) return;
     try {

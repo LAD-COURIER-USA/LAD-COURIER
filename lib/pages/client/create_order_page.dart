@@ -445,11 +445,27 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     if (!mounted) return;
     setState(() => _isUploadingPhoto = true); // Spinner activo durante el análisis
 
-    // 🧠 PROCESAR CON OCR
+    // 🚀 PASO 2.1: SUBIR EL SCREENSHOT AL BÚNKER (Firebase Storage)
+    // Esto permite que el driver vea el ticket para el pickup
+    String? uploadedUrl;
+    try {
+      uploadedUrl = await _storageService.uploadFile(
+        'order_photos', 
+        "prod_${DateTime.now().millisecondsSinceEpoch}", 
+        file
+      );
+    } catch (e) {
+      debugPrint("SISTEMA LAD ERROR: No se pudo subir el ticket -> $e");
+    }
+
+    // 🧠 PASO 2.2: PROCESAR CON OCR
     final ocrResult = await _ocrService.analyzeReceipt(file.path);
     
     if (!mounted) return;
-    setState(() => _detectedCountryCode = ocrResult.countryCode ?? "US");
+    setState(() {
+      _detectedCountryCode = ocrResult.countryCode ?? "US";
+      if (uploadedUrl != null) _productPhotoUrl = uploadedUrl;
+    });
 
     final Position? position = await _ensureLocationPermission();
     Map<String, dynamic>? validatedStore;
