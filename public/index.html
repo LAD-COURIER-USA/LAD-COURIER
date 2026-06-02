@@ -57,15 +57,16 @@
                         <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" class="h-6 invert" alt="Icono Android">
                         <div class="text-left">
                             <p class="text-[8px] uppercase opacity-60">Descarga Directa</p>
-                            <p class="font-brand text-xs uppercase text-white">Android Standards (Recomendado)</p>
+                            <p class="font-brand text-xs uppercase text-white">Android Standards</p>
                         </div>
                     </a>
 
-                    <div class="bg-gray-200 text-gray-400 px-8 py-4 rounded-2xl font-bold flex items-center gap-3 cursor-not-allowed">
-                        <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg" class="h-6 opacity-20" alt="Icono Apple">
+                    <!-- 🎴 QR DE GUERRILLA (DESCARGA GENERAL) -->
+                    <div class="hidden lg:flex items-center gap-4 bg-white p-3 rounded-2xl shadow-xl border border-gray-200">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ladcourier.com" alt="QR Descarga General" class="w-20 h-20">
                         <div class="text-left">
-                            <p class="text-[8px] uppercase">App Store</p>
-                            <p class="font-brand text-xs uppercase">Próximamente</p>
+                            <p class="text-[10px] font-black text-lad-purple uppercase leading-tight">Escanea para<br>Instalar</p>
+                            <p class="text-[8px] text-gray-400 mt-1 uppercase font-bold italic">Código para<br>Marketing</p>
                         </div>
                     </div>
                 </div>
@@ -98,54 +99,84 @@
         </div>
     </section>
 
-    <!-- GRID DE IMÁGENES -->
-    <section class="py-20 bg-white">
+    <!-- SECCIÓN SMART SHOPPER UNIVERSAL -->
+    <section class="py-24 bg-indigo-50/30">
         <div class="max-w-7xl mx-auto px-6">
-            <h2 class="font-brand text-3xl text-center font-black mb-16 uppercase italic text-gray-800">Experiencia LAD Courier 2.0</h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
-                <div class="reveal text-center">
-                    <img src="assets/01.webp" class="app-screenshot mb-4" alt="Dashboard">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Centro de Mando</p>
+            <div class="text-center mb-20">
+                <h2 class="font-brand text-4xl md:text-6xl font-black mb-6 uppercase italic tracking-tighter">Buscador Universal SmartShopper</h2>
+                <p class="text-xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
+                    Hemos eliminado las categorías. Ahora el límite lo pones tú. Compra en <span class="text-lad-purple font-bold">cualquier tienda online de USA</span> y nosotros nos encargamos de la logística.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <!-- Paso 1 -->
+                <div class="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-transparent hover:border-lad-purple transition-all group">
+                    <div class="w-20 h-20 bg-black text-white rounded-3xl flex items-center justify-center mb-8 text-3xl font-black group-hover:rotate-12 transition">01</div>
+                    <h3 class="font-brand text-xl font-bold mb-4 uppercase tracking-tight">Cualquier Tienda</h3>
+                    <p class="text-gray-600 leading-relaxed">Repuestos, herramientas, medicinas, ropa o comida. Usa nuestro buscador para entrar en el sitio oficial de cualquier comercio en USA.</p>
                 </div>
-                <div class="reveal text-center">
-                    <img src="assets/02.webp" class="app-screenshot mb-4" alt="Servicios">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Disponibilidad</p>
+
+                <!-- Paso 2 -->
+                <div class="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-transparent hover:border-lad-purple transition-all group">
+                    <div class="w-20 h-20 bg-black text-white rounded-3xl flex items-center justify-center mb-8 text-3xl font-black group-hover:rotate-12 transition">02</div>
+                    <h3 class="font-brand text-xl font-bold mb-4 uppercase tracking-tight">Captura el Ticket</h3>
+                    <p class="text-gray-600 leading-relaxed">Una vez realices tu compra (selecciona 'Pickup'), toma una captura de pantalla del recibo. LAD detectará tu gesto al instante.</p>
                 </div>
-                <div class="reveal text-center">
-                    <img src="assets/03.webp" class="app-screenshot mb-4" alt="Negociación">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Negociación Real-Time</p>
-                </div>
-                <div class="reveal text-center">
-                    <img src="assets/04.webp" class="app-screenshot mb-4" alt="Mapa">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Mapa Operativo</p>
-                </div>
-                <div class="reveal text-center">
-                    <img src="assets/05.webp" class="app-screenshot mb-4" alt="Stripe">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Pagos Stripe</p>
-                </div>
-                <div class="reveal text-center">
-                    <img src="assets/06.webp" class="app-screenshot mb-4" alt="Cliente">
-                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase">Dashboard Cliente</p>
+
+                <!-- Paso 3 -->
+                <div class="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-transparent hover:border-lad-purple transition-all group">
+                    <div class="w-20 h-20 bg-green-500 text-white rounded-3xl flex items-center justify-center mb-8 text-3xl font-black group-hover:rotate-12 transition">03</div>
+                    <h3 class="font-brand text-xl font-bold mb-4 uppercase tracking-tight text-green-600">BINGO: Auto-Llenado</h3>
+                    <p class="text-gray-600 leading-relaxed">Toca la notificación y ¡BUM! Nuestra IA lee el ticket, valida la dirección y crea tu orden de delivery en segundos.</p>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- SECCIÓN SEGURIDAD -->
+    <!-- GRID DE IMÁGENES -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="font-brand text-3xl text-center font-black mb-16 uppercase italic text-gray-800 tracking-widest">Tecnología de Soberanía Logística</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="reveal text-center">
+                    <img src="assets/01.webp" class="app-screenshot mb-4" alt="Dashboard">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Inteligencia de Datos</p>
+                </div>
+                <div class="reveal text-center">
+                    <img src="assets/02.webp" class="app-screenshot mb-4" alt="Servicios">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Libertad de Compra</p>
+                </div>
+                <div class="reveal text-center">
+                    <img src="assets/03.webp" class="app-screenshot mb-4" alt="Negociación">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Trato Directo</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN SEGURIDAD Y REDES -->
     <section class="py-24 bg-gray-900 text-white">
         <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
             <div class="reveal">
-                <div class="bg-green-500/20 text-green-400 border border-green-500/30 px-4 py-1 rounded-full text-[10px] font-brand mb-6 inline-block uppercase">Shield Verified 2026</div>
-                <h2 class="font-brand text-4xl font-black mb-6 uppercase">Validación Biométrica</h2>
-                <p class="text-gray-400 text-lg mb-8 leading-relaxed">Seguridad sin burocracia. Utilizamos huellas digitales para proteger cada entrega.</p>
-                <ul class="space-y-4 text-sm font-light">
-                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Identidad verificada.</li>
-                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Validación por Huella 24h.</li>
-                    <li class="flex items-center gap-3"><span class="text-green-500 font-bold">✓</span> Encriptación nivel bancario.</li>
-                </ul>
+                <div class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-4 py-1 rounded-full text-[10px] font-brand mb-6 inline-block uppercase tracking-widest">LAD SOCIAL CONNECT</div>
+                <h2 class="font-brand text-4xl font-black mb-6 uppercase italic">Únete a la Revolución</h2>
+                <p class="text-gray-400 text-lg mb-8 leading-relaxed">Síguenos en nuestras plataformas oficiales para ver tutoriales en vivo, historias de éxito de drivers y nuevas actualizaciones del búnker.</p>
+
+                <div class="flex gap-6 items-center">
+                    <a href="#" class="hover:scale-110 transition opacity-80 hover:opacity-100">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" class="h-8" alt="YouTube">
+                    </a>
+                    <a href="#" class="hover:scale-110 transition opacity-80 hover:opacity-100">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/X_logo_2023.svg" class="h-6 invert" alt="X">
+                    </a>
+                    <a href="#" class="hover:scale-110 transition opacity-80 hover:opacity-100">
+                        <img src="https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg" class="h-8 invert" alt="TikTok">
+                    </a>
+                </div>
             </div>
             <div class="reveal text-center">
-                <img src="assets/05.webp" class="app-screenshot max-w-[250px] mx-auto border-green-500/50" alt="Biometría">
+                <img src="assets/05.webp" class="app-screenshot max-w-[250px] mx-auto border-indigo-500/50" alt="Dashboard Premium">
             </div>
         </div>
     </section>

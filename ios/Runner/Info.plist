@@ -48,11 +48,11 @@
 
 	<!-- PERMISOS DE CÁMARA Y GALERÍA PARA LAD COURIER -->
 	<key>NSCameraUsageDescription</key>
-	<string>Necesitamos usar tu cámara para verificar tu identidad y para capturar fotos de las entregas.</string>
+	<string>LAD usa tu cámara para escanear tickets de compra y fotos de evidencia para proteger tu entrega.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>Necesitamos guardar los comprobantes de entrega en tu galería de fotos para tu respaldo.</string>
+	<string>LAD guarda copias de tus comprobantes de entrega en tu galería para tu respaldo legal.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Necesitamos acceso a tu galería para que puedas gestionar y ver las fotos de las entregas realizadas.</string>
+	<string>LAD detecta tus capturas de pantalla para auto-llenar tus órdenes de SmartShopper instantáneamente.</string>
 	<!-- FIN DE PERMISOS -->
 
 </dict>
