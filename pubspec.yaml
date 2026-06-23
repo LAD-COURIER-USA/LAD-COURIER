@@ -2,7 +2,7 @@ name: lad_courier
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+3
+version: 1.0.0+11
 
 environment:
   sdk: '>=3.10.4 <4.0.0'
@@ -36,8 +36,8 @@ dependencies:
   # --- PROTECCIÓN ANTI-HACKERS ---
   firebase_app_check: ^0.3.0+1
   
-  # --- BIOMETRÍA LOCAL (SIN COSTO Y SIN FALLOS) ---
-  local_auth: ^2.3.0
+  # --- BIOMETRÍA LOCAL (ESTABLE) ---
+  local_auth: 2.3.0
   
   # --- INTELIGENCIA ARTIFICIAL (RECONOCIMIENTO DE RECIBOS) ---
   google_mlkit_text_recognition: ^0.13.0
@@ -50,9 +50,10 @@ dependencies:
   image_picker: ^1.1.2
   provider: ^6.1.2
   url_launcher: ^6.3.0
-  google_maps_flutter: ^2.7.0
+  google_maps_flutter: ^2.10.0
 
   geolocator: ^14.0.2
+  web_socket_channel: ^3.0.1
   cupertino_icons: ^1.0.8
   intl: ^0.20.2
   flutter_native_splash: ^2.4.7
@@ -71,11 +72,20 @@ dependencies:
   flutter_vibrate: ^1.4.0
   photo_manager: ^3.9.0
   permission_handler: ^12.0.2
+  camera: 0.11.0+2
+  google_mlkit_face_detection: 0.11.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^4.0.0
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/ic_launcher.png"
+  min_sdk_android: 21
 
 flutter:
   uses-material-design: true

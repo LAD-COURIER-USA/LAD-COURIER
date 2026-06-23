@@ -3,6 +3,8 @@ import 'package:intl/intl.dart';
 import 'package:lad_courier/models/order_model.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
+import 'package:lad_courier/widgets/walkie_talkie_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 
 class ClientNegotiationPage extends StatefulWidget {
@@ -105,6 +107,11 @@ class _ClientNegotiationPageState extends State<ClientNegotiationPage> {
                   Text(order.serviceType.toUpperCase(), style: const TextStyle(fontSize: 12, color: Colors.blueAccent, fontWeight: FontWeight.bold)),
                 ],
               ),
+            ),
+            // 🎙️ WALKIE-TALKIE EN NEGOCIACIÓN (GRADO LAD)
+            WalkieTalkieButton(
+              channelId: order.id,
+              userId: FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
             ),
           ],
         ),

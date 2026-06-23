@@ -9,6 +9,7 @@
 
     <!-- PERMISOS DE CÁMARA Y HARDWARE -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
@@ -18,6 +19,7 @@
     <!-- NOTIFICACIONES Y VIBRACIÓN -->
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
+    <uses-permission android:name="android.permission.USE_FULL_SCREEN_INTENT" />
 
     <!-- ALMACENAMIENTO -->
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
@@ -36,8 +38,8 @@
 
     <application
         android:name="${applicationName}"
-        android:label="LAD Courier"
-        android:icon="@mipmap/ic_launcher"
+        android:label="LAD Courier USA"
+        android:icon="@mipmap/launcher_icon"
         android:requestLegacyExternalStorage="true"
         android:usesCleartextTraffic="true">
 
@@ -82,6 +84,15 @@
                 <data android:scheme="ladcourier" android:host="invite" />
                 <data android:scheme="ladcourier" android:host="stripe-return" />
                 <data android:scheme="ladcourier" android:host="create_order" />
+            </intent-filter>
+
+            <!-- 📸 IMÁN 3: COMPARTIR TICKET (Privacidad Total) -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="image/jpeg" />
+                <data android:mimeType="image/png" />
+                <data android:mimeType="image/webp" />
             </intent-filter>
         </activity>
 

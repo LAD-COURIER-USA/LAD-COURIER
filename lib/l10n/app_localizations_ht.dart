@@ -83,7 +83,7 @@ class AppLocalizationsHt extends AppLocalizations {
 
   @override
   String get earnings_refund_disclaimer =>
-      'LAD Courier pa chaje mwa. Sèlman yon frè sèvis 0.50 \$ pou chak kòmand ki reyisi, kèlkeswa pri ki te fikse a.';
+      'LAD Courier pa chaje mwa. Sèlman yon frè sèvis 0.70 \$ pou chak kòmand ki reyisi, kèlkeswa pri ki te fikse a.';
 
   @override
   String get driver_dash_title => 'SANT KÒMAND CHOFÈ';
@@ -708,6 +708,9 @@ class AppLocalizationsHt extends AppLocalizations {
   String get auth_error_name => 'Antre non konplè ou';
 
   @override
+  String get auth_error_session => 'Sesyon ekspire oswa pa valid.';
+
+  @override
   String get auth_role_title => 'Byenveni nan LAD!';
 
   @override
@@ -955,6 +958,9 @@ class AppLocalizationsHt extends AppLocalizations {
   String get driver_service_shopping => 'Acha ak Komisyon';
 
   @override
+  String get driver_service_smartshopper => 'SmartShopper';
+
+  @override
   String get shopping_nav_instruction_title_alt => '💡 PLAN SOVETAY';
 
   @override
@@ -996,7 +1002,7 @@ class AppLocalizationsHt extends AppLocalizations {
 
   @override
   String get driver_agreement_body =>
-      'LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Lisans sa a ka anile nenpòt lè ak pou nenpòt sikonstans dapre diskresyon LAD. Frè Sèvis (\$0.50) ak kondisyon yo ka chanje avèk yon avi dijital davans.';
+      'LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Lisans sa a ka anile nenpòt lè ak pou nenpòt sikonstans dapre diskresyon LAD. Frè Sèvis (\$0.70) ak kondisyon yo ka chanje avèk yon avi dijital davans.';
 
   @override
   String get common_payment_required_title => 'PÈMAN OBLIGATWA';
@@ -1051,4 +1057,117 @@ class AppLocalizationsHt extends AppLocalizations {
 
   @override
   String get client_dash_invite_code_label => 'ANTRE KÒD LYEZON CHOFÈ A:';
+
+  @override
+  String get order_details_arrived_pickup => 'MWEN RIVE / RANMASE';
+
+  @override
+  String get order_details_en_route_pickup => '🚀 Kòmanse wout ramase.';
+
+  @override
+  String get order_details_en_route_delivery => '🚚 Kòmanse wout livrezon.';
+
+  @override
+  String get order_details_geofence_lock =>
+      'RIVE NAN DESTINASYON POU AKTIVE KAMERA';
+
+  @override
+  String get order_details_bypass_title => '⚠️ ERÈ PEMAN';
+
+  @override
+  String order_details_bypass_body(String error) {
+    return 'Stripe di: $error\n\nÈske ou vle FÒSE fini kòmand lan kanmenm? (Sèlman pou tès)';
+  }
+
+  @override
+  String get order_details_bypass_btn => 'FÒSE FINI KÒMAND LAN';
+
+  @override
+  String get order_details_receipt_btn => 'OUVRI RESI ORIJINAL';
+
+  @override
+  String get liveness_prompt => 'METE FIGI OU DEVANT KAMERA A';
+
+  @override
+  String get liveness_eyes_closed => 'OUVRI JE OU OSWA PAPIYON!';
+
+  @override
+  String get liveness_face_detected => '✅ FIGI DETEKTE. RETE KONSA.';
+
+  @override
+  String get liveness_searching => 'AP CHÈCHE FIGI MOUN...';
+
+  @override
+  String get verif_title => 'SANT VERIFIKASYON';
+
+  @override
+  String get verif_header => 'SEKIRITE OU SE PI BON ENVESTISMAN OU';
+
+  @override
+  String get verif_body =>
+      'SISTÈM LAD: Konplete etap sa yo pou aktive kont chofè ou. Si ou deja fini yon etap nan Stripe, rale desann pou rafrechi.';
+
+  @override
+  String get verif_step1_title => 'Lyezon Bankè';
+
+  @override
+  String get verif_step1_desc => 'Konfigire kont ou pou resevwa peman dirèk.';
+
+  @override
+  String get verif_step1_btn_active => 'KONT AKTIF';
+
+  @override
+  String get verif_step1_btn_retry => 'REYE / KONTINYE';
+
+  @override
+  String get verif_step1_btn_config => 'KONFIGIRE PEMAN';
+
+  @override
+  String get verif_step1_sync_btn =>
+      'MWEN DEJA FINI NAN STRIPE (VERIFIE KOUNYE A)';
+
+  @override
+  String get verif_step1_success => '✅ Kont aktive avèk siksè!';
+
+  @override
+  String get verif_step1_pending => 'ℹ️ Stripe ap trete done ou toujou.';
+
+  @override
+  String get verif_step2_title => 'Verifie Idantite';
+
+  @override
+  String get verif_step2_desc => 'Eskane ID ou epi pran yon selfie.';
+
+  @override
+  String get verif_step2_btn_verified => 'IDANTITE VERIFIE';
+
+  @override
+  String get verif_step2_btn_start => 'KÒMANSE ESKANE ID';
+
+  @override
+  String get verif_footer =>
+      'Done ou yo chiffres epi trete dirèkteman pa Stripe selon nòm bankè yo.';
+
+  @override
+  String get ss_dialog_title => 'KISA N AP CHÈCHE JODI A?';
+
+  @override
+  String get ss_dialog_hint => 'Egz: Pizza, Farmasi, Best Buy...';
+
+  @override
+  String get ss_btn_search => 'CHÈCHE';
+
+  @override
+  String get ss_notif_title => 'BINGO! KAPTURE';
+
+  @override
+  String get ss_notif_body =>
+      'Nou detekte ou te pran yon screenshot resi a. Èske ou vle trete li kounye a pou kreye kòmand ou a?';
+
+  @override
+  String get ss_ocr_error_title => 'RESI PA DETEKTE';
+
+  @override
+  String get ss_ocr_error_body =>
+      'Nou pa t ka jwenn yon adrès klè nan imaj la. Tanpri asire w resi a lizib oswa antre adrès la manyèlman.';
 }

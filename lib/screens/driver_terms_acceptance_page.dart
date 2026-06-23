@@ -138,7 +138,7 @@ El Driver es el único y exclusivo responsable de la operación legal y operativ
 • Protección del Producto: El Driver asume la responsabilidad total sobre la custodia, integridad, seguridad y correcta entrega de los paquetes, mercancías o productos que acepte mover. LAD DIGITAL SYSTEMS LLC queda totalmente descargada de cualquier reclamo por pérdida, robo o daño o destrucción de dichos bienes.
 
 ARTÍCULO 4: MODELO FINANCIERO Y TARIFA DE SERVICIO (SERVICE FEE)
-4.1 Costo por Orden Exitosa: LAD DIGITAL SYSTEMS LLC no cobra mensualidades dinámicas ni comisiones porcentuales sobre el valor total estipulado entre las partes. La Compañía cobrará una tarifa de servicio fija de \$0.50 USD (cincuenta centavos de dólar) por cada orden completada y marcada como exitosa en la plataforma.
+4.1 Costo por Orden Exitosa: LAD DIGITAL SYSTEMS LLC no cobra mensualidades dinámicas ni comisiones porcentuales sobre el valor total estipulado entre las partes. La Compañía cobrará una tarifa de servicio fija de \$0.70 USD (setenta centavos de dólar) por cada orden completada y marcada como exitosa en la plataforma.
 4.2 Independencia del Costo del Envío: Esta tarifa se mantendrá fija independientemente del costo total del servicio negociado entre el Cliente y el Driver.
 4.3 Modificación Discrecional: LAD DIGITAL SYSTEMS LLC se reserva el derecho explícito de modificar el monto de esta tarifa de servicio en el futuro a su sola discreción, notificando los cambios a través de la aplicación.
 

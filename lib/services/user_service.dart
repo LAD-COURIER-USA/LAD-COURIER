@@ -5,6 +5,7 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:local_auth/local_auth.dart'; // 🔐 NUEVA IMPORTACIÓN BIOMÉTRICA
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/location_service.dart';
+import 'package:lad_courier/services/geocoding_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
@@ -63,6 +64,56 @@ class UserService {
       debugPrint("Error en verifyBiometricIdentity: $e");
       return {'success': false, 'error': e.toString()};
     }
+  }
+
+  /// 🛡️ BÚNKER PERSONAL: Guarda una dirección privada para ahorrar API de Google
+  Future<void> savePrivateAddress(String uid, GeocodingResponse res) async {
+    try {
+      final normalized = res.fullAddress.toUpperCase().trim();
+      // Usamos un hash simple o el texto normalizado como ID para evitar duplicados
+      final docId = normalized.hashCode.toString();
+      
+      await _usersRef.doc(uid).collection('private_geodata').doc(docId).set({
+        'fullAddress': normalized,
+        'lat': res.latLng.latitude,
+        'lng': res.latLng.longitude,
+        'zipCode': res.zipCode,
+        'city': res.city?.toUpperCase(),
+        'state': res.state?.toUpperCase(),
+        'streetNumber': res.streetNumber,
+        'lastUsed': FieldValue.serverTimestamp(),
+      });
+      debugPrint("LAD BÚNKER: Dirección privada blindada.");
+    } catch (e) {
+      debugPrint("LAD ERROR Búnker: $e");
+    }
+  }
+
+  /// 🛡️ BÚNKER PERSONAL: Busca si la dirección ya fue pagada a Google anteriormente
+  Future<GeocodingResponse?> findPrivateAddress(String uid, String inputAddress) async {
+    try {
+      final normalizedInput = inputAddress.toUpperCase().trim();
+      final snapshot = await _usersRef.doc(uid)
+          .collection('private_geodata')
+          .where('fullAddress', isEqualTo: normalizedInput)
+          .limit(1).get();
+
+      if (snapshot.docs.isNotEmpty) {
+        final data = snapshot.docs.first.data();
+        debugPrint("LAD BÚNKER: BINGO! Dirección recuperada del búnker privado (Costo \$0)");
+        return GeocodingResponse(
+          latLng: GeoPoint(data['lat'], data['lng']),
+          fullAddress: data['fullAddress'],
+          zipCode: data['zipCode'],
+          city: data['city'],
+          state: data['state'],
+          streetNumber: data['streetNumber'],
+        );
+      }
+    } catch (e) {
+      debugPrint("LAD ERROR Búnker Search: $e");
+    }
+    return null;
   }
 
   Future<UserModel?> getUser(String uid) async {

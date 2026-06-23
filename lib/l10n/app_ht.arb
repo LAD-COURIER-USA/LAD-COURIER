@@ -24,7 +24,7 @@
   "earnings_refund_success_msg": "Zòn konfigire kòrèkteman.",
   "earnings_refund_pending_msg": "Konfigirasyon ap fèt...",
   "earnings_refund_anti_fraud_rule": "Chanjman zòn se enstantane epi san pri.",
-  "earnings_refund_disclaimer": "LAD Courier pa chaje mwa. Sèlman yon frè sèvis 0.50 $ pou chak kòmand ki reyisi, kèlkeswa pri ki te fikse a.",
+  "earnings_refund_disclaimer": "LAD Courier pa chaje mwa. Sèlman yon frè sèvis 0.70 $ pou chak kòmand ki reyisi, kèlkeswa pri ki te fikse a.",
   "driver_dash_title": "SANT KÒMAND CHOFÈ",
   "driver_status_online": "CHOFÈ AN LINY",
   "driver_status_offline": "PA NAN SÈVIS",
@@ -345,6 +345,7 @@
   "auth_error_fields": "Tanpri ranpli tout chan yo.",
   "auth_error_pass_match": "Modpas yo pa koresponn",
   "auth_error_name": "Antre non konplè ou",
+  "auth_error_session": "Sesyon ekspire oswa pa valid.",
   "auth_role_title": "Byenveni nan LAD!",
   "auth_role_subtitle": "Chwazi kijan ou vle itilize platfòm lan:",
   "auth_role_client": "MWEN SE KLIYAN",
@@ -471,7 +472,7 @@
   "delete_account_btn_confirm": "WI, EFÈSE TOUT BAGAY",
   "delete_account_reauth_required": "Pou sekirite, ou dwe konekte ankò anvan ou siprime kont ou.",
   "driver_agreement_title": "AKÒ LICANS SaaS",
-  "driver_agreement_body": "LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Lisans sa a ka anile nenpòt lè ak pou nenpòt sikonstans dapre diskresyon LAD. Frè Sèvis ($0.50) ak kondisyon yo ka chanje avèk yon avi dijital davans.",
+  "driver_agreement_body": "LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Lisans sa a ka anile nenpòt lè ak pou nenpòt sikonstans dapre diskresyon LAD. Frè Sèvis ($0.70) ak kondisyon yo ka chanje avèk yon avi dijital davans.",
   "common_payment_required_title": "PÈMAN OBLIGATWA",
   "common_payment_required_msg": "Pou garanti sekirite kòmand ou yo, ou dwe lye yon metòd pèman nan pwofil ou.",
   "driver_inactivity_title": "MÒD REPO",
@@ -494,5 +495,47 @@
       }
     }
   },
-  "client_dash_invite_code_label": "ANTRE KÒD LYEZON CHOFÈ A:"
+  "client_dash_invite_code_label": "ANTRE KÒD LYEZON CHOFÈ A:",
+  "order_details_arrived_pickup": "MWEN RIVE / RANMASE",
+  "order_details_en_route_pickup": "🚀 Kòmanse wout ramase.",
+  "order_details_en_route_delivery": "🚚 Kòmanse wout livrezon.",
+  "order_details_geofence_lock": "RIVE NAN DESTINASYON POU AKTIVE KAMERA",
+  "order_details_bypass_title": "⚠️ ERÈ PEMAN",
+  "order_details_bypass_body": "Stripe di: {error}\n\nÈske ou vle FÒSE fini kòmand lan kanmenm? (Sèlman pou tès)",
+  "@order_details_bypass_body": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "order_details_bypass_btn": "FÒSE FINI KÒMAND LAN",
+  "order_details_receipt_btn": "OUVRI RESI ORIJINAL",
+  "liveness_prompt": "METE FIGI OU DEVANT KAMERA A",
+  "liveness_eyes_closed": "OUVRI JE OU OSWA PAPIYON!",
+  "liveness_face_detected": "✅ FIGI DETEKTE. RETE KONSA.",
+  "liveness_searching": "AP CHÈCHE FIGI MOUN...",
+  "verif_title": "SANT VERIFIKASYON",
+  "verif_header": "SEKIRITE OU SE PI BON ENVESTISMAN OU",
+  "verif_body": "SISTÈM LAD: Konplete etap sa yo pou aktive kont chofè ou. Si ou deja fini yon etap nan Stripe, rale desann pou rafrechi.",
+  "verif_step1_title": "Lyezon Bankè",
+  "verif_step1_desc": "Konfigire kont ou pou resevwa peman dirèk.",
+  "verif_step1_btn_active": "KONT AKTIF",
+  "verif_step1_btn_retry": "REYE / KONTINYE",
+  "verif_step1_btn_config": "KONFIGIRE PEMAN",
+  "verif_step1_sync_btn": "MWEN DEJA FINI NAN STRIPE (VERIFIE KOUNYE A)",
+  "verif_step1_success": "✅ Kont aktive avèk siksè!",
+  "verif_step1_pending": "ℹ️ Stripe ap trete done ou toujou.",
+  "verif_step2_title": "Verifie Idantite",
+  "verif_step2_desc": "Eskane ID ou epi pran yon selfie.",
+  "verif_step2_btn_verified": "IDANTITE VERIFIE",
+  "verif_step2_btn_start": "KÒMANSE ESKANE ID",
+  "verif_footer": "Done ou yo chiffres epi trete dirèkteman pa Stripe selon nòm bankè yo.",
+  "ss_dialog_title": "KISA N AP CHÈCHE JODI A?",
+  "ss_dialog_hint": "Egz: Pizza, Farmasi, Best Buy...",
+  "ss_btn_search": "CHÈCHE",
+  "ss_notif_title": "BINGO! KAPTURE",
+  "ss_notif_body": "Nou detekte ou te pran yon screenshot resi a. Èske ou vle trete li kounye a pou kreye kòmand ou a?",
+  "ss_ocr_error_title": "RESI PA DETEKTE",
+  "ss_ocr_error_body": "Nou pa t ka jwenn yon adrès klè nan imaj la. Tanpri asire w resi a lizib oswa antre adrès la manyèlman."
 }

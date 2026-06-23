@@ -118,7 +118,8 @@ class GeodataService {
     required String fullAddress,
     required double lat,
     required double lng,
-    required String driverId, // Puede ser UID de Driver o Cliente
+    required String driverId,
+    String? city, // 🏙️ NUEVO: Captura de Ciudad para Triangulación
     String countryCode = "US",
     String? stateCode,
   }) async {
@@ -150,7 +151,7 @@ class GeodataService {
         'address': {
           'number': cleanNum,
           'street': fullAddress.toUpperCase().replaceFirst(cleanNum, '').trim(),
-          'city': '', 
+          'city': (city ?? '').toUpperCase(),
           'state': state,
           'zip': finalZip,
           'country': countryCode,
@@ -226,63 +227,49 @@ class GeodataService {
   /// Encuentra locales usando: Marca + Ciudad + Número de Calle
   Future<Map<String, dynamic>?> findStoreByTriangulation({
     required String brand,
-    required String city,
+    String? city,
     required String streetNumber,
     required String stateCode,
+    double? userLat,
+    double? userLon,
   }) async {
     String collectionName = "geodata_us_${stateCode.toLowerCase()}";
     
     try {
-      debugPrint("LAD TRIANGULACIÓN: Buscando $brand en $city con No. $streetNumber");
-      
-      // 🚀 OPCIÓN 1: Búsqueda con Marca (Si el OCR leyó el nombre)
-      if (brand.isNotEmpty) {
-        final query = await _db.collection(collectionName)
-            .where('brand', isEqualTo: brand.toUpperCase())
-            .where('address.number', isEqualTo: streetNumber)
-            .limit(1).get();
+      debugPrint("LAD TRIANGULACIÓN: Buscando $brand con No. $streetNumber. Ref: $city / GPS: $userLat");
 
-        if (query.docs.isNotEmpty) {
-          final data = query.docs.first.data();
-          _enrichData(data);
-          data['id'] = query.docs.first.id;
-          return data;
+      // 🚀 ESTRATEGIA SOBERANA: Si no hay Ciudad, usamos el GPS como Ancla de búsqueda
+      if ((city == null || city.isEmpty) && userLat != null && userLon != null) {
+        debugPrint("LAD TRIANGULACIÓN: Usando GPS como ancla de área (Sin Ciudad en ticket)");
+        final nearbyStores = await searchStoresByRadar(userLat: userLat, userLon: userLon, stateCode: stateCode);
+        
+        for (var store in nearbyStores) {
+          final storeName = (store['name'] as String? ?? '').toUpperCase();
+          final storeBrand = (store['brand'] as String? ?? '').toUpperCase();
+          final storeNum = (store['address']['number'] as String? ?? '');
+          final storeId = (store['id'] as String? ?? '').toUpperCase();
+
+          // Caso McDonald's/BK/Walmart (Sin nombre en texto, solo logo)
+          // Buscamos si el StoreID (#XXXXX) coincide con el número del local o su ID en Firestore
+          if (storeNum == streetNumber || storeId.contains(streetNumber) || storeName.contains(streetNumber)) {
+            return store;
+          }
         }
       }
+      
+      // 🚀 OPCIÓN 1: Búsqueda Quirúrgica por Número y Ciudad (Si hay ciudad)
+      if (city != null && city.isNotEmpty) {
+        final queryByNum = await _db.collection(collectionName)
+            .where('address.number', isEqualTo: streetNumber)
+            .where('address.city', isEqualTo: city.toUpperCase())
+            .limit(5).get();
 
-      // 🚀 OPCIÓN 2: Búsqueda Quirúrgica por Número y Ciudad (Si no hay nombre o falló la marca)
-      // Esto sirve para McDonald's que solo tienen logo.
-      final queryByNum = await _db.collection(collectionName)
-          .where('address.number', isEqualTo: streetNumber)
-          .where('address.city', isEqualTo: city.toUpperCase())
-          .limit(5).get(); // Traemos pocos para filtrar en memoria
-
-      if (queryByNum.docs.isNotEmpty) {
-        // Si solo hay uno, es ese.
-        if (queryByNum.docs.length == 1) {
+        if (queryByNum.docs.isNotEmpty) {
           final data = queryByNum.docs.first.data();
           _enrichData(data);
           data['id'] = queryByNum.docs.first.id;
           return data;
         }
-        
-        // Si hay varios, intentamos el que más se parezca a un restaurante/tienda
-        // o si tenemos la marca parcial.
-        for (var doc in queryByNum.docs) {
-          final d = doc.data();
-          final name = (d['name'] as String? ?? '').toUpperCase();
-          if (brand.isNotEmpty && name.contains(brand.toUpperCase())) {
-             _enrichData(d);
-             d['id'] = doc.id;
-             return d;
-          }
-        }
-
-        // Si no podemos desempatar, devolvemos el primero que coincida con la ciudad
-        final data = queryByNum.docs.first.data();
-        _enrichData(data);
-        data['id'] = queryByNum.docs.first.id;
-        return data;
       }
 
       return null;
@@ -436,7 +423,13 @@ class GeodataService {
   void _enrichData(Map<String, dynamic> data) {
     if (data['address'] != null) {
       final addr = data['address'];
-      data['address']['full'] = "${addr['number'] ?? ''} ${addr['street'] ?? ''}, ${addr['city'] ?? ''}, ${addr['state'] ?? ''} ${addr['zip'] ?? ''}".toUpperCase();
+      final String number = addr['number'] ?? '';
+      final String street = addr['street'] ?? '';
+      final String city = (addr['city'] != null && addr['city'].toString().isNotEmpty) ? "${addr['city']}, " : "";
+      final String state = addr['state'] ?? '';
+      final String zip = addr['zip'] ?? '';
+      
+      data['address']['full'] = "$number $street, $city$state $zip".toUpperCase().replaceAll(RegExp(r'\s+'), ' ').trim();
     }
   }
 }

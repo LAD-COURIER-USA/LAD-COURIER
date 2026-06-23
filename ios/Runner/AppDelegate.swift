@@ -1,6 +1,7 @@
 import Flutter
 import UIKit
 import Photos
+import UserNotifications
 
 @main
 @objc class AppDelegate: FlutterAppDelegate {
@@ -13,6 +14,14 @@ import Photos
     let controller : FlutterViewController = window?.rootViewController as! FlutterViewController
     methodChannel = FlutterMethodChannel(name: "com.laddigital.smartshopper/screenshot",
                                               binaryMessenger: controller.binaryMessenger)
+
+    // 🛡️ SOLICITAR PERMISOS DE NOTIFICACIÓN EN iOS
+    UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+        if granted {
+            print("SISTEMA LAD iOS: Permisos de notificación concedidos")
+        }
+    }
+    UNUserNotificationCenter.current().delegate = self
 
     methodChannel?.setMethodCallHandler({
       (call: FlutterMethodCall, result: @escaping FlutterResult) -> Void in
@@ -29,25 +38,31 @@ import Photos
   }
 
   private func startWatchingScreenshots() {
-    // 🛡️ DETECTOR 1: Detección inmediata si la App está activa
+    // 🛡️ DETECTOR 1: Detección si la App está activa
     NotificationCenter.default.addObserver(
         forName: UIApplication.userDidTakeScreenshotNotification,
         object: nil,
         queue: .main) { _ in
             print("SISTEMA LAD iOS: Screenshot detectado (Active)")
-            self.sendBingoNotification()
+            self.sendBingoNotification(isManual: true)
     }
 
-    // 🛡️ DETECTOR 2: Observador de Librería (Para capturas en segundo plano)
+    // 🛡️ DETECTOR 2: Observador de Librería (Para capturas en segundo plano/otras apps)
     PHPhotoLibrary.shared().register(self)
   }
 
-  private func sendBingoNotification() {
+  private func sendBingoNotification(isManual: Bool) {
     // 🚀 BINGO: Avisamos a Flutter que detectamos la captura
     methodChannel?.invokeMethod("onScreenshotDetected", arguments: nil)
 
-    // Aquí es donde se puede integrar UNUserNotificationCenter para mandar
-    // la notificación visual si la App está en segundo plano.
+    // 🍎 NOTIFICACIÓN LOCAL: Si la app no está al frente, mandamos un aviso visual
+    let content = UNMutableNotificationContent()
+    content.title = "🚀 ¡BINGO! TICKET DETECTADO"
+    content.body = "Toca aquí para procesar tu ticket de Burger King o similar."
+    content.sound = .default
+
+    let request = UNNotificationRequest(identifier: "LAD_BINGO_IOS", content: content, trigger: nil)
+    UNUserNotificationCenter.current().add(request)
   }
 }
 
@@ -57,7 +72,7 @@ extension AppDelegate: PHPhotoLibraryChangeObserver {
         // iOS detecta que algo cambió en las fotos (posible screenshot)
         DispatchQueue.main.async {
             print("SISTEMA LAD iOS: Cambio en galería detectado")
-            self.sendBingoNotification()
+            self.sendBingoNotification(isManual: false)
         }
     }
 }

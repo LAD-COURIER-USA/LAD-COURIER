@@ -1,0 +1,12 @@
+{
+  "name": "lad-audio-server",
+  "version": "1.0.0",
+  "description": "Servidor de WebSockets para el Walkie-Talkie de LAD Courier USA",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0"
+  }
+}

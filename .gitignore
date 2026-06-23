@@ -10,7 +10,6 @@
 .svn/
 .secret
 .local
-*.keystore
 /packages
 
 # IntelliJ
@@ -32,6 +31,9 @@ build/
 local.properties
 /android/key.properties
 /android/app/build/
+*.jks
+*.pem
+*.keystore
 
 # iOS
 /ios/Pods/

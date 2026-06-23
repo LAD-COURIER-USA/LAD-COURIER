@@ -5,8 +5,9 @@ import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/route_service.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
+import 'package:lad_courier/widgets/walkie_talkie_button.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class OrderNegotiationPage extends StatefulWidget {
   final OrderModel order;
@@ -40,7 +41,7 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
   // ✨ ACTUALIZADO: Variables para cálculo de Ganancia Neta Transparente
   double _netGain = 0.0;
   double _stripeFee = 0.0;
-  final double _appCommission = 0.50; // Comisión LAD Courier por uso de la App
+  final double _appCommission = 0.70; // Comisión LAD Courier por uso de la App
 
   @override
   void initState() {
@@ -167,7 +168,7 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
                       padding: const EdgeInsets.all(20),
                       child: Column(
                         children: [
-                          _buildClientInfoCard(order),
+                          _buildClientInfoCard(order, l10n),
                           const SizedBox(height: 20),
                           _buildImpactCard(l10n),
                           const SizedBox(height: 20),
@@ -250,7 +251,7 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
     );
   }
 
-  Widget _buildClientInfoCard(OrderModel order) {
+  Widget _buildClientInfoCard(OrderModel order, AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -280,24 +281,15 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.white)),
 
                     const SizedBox(height: 5),
-                    if (_clientProfile?.phoneNumber != null)
-                      GestureDetector(
-                        onTap: () => launchUrl(Uri.parse('tel:${_clientProfile!.phoneNumber}')),
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                          decoration: BoxDecoration(color: Colors.greenAccent, borderRadius: BorderRadius.circular(10)),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Icon(Icons.phone, size: 14, color: Colors.black),
-                              const SizedBox(width: 5),
-                              Text(_clientProfile!.phoneNumber!, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      ),
+                    Text(l10n.client_label.toUpperCase(),
+                        style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.2)),
                   ],
                 ),
+              ),
+              // 🎙️ WALKIE-TALKIE EN NEGOCIACIÓN (DRIVER SIDE)
+              WalkieTalkieButton(
+                channelId: order.id,
+                userId: FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
               ),
             ],
           ),

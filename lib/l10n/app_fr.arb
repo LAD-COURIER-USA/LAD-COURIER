@@ -345,6 +345,7 @@
   "auth_error_fields": "Veuillez remplir tous les champs.",
   "auth_error_pass_match": "Les mots de passe ne correspondent pas",
   "auth_error_name": "Entrez votre nom complet",
+  "auth_error_session": "Session expirée ou invalide.",
   "auth_role_title": "Bienvenue chez LAD !",
   "auth_role_subtitle": "Choisissez comment vous souhaitez utiliser la plateforme :",
   "auth_role_client": "JE SUIS CLIENT",
@@ -494,5 +495,47 @@
       }
     }
   },
-  "client_dash_invite_code_label": "ENTREZ LE CODE DE LIAISON DU DRIVER :"
+  "client_dash_invite_code_label": "ENTREZ LE CODE DE LIAISON DU DRIVER :",
+  "order_details_arrived_pickup": "ARRIVÉ / RAMASSÉ",
+  "order_details_en_route_pickup": "🚀 Démarrage de l'itinéraire de ramassage.",
+  "order_details_en_route_delivery": "🚚 Démarrage de l'itinéraire de livraison.",
+  "order_details_geofence_lock": "ARRIVEZ À DESTINATION POUR ACTIVER LA CAMÉRA",
+  "order_details_bypass_title": "⚠️ ERREUR DE PAIEMENT",
+  "order_details_bypass_body": "Stripe dit : {error}\n\nVoulez-vous FORCER la finalisation de la commande quand même ? (Pour test uniquement)",
+  "@order_details_bypass_body": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "order_details_bypass_btn": "FORCER LA FINALISATION",
+  "order_details_receipt_btn": "OUVRIR LE REÇU ORIGINAL",
+  "liveness_prompt": "PLACEZ VOTRE VISAGE DEVANT L'APPAREIL PHOTO",
+  "liveness_eyes_closed": "OUVREZ LES YEUX OU CLIGNEZ !",
+  "liveness_face_detected": "✅ VISAGE DÉTECTÉ. RESTEZ IMMOBILE.",
+  "liveness_searching": "RECHERCHE D'UN VISAGE HUMAIN...",
+  "verif_title": "CENTRE DE VÉRIFICATION",
+  "verif_header": "VOTRE SÉCURITÉ EST VOTRE MEILLEUR INVESTISSEMENT",
+  "verif_body": "SYSTÈME LAD : Complétez les étapes pour activer votre compte driver. Si vous avez déjà terminé une étape dans Stripe, tirez vers le bas pour rafraîchir.",
+  "verif_step1_title": "Liaison Bancaire",
+  "verif_step1_desc": "Configurez votre compte pour recevoir des paiements directs.",
+  "verif_step1_btn_active": "COMPTE ACTIF",
+  "verif_step1_btn_retry": "RÉESSAYER / CONTINUER",
+  "verif_step1_btn_config": "CONFIGURER LES PAIEMENTS",
+  "verif_step1_sync_btn": "J'AI DÉJÀ TERMINÉ DANS STRIPE (VÉRIFIER MAINTENANT)",
+  "verif_step1_success": "✅ Compte activé avec succès !",
+  "verif_step1_pending": "ℹ️ Stripe traite toujours vos données.",
+  "verif_step2_title": "Vérifier l'identité",
+  "verif_step2_desc": "Scannez votre identité et prenez un selfie.",
+  "verif_step2_btn_verified": "IDENTITÉ VÉRIFIÉE",
+  "verif_step2_btn_start": "COMMENCER LE SCAN ID",
+  "verif_footer": "Vos données sont cryptées et traitées directement par Stripe selon les normes bancaires.",
+  "ss_dialog_title": "QUE RECHERCHONS-NOUS AUJOURD'HUI ?",
+  "ss_dialog_hint": "Ex: Pizza, Pharmacie, Best Buy...",
+  "ss_btn_search": "RECHERCHER",
+  "ss_notif_title": "BINGO ! CAPTURE",
+  "ss_notif_body": "Nous avons détecté que vous avez pris une capture d'écran du ticket. Voulez-vous la traiter maintenant pour créer votre commande ?",
+  "ss_ocr_error_title": "TICKET NON DÉTECTÉ",
+  "ss_ocr_error_body": "Nous n'avons pas pu extraire une adresse claire de l'image. Veuillez vous assurer que le ticket est lisible ou saisissez l'adresse manuellement."
 }

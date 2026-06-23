@@ -10,9 +10,9 @@ import 'package:lad_courier/screens/client_profile_page.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
+import 'package:lad_courier/widgets/walkie_talkie_button.dart';
 
 class ClientDashboard extends StatefulWidget {
   const ClientDashboard({super.key});
@@ -330,6 +330,11 @@ class _ClientDashboardState extends State<ClientDashboard> {
                       CircleAvatar(radius: 18, backgroundImage: order.messengerPhotoUrl != null ? NetworkImage(order.messengerPhotoUrl!) : null),
                       const SizedBox(width: 10),
                       Expanded(child: Text(order.messengerName ?? 'Driver', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.indigo))),
+                      WalkieTalkieButton(
+                        channelId: order.id,
+                        userId: uid,
+                      ),
+                      const SizedBox(width: 10),
                       Text("\$${order.price?.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.indigo)),
                     ],
                   ),
@@ -507,6 +512,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
   }
 
   Widget _buildDriverCardContent(UserModel m, AppLocalizations l10n) {
+    final uid = _auth.currentUser?.uid ?? '';
     return Column(
       children: [
         Row(
@@ -532,9 +538,10 @@ class _ClientDashboardState extends State<ClientDashboard> {
                 ],
               ),
             ),
-            IconButton(
-              icon: const Icon(Icons.phone_in_talk, color: Colors.green, size: 28),
-              onPressed: () => m.phoneNumber != null ? launchUrl(Uri.parse("tel:${m.phoneNumber}")) : null,
+            // 🎙️ CONSULTA RÁPIDA (SIN TELÉFONO)
+            WalkieTalkieButton(
+              channelId: "chat_${uid.substring(0, 5)}_${m.uid.substring(0, 5)}", 
+              userId: uid
             ),
           ],
         ),

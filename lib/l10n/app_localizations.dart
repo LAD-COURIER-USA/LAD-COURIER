@@ -251,7 +251,7 @@ abstract class AppLocalizations {
   /// No description provided for @earnings_refund_disclaimer.
   ///
   /// In es, this message translates to:
-  /// **'LAD Courier no cobra mensualidad. Solo un service fee de 0.50 \$ por orden exitosa, sin importar precio pactado.'**
+  /// **'LAD Courier no cobra mensualidad. Solo un service fee de 0.70 \$ por orden exitosa, sin importar precio pactado.'**
   String get earnings_refund_disclaimer;
 
   /// No description provided for @driver_dash_title.
@@ -1400,6 +1400,12 @@ abstract class AppLocalizations {
   /// **'Introduce tu nombre completo'**
   String get auth_error_name;
 
+  /// No description provided for @auth_error_session.
+  ///
+  /// In es, this message translates to:
+  /// **'Sesión expirada o no válida.'**
+  String get auth_error_session;
+
   /// No description provided for @auth_role_title.
   ///
   /// In es, this message translates to:
@@ -1850,6 +1856,12 @@ abstract class AppLocalizations {
   /// **'Compras y Recados'**
   String get driver_service_shopping;
 
+  /// No description provided for @driver_service_smartshopper.
+  ///
+  /// In es, this message translates to:
+  /// **'SmartShopper'**
+  String get driver_service_smartshopper;
+
   /// No description provided for @shopping_nav_instruction_title_alt.
   ///
   /// In es, this message translates to:
@@ -1925,7 +1937,7 @@ abstract class AppLocalizations {
   /// No description provided for @driver_agreement_body.
   ///
   /// In es, this message translates to:
-  /// **'LAD DIGITAL SYSTEMS LLC le otorga una licencia de uso de software limitada, no exclusiva y revocable. Usted reconoce que LAD no es su empleador. Esta licencia puede ser cancelada en cualquier momento y por cualquier circunstancia a discreción de LAD. El Service Fee (\$0.50) y los términos pueden cambiar con previo aviso digital.'**
+  /// **'LAD DIGITAL SYSTEMS LLC le otorga una licencia de uso de software limitada, no exclusiva y revocable. Usted reconoce que LAD no es su empleador. Esta licencia puede ser cancelada en cualquier momento y por cualquier circunstancia a discreción de LAD. El Service Fee (\$0.70) y los términos pueden cambiar con previo aviso digital.'**
   String get driver_agreement_body;
 
   /// No description provided for @common_payment_required_title.
@@ -2023,6 +2035,216 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'INGRESE EL CÓDIGO DE VINCULACIÓN DEL DRIVER:'**
   String get client_dash_invite_code_label;
+
+  /// No description provided for @order_details_arrived_pickup.
+  ///
+  /// In es, this message translates to:
+  /// **'LLEGUÉ / RECOGIDO'**
+  String get order_details_arrived_pickup;
+
+  /// No description provided for @order_details_en_route_pickup.
+  ///
+  /// In es, this message translates to:
+  /// **'🚀 Iniciando ruta de recogida.'**
+  String get order_details_en_route_pickup;
+
+  /// No description provided for @order_details_en_route_delivery.
+  ///
+  /// In es, this message translates to:
+  /// **'🚚 Iniciando ruta de entrega.'**
+  String get order_details_en_route_delivery;
+
+  /// No description provided for @order_details_geofence_lock.
+  ///
+  /// In es, this message translates to:
+  /// **'LLEGUE AL DESTINO PARA ACTIVAR CÁMARA'**
+  String get order_details_geofence_lock;
+
+  /// No description provided for @order_details_bypass_title.
+  ///
+  /// In es, this message translates to:
+  /// **'⚠️ ERROR DE COBRO'**
+  String get order_details_bypass_title;
+
+  /// No description provided for @order_details_bypass_body.
+  ///
+  /// In es, this message translates to:
+  /// **'Stripe dice: {error}\n\n¿Quieres FORZAR la finalización de la orden de todos modos? (Solo para pruebas)'**
+  String order_details_bypass_body(String error);
+
+  /// No description provided for @order_details_bypass_btn.
+  ///
+  /// In es, this message translates to:
+  /// **'FORZAR FINALIZACIÓN'**
+  String get order_details_bypass_btn;
+
+  /// No description provided for @order_details_receipt_btn.
+  ///
+  /// In es, this message translates to:
+  /// **'ABRIR RECIBO ORIGINAL'**
+  String get order_details_receipt_btn;
+
+  /// No description provided for @liveness_prompt.
+  ///
+  /// In es, this message translates to:
+  /// **'COLOCA TU ROSTRO FRENTE A LA CÁMARA'**
+  String get liveness_prompt;
+
+  /// No description provided for @liveness_eyes_closed.
+  ///
+  /// In es, this message translates to:
+  /// **'¡ABRE LOS OJOS O PARPADEA!'**
+  String get liveness_eyes_closed;
+
+  /// No description provided for @liveness_face_detected.
+  ///
+  /// In es, this message translates to:
+  /// **'✅ ROSTRO DETECTADO. MANTENTE FIRME.'**
+  String get liveness_face_detected;
+
+  /// No description provided for @liveness_searching.
+  ///
+  /// In es, this message translates to:
+  /// **'BUSCANDO ROSTRO HUMANO...'**
+  String get liveness_searching;
+
+  /// No description provided for @verif_title.
+  ///
+  /// In es, this message translates to:
+  /// **'CENTRAL DE VERIFICACIÓN'**
+  String get verif_title;
+
+  /// No description provided for @verif_header.
+  ///
+  /// In es, this message translates to:
+  /// **'TU SEGURIDAD ES TU MEJOR INVERSIÓN'**
+  String get verif_header;
+
+  /// No description provided for @verif_body.
+  ///
+  /// In es, this message translates to:
+  /// **'SISTEMA LAD: Completa los pasos para activar tu cuenta de driver. Si ya terminaste un paso en Stripe, jala hacia abajo para refrescar.'**
+  String get verif_body;
+
+  /// No description provided for @verif_step1_title.
+  ///
+  /// In es, this message translates to:
+  /// **'Vinculación Bancaria'**
+  String get verif_step1_title;
+
+  /// No description provided for @verif_step1_desc.
+  ///
+  /// In es, this message translates to:
+  /// **'Configura tu cuenta para recibir pagos directos.'**
+  String get verif_step1_desc;
+
+  /// No description provided for @verif_step1_btn_active.
+  ///
+  /// In es, this message translates to:
+  /// **'CUENTA ACTIVA'**
+  String get verif_step1_btn_active;
+
+  /// No description provided for @verif_step1_btn_retry.
+  ///
+  /// In es, this message translates to:
+  /// **'REINTENTAR / CONTINUAR'**
+  String get verif_step1_btn_retry;
+
+  /// No description provided for @verif_step1_btn_config.
+  ///
+  /// In es, this message translates to:
+  /// **'CONFIGURAR PAGOS'**
+  String get verif_step1_btn_config;
+
+  /// No description provided for @verif_step1_sync_btn.
+  ///
+  /// In es, this message translates to:
+  /// **'YA TERMINÉ EN STRIPE (VERIFICAR AHORA)'**
+  String get verif_step1_sync_btn;
+
+  /// No description provided for @verif_step1_success.
+  ///
+  /// In es, this message translates to:
+  /// **'✅ ¡Cuenta activada con éxito!'**
+  String get verif_step1_success;
+
+  /// No description provided for @verif_step1_pending.
+  ///
+  /// In es, this message translates to:
+  /// **'ℹ️ Stripe aún está procesando tus datos.'**
+  String get verif_step1_pending;
+
+  /// No description provided for @verif_step2_title.
+  ///
+  /// In es, this message translates to:
+  /// **'Verificar Identidad'**
+  String get verif_step2_title;
+
+  /// No description provided for @verif_step2_desc.
+  ///
+  /// In es, this message translates to:
+  /// **'Escanea tu ID y tómate una selfie.'**
+  String get verif_step2_desc;
+
+  /// No description provided for @verif_step2_btn_verified.
+  ///
+  /// In es, this message translates to:
+  /// **'IDENTIDAD VERIFICADA'**
+  String get verif_step2_btn_verified;
+
+  /// No description provided for @verif_step2_btn_start.
+  ///
+  /// In es, this message translates to:
+  /// **'INICIAR ESCANEO ID'**
+  String get verif_step2_btn_start;
+
+  /// No description provided for @verif_footer.
+  ///
+  /// In es, this message translates to:
+  /// **'Tus datos están encriptados y son procesados directamente por Stripe bajo estándares bancarios.'**
+  String get verif_footer;
+
+  /// No description provided for @ss_dialog_title.
+  ///
+  /// In es, this message translates to:
+  /// **'¿QUÉ BUSCAMOS HOY?'**
+  String get ss_dialog_title;
+
+  /// No description provided for @ss_dialog_hint.
+  ///
+  /// In es, this message translates to:
+  /// **'Ej: Pizza, Farmacia, Best Buy...'**
+  String get ss_dialog_hint;
+
+  /// No description provided for @ss_btn_search.
+  ///
+  /// In es, this message translates to:
+  /// **'BUSCAR'**
+  String get ss_btn_search;
+
+  /// No description provided for @ss_notif_title.
+  ///
+  /// In es, this message translates to:
+  /// **'¡BINGO! CAPTURA'**
+  String get ss_notif_title;
+
+  /// No description provided for @ss_notif_body.
+  ///
+  /// In es, this message translates to:
+  /// **'Detectamos que tomaste una captura del ticket. ¿Deseas procesarla ahora para crear tu orden?'**
+  String get ss_notif_body;
+
+  /// No description provided for @ss_ocr_error_title.
+  ///
+  /// In es, this message translates to:
+  /// **'TICKET NO DETECTADO'**
+  String get ss_ocr_error_title;
+
+  /// No description provided for @ss_ocr_error_body.
+  ///
+  /// In es, this message translates to:
+  /// **'No pudimos extraer una dirección clara de la imagen. Por favor, asegúrate de que el ticket sea legible o ingresa la dirección manualmente.'**
+  String get ss_ocr_error_body;
 }
 
 class _AppLocalizationsDelegate

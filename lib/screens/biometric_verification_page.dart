@@ -1,10 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:local_auth/local_auth.dart';
+import 'package:lad_courier/screens/messenger/liveness_selfie_page.dart';
 
 class BiometricVerificationPage extends StatefulWidget {
   const BiometricVerificationPage({super.key});
@@ -14,24 +14,20 @@ class BiometricVerificationPage extends StatefulWidget {
 }
 
 class _BiometricVerificationPageState extends State<BiometricVerificationPage> {
-  final ImagePicker _picker = ImagePicker();
   final LocalAuthentication _auth = LocalAuthentication();
   bool _isProcessing = false;
   File? _imageFile;
 
   Future<void> _takeSelfie() async {
     try {
-      final XFile? photo = await _picker.pickImage(
-        source: ImageSource.camera,
-        preferredCameraDevice: CameraDevice.front,
-        maxWidth: 800,
-        maxHeight: 800,
-        imageQuality: 70,
+      final String? localPath = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LivenessSelfiePage()),
       );
 
-      if (photo != null) {
+      if (localPath != null) {
         setState(() {
-          _imageFile = File(photo.path);
+          _imageFile = File(localPath);
         });
       }
     } catch (e) {

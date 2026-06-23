@@ -17,7 +17,7 @@ import 'package:flutter/services.dart';
 const List<String> _allServices = [
   'Paquetería y Mensajería',
   'Logística Especializada',
-  'Compras y Encargos',
+  'SmartShopper',
 ];
 
 class DriverDashboard extends StatefulWidget {
@@ -189,8 +189,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
         return l10n.driver_service_courier;
       case 'Logística Especializada':
         return l10n.driver_service_logistics;
-      case 'Compras y Encargos':
-        return l10n.driver_service_shopping;
+      case 'SmartShopper':
+        return l10n.driver_service_smartshopper;
       default:
         return serviceId;
     }

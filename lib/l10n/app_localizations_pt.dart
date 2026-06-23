@@ -710,7 +710,10 @@ class AppLocalizationsPt extends AppLocalizations {
   String get auth_error_pass_match => 'As senhas não coincidem';
 
   @override
-  String get auth_error_name => 'Insira seu nome completo';
+  String get auth_error_name => 'Insira seu nombre completo';
+
+  @override
+  String get auth_error_session => 'Sessão expirada ou inválida.';
 
   @override
   String get auth_role_title => 'Bem-vindo à LAD!';
@@ -961,6 +964,9 @@ class AppLocalizationsPt extends AppLocalizations {
   String get driver_service_shopping => 'Compras e Recados';
 
   @override
+  String get driver_service_smartshopper => 'SmartShopper';
+
+  @override
   String get shopping_nav_instruction_title_alt => '💡 PLANO DE RESERVA';
 
   @override
@@ -1058,4 +1064,118 @@ class AppLocalizationsPt extends AppLocalizations {
   @override
   String get client_dash_invite_code_label =>
       'INSIRA O CÓDIGO DE VINCULAÇÃO DO MOTORISTA:';
+
+  @override
+  String get order_details_arrived_pickup => 'CHEGUEI / COLETADO';
+
+  @override
+  String get order_details_en_route_pickup => '🚀 Iniciando rota de coleta.';
+
+  @override
+  String get order_details_en_route_delivery => '🚚 Iniciando rota de entrega.';
+
+  @override
+  String get order_details_geofence_lock =>
+      'CHEGUE AO DESTINO PARA ATIVAR A CÂMERA';
+
+  @override
+  String get order_details_bypass_title => '⚠️ ERRO DE COBRANÇA';
+
+  @override
+  String order_details_bypass_body(String error) {
+    return 'Stripe diz: $error\n\nVocê deseja FORÇAR a finalização do pedido mesmo assim? (Apenas para testes)';
+  }
+
+  @override
+  String get order_details_bypass_btn => 'FORÇAR FINALIZAÇÃO';
+
+  @override
+  String get order_details_receipt_btn => 'ABRIR RECIBO ORIGINAL';
+
+  @override
+  String get liveness_prompt => 'COLOQUE SEU ROSTO NA FRENTE DA CÂMERA';
+
+  @override
+  String get liveness_eyes_closed => 'ABRA OS OLHOS OU PISQUE!';
+
+  @override
+  String get liveness_face_detected => '✅ ROSTO DETECTADO. MANTENHA-SE FIRME.';
+
+  @override
+  String get liveness_searching => 'BUSCANDO ROSTO HUMANO...';
+
+  @override
+  String get verif_title => 'CENTRAL DE VERIFICAÇÃO';
+
+  @override
+  String get verif_header => 'SUA SEGURANÇA É SEU MELHOR INVESTIMENTO';
+
+  @override
+  String get verif_body =>
+      'SISTEMA LAD: Conclua as etapas para ativar sua conta de driver. Se você já terminou uma etapa no Stripe, puxe para baixo para atualizar.';
+
+  @override
+  String get verif_step1_title => 'Vinculação Bancária';
+
+  @override
+  String get verif_step1_desc =>
+      'Configure sua conta para receber pagamentos diretos.';
+
+  @override
+  String get verif_step1_btn_active => 'CONTA ATIVA';
+
+  @override
+  String get verif_step1_btn_retry => 'RECOMENÇAR / CONTINUAR';
+
+  @override
+  String get verif_step1_btn_config => 'CONFIGURAR PAGAMENTOS';
+
+  @override
+  String get verif_step1_sync_btn => 'JÁ TERMINEI NO STRIPE (VERIFICAR AGORA)';
+
+  @override
+  String get verif_step1_success => '✅ Conta ativada com sucesso!';
+
+  @override
+  String get verif_step1_pending =>
+      'ℹ️ O Stripe ainda está processando seus dados.';
+
+  @override
+  String get verif_step2_title => 'Verificar Identidade';
+
+  @override
+  String get verif_step2_desc => 'Digitalize seu ID e tire uma selfie.';
+
+  @override
+  String get verif_step2_btn_verified => 'IDENTIDADE VERIFICADA';
+
+  @override
+  String get verif_step2_btn_start => 'INICIAR DIGITALIZAÇÃO ID';
+
+  @override
+  String get verif_footer =>
+      'Seus dados são criptografados e processados diretamente pelo Stripe sob padrões bancários.';
+
+  @override
+  String get ss_dialog_title => 'O QUE ESTAMOS PROCURANDO HOJE?';
+
+  @override
+  String get ss_dialog_hint => 'Ex: Pizza, Farmácia, Best Buy...';
+
+  @override
+  String get ss_btn_search => 'BUSCAR';
+
+  @override
+  String get ss_notif_title => 'BINGO! CAPTURA';
+
+  @override
+  String get ss_notif_body =>
+      'Detectamos que você tirou uma captura de tela do ticket. Deseja processá-la agora para criar seu pedido?';
+
+  @override
+  String get ss_ocr_error_title => 'TICKET NÃO DETECTADO';
+
+  @override
+  String get ss_ocr_error_body =>
+      'Não conseguimos extrair um endereço claro da imagem. Certifique-se de que o ticket esteja legível ou insira o endereço manualmente.';
 }

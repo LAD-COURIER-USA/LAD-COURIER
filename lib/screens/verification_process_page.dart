@@ -1,10 +1,13 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart'; // 🛡️ IMPORTACIÓN PARA FIRESTORE
+import 'package:cloud_firestore/cloud_firestore.dart'; 
 import 'package:lad_courier/services/stripe_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/storage_service.dart';
 import 'package:lad_courier/models/user_model.dart';
+import 'package:lad_courier/screens/messenger/liveness_selfie_page.dart';
+import 'package:lad_courier/l10n/app_localizations.dart';
 
 class VerificationProcessPage extends StatefulWidget {
   const VerificationProcessPage({super.key});
@@ -49,13 +52,23 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
     try {
       setState(() => _isBiometricLoading = true);
 
-      // 1. CAPTURAR SELFIE DE LA JORNADA
-      // 🤳 Esta foto será la evidencia legal de quién operó el sistema hoy.
-      final String? sessionSelfieUrl = await storage.uploadProductPhoto(
+      // 1. CAPTURAR SELFIE DE LA JORNADA (MODO LIVENESS ACTIVADO)
+      // 🤳 Usamos detección de vida para evitar fraudes con fotos estáticas.
+      final String? localPath = await Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const LivenessSelfiePage()),
+      );
+
+      if (localPath == null) {
+        setState(() => _isBiometricLoading = false);
+        return;
+      }
+
+      // SUBIMOS EL SELFIE VALIDADO AL BÚNKER
+      final String? sessionSelfieUrl = await storage.uploadFile(
+        'order_photos', 
         "session_${user.uid}_${DateTime.now().millisecondsSinceEpoch}", 
-        context, 
-        customTitle: "AUDITORÍA DE JORNADA", 
-        customSubtitle: "Tómate una selfie clara para iniciar tu turno de hoy."
+        File(localPath)
       );
 
       if (sessionSelfieUrl == null) {
@@ -151,7 +164,8 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
   @override
   Widget build(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return const Scaffold(body: Center(child: Text("No autenticado")));
+    final l10n = AppLocalizations.of(context)!;
+    if (user == null) return Scaffold(body: Center(child: Text(l10n.auth_error_session)));
 
     return StreamBuilder<UserModel?>(
       stream: _userService.getUserStream(user.uid),
@@ -175,7 +189,7 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-            title: const Text("CENTRAL DE VERIFICACIÓN", style: TextStyle(fontWeight: FontWeight.w900)),
+            title: Text(l10n.verif_title, style: const TextStyle(fontWeight: FontWeight.w900)),
             centerTitle: true,
             backgroundColor: Colors.white,
             foregroundColor: Colors.black,
@@ -190,25 +204,25 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    "TU SEGURIDAD ES TU MEJOR INVERSIÓN",
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black),
+                  Text(
+                    l10n.verif_header,
+                    style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black),
                   ),
                   const SizedBox(height: 10),
-                  const Text(
-                    "SISTEMA LAD: Completa los pasos para activar tu cuenta de driver. Si ya terminaste un paso en Stripe, jala hacia abajo para refrescar.",
-                    style: TextStyle(fontSize: 13, color: Colors.black87, height: 1.5),
+                  Text(
+                    l10n.verif_body,
+                    style: const TextStyle(fontSize: 13, color: Colors.black87, height: 1.5),
                   ),
                   const SizedBox(height: 30),
 
                   _buildStepCard(
                     number: "1",
-                    title: "Vinculación Bancaria",
-                    description: "Configura tu cuenta para recibir pagos directos.",
+                    title: l10n.verif_step1_title,
+                    description: l10n.verif_step1_desc,
                     icon: isBankActive ? Icons.check_circle : (hasStripeAccount ? Icons.hourglass_empty : Icons.account_balance_wallet_outlined),
                     buttonLabel: isBankActive
-                        ? "CUENTA ACTIVA"
-                        : (hasStripeAccount ? "REINTENTAR / CONTINUAR" : "CONFIGURAR PAGOS"),
+                        ? l10n.verif_step1_btn_active
+                        : (hasStripeAccount ? l10n.verif_step1_btn_retry : l10n.verif_step1_btn_config),
                     isLoading: _isOnboardingLoading,
                     onPressed: _startStripeOnboarding,
                     color: isBankActive ? Colors.green : (hasStripeAccount ? Colors.orange : Colors.blueAccent),
@@ -222,9 +236,9 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
                         child: TextButton.icon(
                           onPressed: _isOnboardingLoading ? null : _syncStripeStatus,
                           icon: const Icon(Icons.sync, color: Colors.green),
-                          label: const Text(
-                            "YA TERMINÉ EN STRIPE (VERIFICAR AHORA)",
-                            style: TextStyle(fontWeight: FontWeight.w900, color: Colors.green, fontSize: 11),
+                          label: Text(
+                            l10n.verif_step1_sync_btn,
+                            style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.green, fontSize: 11),
                           ),
                         ),
                       ),
@@ -234,10 +248,10 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
 
                   _buildStepCard(
                     number: "2",
-                    title: "Verificar Identidad",
-                    description: "Escanea tu ID y tómate una selfie.",
+                    title: l10n.verif_step2_title,
+                    description: l10n.verif_step2_desc,
                     icon: isIdentityVerified ? Icons.check_circle : Icons.face_retouching_natural,
-                    buttonLabel: isIdentityVerified ? "IDENTIDAD VERIFICADA" : "INICIAR ESCANEO ID",
+                    buttonLabel: isIdentityVerified ? l10n.verif_step2_btn_verified : l10n.verif_step2_btn_start,
                     isLoading: _isBiometricLoading,
                     onPressed: hasStripeAccount ? () => _startBiometricVerification(userModel) : () {},
                     color: isIdentityVerified ? Colors.green : (hasStripeAccount ? Colors.indigo : Colors.grey),
@@ -246,7 +260,7 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
                   ),
 
                   const SizedBox(height: 40),
-                  _buildSecurityFooter(),
+                  _buildSecurityFooter(l10n),
                 ],
               ),
             ),
@@ -321,21 +335,21 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
     );
   }
 
-  Widget _buildSecurityFooter() {
+  Widget _buildSecurityFooter(AppLocalizations l10n) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
         color: Colors.grey[100],
         borderRadius: BorderRadius.circular(15),
       ),
-      child: const Row(
+      child: Row(
         children: [
-          Icon(Icons.lock_outline, color: Colors.black54),
-          SizedBox(width: 15),
+          const Icon(Icons.lock_outline, color: Colors.black54),
+          const SizedBox(width: 15),
           Expanded(
             child: Text(
-              "Tus datos están encriptados y son procesados directamente por Stripe bajo estándares bancarios.",
-              style: TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.bold),
+              l10n.verif_footer,
+              style: const TextStyle(fontSize: 11, color: Colors.black54, fontWeight: FontWeight.bold),
             ),
           ),
         ],

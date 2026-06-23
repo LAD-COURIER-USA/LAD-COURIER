@@ -9,6 +9,7 @@ class OCRResult {
   final String? fullAddress;
   final String? streetNumber;
   final String? zipCode;
+  final String? cityName;
   final String? streetName;
   final String? countryCode;
   final String? stateCode;
@@ -19,11 +20,36 @@ class OCRResult {
     this.fullAddress,
     this.streetNumber,
     this.zipCode,
+    this.cityName,
     this.streetName,
     this.countryCode = "US",
     this.stateCode,
     this.usedFLAI = false,
   });
+
+  OCRResult copyWith({
+    String? storeName,
+    String? fullAddress,
+    String? streetNumber,
+    String? zipCode,
+    String? cityName,
+    String? streetName,
+    String? countryCode,
+    String? stateCode,
+    bool? usedFLAI,
+  }) {
+    return OCRResult(
+      storeName: storeName ?? this.storeName,
+      fullAddress: fullAddress ?? this.fullAddress,
+      streetNumber: streetNumber ?? this.streetNumber,
+      zipCode: zipCode ?? this.zipCode,
+      cityName: cityName ?? this.cityName,
+      streetName: streetName ?? this.streetName,
+      countryCode: countryCode ?? this.countryCode,
+      stateCode: stateCode ?? this.stateCode,
+      usedFLAI: usedFLAI ?? this.usedFLAI,
+    );
+  }
 }
 
 class OCRService {
@@ -59,6 +85,7 @@ class OCRService {
       String country = _detectCountryByADN(fullText);
       String? zip = _extractZipByCountry(fullText, country);
       String? state = _detectStateByCountry(fullText, country);
+      String? city = _detectCity(fullText, zip);
       String? streetNum = _extractStreetNumber(fullText, zip);
       String? storeName = _detectStoreImproved(lines.take(12).toList());
 
@@ -76,14 +103,29 @@ class OCRService {
         }
       }
 
-      // FLAI falló o es dispositivo viejo, reconstruimos la dirección
+      // 🛡️ FILTRO GLOBAL ANTI-BASURA LAD (V11): Limpiamos la dirección ANTES y DESPUÉS de reconstruir
+      final List<String> uiJunk = ['RASTREADOR', 'ORDEN RECIBIDA', 'DETALLES', 'ESTADO', 'TRACKER', 'CHECKOUT', 'HISTORY', 'CERRAR', 'VOLVER'];
+      
+      // Si la dirección de la IA de Google tiene basura, la anulamos
+      if (fullAddr != null && uiJunk.any((word) => fullAddr!.contains(word))) {
+        fullAddr = null;
+      }
+
+      // Reconstrucción soberana si FLAI falló o no existe
       fullAddr ??= _reconstructAddress(lines, country, zip, streetNum);
+
+      // Verificación final: si la dirección reconstruida todavía tiene basura, la matamos para forzar GPS
+      if (fullAddr != null && uiJunk.any((word) => fullAddr!.contains(word))) {
+        debugPrint("LAD IA: Dirección rechazada por contener basura de UI: $fullAddr");
+        fullAddr = null;
+      }
 
       return OCRResult(
         storeName: storeName,
         fullAddress: fullAddr,
         streetNumber: streetNum,
         zipCode: zip,
+        cityName: city,
         stateCode: state,
         countryCode: country,
         usedFLAI: canUseFLAI,
@@ -131,34 +173,66 @@ class OCRService {
     return null;
   }
 
+  String? _detectCity(String text, String? zip) {
+    // 🛡️ Buscamos patrones comunes: "City, ST" o "City ST 12345" o "City FL"
+    final cityMatch = RegExp(r'\b([A-Z\s]{3,20})(?:,|\s+)(FL|GA|NY|TX|CA|NC|NV|SC|WA|IL|MD)\b').firstMatch(text);
+    if (cityMatch != null) return cityMatch.group(1)!.trim();
+    
+    // Fallback: Si tenemos ZIP, la ciudad suele estar justo antes en la misma línea o la anterior
+    if (zip != null) {
+      final lines = text.split('\n');
+      for (int i = 0; i < lines.length; i++) {
+        if (lines[i].contains(zip)) {
+          // Intentar en la misma línea antes del ZIP
+          final parts = lines[i].split(zip)[0].split(',');
+          if (parts.isNotEmpty) {
+            String c = parts.last.trim();
+            if (c.length > 3 && !RegExp(r'\d').hasMatch(c)) return c;
+          }
+          
+          // Intentar la línea anterior completa
+          if (i > 0) {
+            String prev = lines[i-1].trim();
+            if (prev.length > 3 && prev.length < 20 && !RegExp(r'\d').hasMatch(prev)) return prev;
+          }
+        }
+      }
+    }
+    return null;
+  }
+
   String? _extractStreetNumber(String text, String? zip) {
     final lines = text.split('\n');
     
-    // 🛡️ FILTRO MAESTRO LAD: Ignorar números de corporación/tienda (como #3128)
-    // Buscamos un número que esté seguido de palabras de calle (Dixie, Hwy, Ave, etc.)
-    final streetKeywords = RegExp(r'\b(ST|AVE|HWY|RD|BLVD|LN|DR|WAY|DIXIE|MAIN|ROAD)\b');
-    
+    // 🛡️ FILTRO MAESTRO LAD V9: Extracción Quirúrgica de Números
+    // 1. Buscamos el Store ID (Formato # seguido de números)
+    final storeIdRegex = RegExp(r'#\s*(\d{3,6})\b');
+    final storeMatch = storeIdRegex.firstMatch(text);
+    if (storeMatch != null) {
+      debugPrint("LAD IA: Detectado Store ID (#${storeMatch.group(1)})");
+      return storeMatch.group(1);
+    }
+
+    // 2. Buscamos números de calle real (acompañados de palabras clave)
+    final streetKeywords = RegExp(r'\b(ST|AVE|HWY|RD|BLVD|LN|DR|WAY|DIXIE|MAIN|ROAD|PKWY|NE|NW|SE|SW|STREET|AVENUE|BOULEVARD)\b');
     for (var line in lines) {
       final cleanLine = line.trim().toUpperCase();
-      
-      // 🚫 REGLA DE ORO: Si la línea tiene un símbolo '#' justo antes del número, es el local ID, NO la calle.
-      if (cleanLine.contains(RegExp(r'#\s*\d{3,6}'))) continue;
-
-      // Buscamos formato: [Número] [Cualquier cosa] [Palabra clave de calle]
-      final match = RegExp(r'^\s*(\d{1,6})\b.*' + streetKeywords.pattern).firstMatch(cleanLine);
+      // Solo aceptamos números puros de 1 a 6 dígitos
+      final match = RegExp(r'\b(\d{1,6})\b.*' + streetKeywords.pattern).firstMatch(cleanLine);
       if (match != null) {
         String n = match.group(1)!;
         if (n != zip) return n;
       }
     }
 
-    // Fallback: Si no hay match con calle, buscamos números de al menos 3 dígitos
-    // (Esto ignora los "Orden #1" o "Check #1" que tienen 1 o 2 dígitos)
+    // 3. Fallback: Cualquier número puro de 3 a 6 dígitos (ignora alfanuméricos como 11B08)
     for (var line in lines) {
-      final match = RegExp(r'^\s*(\d{3,6})\b').firstMatch(line.trim());
-      if (match != null) {
-        String n = match.group(1)!;
-        if (n != zip) return n;
+      final cleanLine = line.trim().toUpperCase();
+      final tokens = cleanLine.split(RegExp(r'\s+'));
+      for (var token in tokens) {
+        if (RegExp(r'^\d{3,6}$').hasMatch(token)) {
+          if (token != zip) return token;
+        }
       }
     }
     
@@ -166,24 +240,27 @@ class OCRService {
   }
 
   String? _detectStoreImproved(List<String> lines) {
-    final giants = ['WALMART', 'PUBLIX', 'TARGET', 'COSTCO', 'CVS', '7-ELEVEN', 'STARBUCKS', 'MCDONALD'];
+    final giants = ['WALMART', 'PUBLIX', 'TARGET', 'COSTCO', 'CVS', '7-ELEVEN', 'STARBUCKS', 'MCDONALD', 'LITTLE CAESAR', 'BURGER KING', 'BK #', 'DOMINO', 'CHILI', 'WENDY'];
     
     // 🚫 LISTA NEGRA: Palabras de la interfaz de usuario de las apps que debemos ignorar
-    final uiBlacklist = ['RASTREADOR', 'PEDIDO', 'DETALLES', 'CERRAR', 'VOLVER', 'AYUDA', 'TRACKER', 'ORDER', 'CHECKOUT'];
+    final uiBlacklist = ['RASTREADOR', 'PEDIDO', 'DETALLES', 'CERRAR', 'VOLVER', 'AYUDA', 'TRACKER', 'ORDER', 'CHECKOUT', 'HISTORY'];
 
     for (var line in lines) {
       final cleanLine = line.toUpperCase();
       
       // 1. Buscar Marcas Gigantes
       for (var g in giants) {
-        if (cleanLine.contains(g)) return g;
+        if (cleanLine.contains(g)) {
+          if (g == 'BK #') return 'BURGER KING';
+          return cleanLine.contains('LITTLE') ? 'LITTLE CAESARS' : g;
+        }
       }
       
       // 2. Si es una palabra de la Blacklist, la ignoramos
       if (uiBlacklist.any((b) => cleanLine.contains(b))) continue;
 
       // 3. Si la línea es el nombre del establecimiento (sin números, longitud media)
-      if (cleanLine.length > 3 && cleanLine.length < 25 && !RegExp(r'\d').hasMatch(cleanLine)) {
+      if (cleanLine.length > 3 && cleanLine.length < 30 && !RegExp(r'\d').hasMatch(cleanLine)) {
         return cleanLine;
       }
     }
@@ -191,37 +268,41 @@ class OCRService {
   }
 
   String? _reconstructAddress(List<String> lines, String country, String? zip, String? streetNum) {
-    // 🛡️ ESTRATEGIA CORPORATIVA LAD (V2): 
-    // Buscamos el ZIP y reconstruimos hacia arriba ignorando números de tienda (#)
+    // 🛡️ ESTRATEGIA CORPORATIVA LAD (V6): Reconstrucción Blindada
+    
+    final List<String> uiBlacklist = ['RASTREADOR', 'ORDEN RECIBIDA', 'DETALLES', 'ESTADO', 'TRACKER', 'CHECKOUT', 'HISTORY', 'CERRAR', 'VOLVER'];
+
+    // 1. Si tenemos ZIP, reconstruimos el entorno (Estrategia Proactiva)
     if (zip != null) {
       for (int i = 0; i < lines.length; i++) {
         if (lines[i].contains(zip)) {
-          String full = "";
-          // Si encontramos el ZIP, la calle suele estar 1 o 2 líneas arriba
-          if (i > 0) {
-            String potentialStreet = lines[i-1];
-            // Si la línea de arriba solo tiene la ciudad (ej: Homestead), buscamos una más arriba
-            if (potentialStreet.length < 15 && !RegExp(r'\d').hasMatch(potentialStreet)) {
-               if (i > 1) potentialStreet = "${lines[i-2]} $potentialStreet";
-            }
-            
-            // 🚫 Limpiamos números de tienda (como #3128)
-            full = "$potentialStreet ${lines[i]}".replaceAll(RegExp(r'#\s*\d+'), '').trim();
-            return _cleanExtraSpaces(full);
+          String p1 = (i > 0) ? lines[i-1] : "";
+          if (uiBlacklist.any((junk) => p1.contains(junk))) p1 = "";
+          
+          if (p1.length < 15 && !RegExp(r'\d').hasMatch(p1) && i > 1) {
+             String p2 = lines[i-2];
+             if (!uiBlacklist.any((junk) => p2.contains(junk))) p1 = "$p2 $p1";
           }
-          return lines[i];
+          String full = "$p1 ${lines[i]}";
+          if (RegExp(r'\d').hasMatch(full)) {
+            return _cleanExtraSpaces(full.replaceAll(RegExp(r'#\s*\d+'), ''));
+          }
         }
       }
     }
 
-    // 🛡️ OPCIÓN B: Si NO hay ZIP, buscamos la línea que empieza por el número de calle real
-    if (streetNum != null) {
-      for (var line in lines) {
-        if (line.startsWith(streetNum) && line.length > streetNum.length + 5) {
-          return line.replaceAll(RegExp(r'#\s*\d+'), '').trim();
+    // 2. Búsqueda por Patrones de Calle (Ej: 123 NE 8TH ST)
+    final streetKeywords = RegExp(r'\b(ST|AVE|HWY|RD|BLVD|LN|DR|WAY|DIXIE|MAIN|ROAD|PKWY|NE|NW|SE|SW|STREET|AVENUE)\b');
+    for (var line in lines) {
+      if (streetKeywords.hasMatch(line) && RegExp(r'\b\d{1,6}\b').hasMatch(line)) {
+        if (!uiBlacklist.any((junk) => line.contains(junk))) {
+          if (line.length > 8 && line.length < 60) {
+            return _cleanExtraSpaces(line.replaceAll(RegExp(r'#\s*\d+'), ''));
+          }
         }
       }
     }
+
     return null;
   }
 

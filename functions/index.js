@@ -103,7 +103,7 @@ exports.authorizeOrderPayment = onCall({ region: REGION, invoker: "public", secr
             capture_method: 'manual',
             confirm: true,
             off_session: true,
-            application_fee_amount: 50,
+            application_fee_amount: 70,
             metadata: { orderId, type: 'LAD_HOLD_DIRECT' }
         }, { stripeAccount: driverStripeAccountId });
 
@@ -132,7 +132,7 @@ exports.captureOrderPayment = onCall({ region: REGION, invoker: "public", secret
         await stripe.paymentIntents.capture(piId, {}, { stripeAccount: stripeAccountId });
         await admin.firestore().collection("orders").doc(orderId).update({
             paymentStatus: 'captured',
-            feeCharged: 50,
+            feeCharged: 70,
             capturedAt: admin.firestore.FieldValue.serverTimestamp()
         });
         return { success: true };
@@ -358,7 +358,7 @@ exports.processImmediatePayment = onCall({ region: REGION, invoker: "public", se
             payment_method: clonedMethod.id,
             confirm: true,
             off_session: true,
-            application_fee_amount: 50, // 💵 Tu comisión de $0.50
+            application_fee_amount: 70, // 💵 Tu comisión de $0.70
             metadata: { orderId, type: 'LAD_DIRECT_CHARGE_V6_FINAL' }
         }, { stripeAccount: driverStripeAccountId });
 

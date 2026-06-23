@@ -8,7 +8,7 @@ class BillingService {
   BillingService._internal();
 
   /// Fee fijo por cada orden exitosa (Recogida y Entregada)
-  static const double serviceFee = 0.50;
+  static const double serviceFee = 0.70;
 
   void initialize() => debugPrint("✅ SISTEMA LAD: BillingService (Fee por Orden) Inicializado.");
   void dispose() => debugPrint("SISTEMA LAD: BillingService Recursos liberados.");

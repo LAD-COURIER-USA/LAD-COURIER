@@ -83,7 +83,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get earnings_refund_disclaimer =>
-      'LAD Courier does not charge a monthly fee. Only a \$0.50 service fee per successful order, regardless of the agreed price.';
+      'LAD Courier does not charge a monthly fee. Only a \$0.70 service fee per successful order, regardless of the agreed price.';
 
   @override
   String get driver_dash_title => 'DRIVER COMMAND CENTER';
@@ -710,6 +710,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get auth_error_name => 'Enter your full name';
 
   @override
+  String get auth_error_session => 'Session expired or invalid.';
+
+  @override
   String get auth_role_title => 'Welcome to LAD!';
 
   @override
@@ -956,6 +959,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get driver_service_shopping => 'Shopping and Errands';
 
   @override
+  String get driver_service_smartshopper => 'SmartShopper';
+
+  @override
   String get shopping_nav_instruction_title_alt => '💡 BACKUP PLAN';
 
   @override
@@ -997,7 +1003,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get driver_agreement_body =>
-      'LAD DIGITAL SYSTEMS LLC grants you a limited, non-exclusive and revocable software use license. You acknowledge that LAD is not your employer. This license can be canceled at any time and for any circumstance at LAD\'s discretion. The Service Fee (\$0.50) and terms may change with prior digital notice.';
+      'LAD DIGITAL SYSTEMS LLC grants you a limited, non-exclusive and revocable software use license. You acknowledge that LAD is not your employer. This license can be canceled at any time and for any circumstance at LAD\'s discretion. The Service Fee (\$0.70) and terms may change with prior digital notice.';
 
   @override
   String get common_payment_required_title => 'PAYMENT LINK REQUIRED';
@@ -1052,4 +1058,118 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get client_dash_invite_code_label => 'ENTER DRIVER LINKING CODE:';
+
+  @override
+  String get order_details_arrived_pickup => 'ARRIVED / PICKED UP';
+
+  @override
+  String get order_details_en_route_pickup => '🚀 Starting pickup route.';
+
+  @override
+  String get order_details_en_route_delivery => '🚚 Starting delivery route.';
+
+  @override
+  String get order_details_geofence_lock =>
+      'ARRIVE AT DESTINATION TO ACTIVATE CAMERA';
+
+  @override
+  String get order_details_bypass_title => '⚠️ PAYMENT ERROR';
+
+  @override
+  String order_details_bypass_body(String error) {
+    return 'Stripe says: $error\n\nDo you want to FORCE the order completion anyway? (For testing only)';
+  }
+
+  @override
+  String get order_details_bypass_btn => 'FORCE COMPLETION';
+
+  @override
+  String get order_details_receipt_btn => 'OPEN ORIGINAL RECEIPT';
+
+  @override
+  String get liveness_prompt => 'PLACE YOUR FACE IN FRONT OF THE CAMERA';
+
+  @override
+  String get liveness_eyes_closed => 'OPEN YOUR EYES OR BLINK!';
+
+  @override
+  String get liveness_face_detected => '✅ FACE DETECTED. HOLD STILL.';
+
+  @override
+  String get liveness_searching => 'SEARCHING FOR HUMAN FACE...';
+
+  @override
+  String get verif_title => 'VERIFICATION CENTER';
+
+  @override
+  String get verif_header => 'YOUR SECURITY IS YOUR BEST INVESTMENT';
+
+  @override
+  String get verif_body =>
+      'LAD SYSTEM: Complete the steps to activate your driver account. If you already finished a step in Stripe, pull down to refresh.';
+
+  @override
+  String get verif_step1_title => 'Bank Linking';
+
+  @override
+  String get verif_step1_desc =>
+      'Set up your account to receive direct payments.';
+
+  @override
+  String get verif_step1_btn_active => 'ACCOUNT ACTIVE';
+
+  @override
+  String get verif_step1_btn_retry => 'RETRY / CONTINUE';
+
+  @override
+  String get verif_step1_btn_config => 'CONFIGURE PAYMENTS';
+
+  @override
+  String get verif_step1_sync_btn =>
+      'I ALREADY FINISHED IN STRIPE (VERIFY NOW)';
+
+  @override
+  String get verif_step1_success => '✅ Account activated successfully!';
+
+  @override
+  String get verif_step1_pending => 'ℹ️ Stripe is still processing your data.';
+
+  @override
+  String get verif_step2_title => 'Verify Identity';
+
+  @override
+  String get verif_step2_desc => 'Scan your ID and take a selfie.';
+
+  @override
+  String get verif_step2_btn_verified => 'IDENTITY VERIFIED';
+
+  @override
+  String get verif_step2_btn_start => 'START ID SCAN';
+
+  @override
+  String get verif_footer =>
+      'Your data is encrypted and processed directly by Stripe under banking standards.';
+
+  @override
+  String get ss_dialog_title => 'WHAT ARE WE LOOKING FOR TODAY?';
+
+  @override
+  String get ss_dialog_hint => 'Ex: Pizza, Pharmacy, Best Buy...';
+
+  @override
+  String get ss_btn_search => 'SEARCH';
+
+  @override
+  String get ss_notif_title => 'BINGO! CAPTURE';
+
+  @override
+  String get ss_notif_body =>
+      'We detected you took a screenshot of the ticket. Do you want to process it now to create your order?';
+
+  @override
+  String get ss_ocr_error_title => 'TICKET NOT DETECTED';
+
+  @override
+  String get ss_ocr_error_body =>
+      'We couldn\'t extract a clear address from the image. Please make sure the ticket is legible or enter the address manually.';
 }

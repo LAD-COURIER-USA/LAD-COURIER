@@ -24,7 +24,7 @@
   "earnings_refund_success_msg": "Zone configured correctly.",
   "earnings_refund_pending_msg": "Configuration in progress...",
   "earnings_refund_anti_fraud_rule": "Zone change is instant and at no cost.",
-  "earnings_refund_disclaimer": "LAD Courier does not charge a monthly fee. Only a $0.50 service fee per successful order, regardless of the agreed price.",
+  "earnings_refund_disclaimer": "LAD Courier does not charge a monthly fee. Only a $0.70 service fee per successful order, regardless of the agreed price.",
   "driver_dash_title": "DRIVER COMMAND CENTER",
   "driver_status_online": "DRIVER ONLINE",
   "driver_status_offline": "OFF DUTY",
@@ -345,6 +345,7 @@
   "auth_error_fields": "Please fill in all fields.",
   "auth_error_pass_match": "Passwords do not match",
   "auth_error_name": "Enter your full name",
+  "auth_error_session": "Session expired or invalid.",
   "auth_role_title": "Welcome to LAD!",
   "auth_role_subtitle": "Choose how you want to use the platform:",
   "auth_role_client": "I AM A CUSTOMER",
@@ -459,6 +460,7 @@
   "driver_service_courier": "Messaging and Packages",
   "driver_service_logistics": "Specialized Logistics",
   "driver_service_shopping": "Shopping and Errands",
+  "driver_service_smartshopper": "SmartShopper",
   "shopping_nav_instruction_title_alt": "💡 BACKUP PLAN",
   "shopping_nav_instruction_body_alt": "If the store forces you to use its official App, place the order there, take a screenshot of the receipt and upload it here.",
   "client_dash_order_here": "ORDER HERE",
@@ -471,7 +473,7 @@
   "delete_account_btn_confirm": "YES, DELETE EVERYTHING",
   "delete_account_reauth_required": "For security, you must log in again before deleting your account.",
   "driver_agreement_title": "SaaS LICENSE AGREEMENT",
-  "driver_agreement_body": "LAD DIGITAL SYSTEMS LLC grants you a limited, non-exclusive and revocable software use license. You acknowledge that LAD is not your employer. This license can be canceled at any time and for any circumstance at LAD's discretion. The Service Fee ($0.50) and terms may change with prior digital notice.",
+  "driver_agreement_body": "LAD DIGITAL SYSTEMS LLC grants you a limited, non-exclusive and revocable software use license. You acknowledge that LAD is not your employer. This license can be canceled at any time and for any circumstance at LAD's discretion. The Service Fee ($0.70) and terms may change with prior digital notice.",
   "common_payment_required_title": "PAYMENT LINK REQUIRED",
   "common_payment_required_msg": "To ensure the security of your orders, you must link a payment method in your profile.",
   "driver_inactivity_title": "REST MODE",
@@ -494,5 +496,47 @@
       }
     }
   },
-  "client_dash_invite_code_label": "ENTER DRIVER LINKING CODE:"
+  "client_dash_invite_code_label": "ENTER DRIVER LINKING CODE:",
+  "order_details_arrived_pickup": "ARRIVED / PICKED UP",
+  "order_details_en_route_pickup": "🚀 Starting pickup route.",
+  "order_details_en_route_delivery": "🚚 Starting delivery route.",
+  "order_details_geofence_lock": "ARRIVE AT DESTINATION TO ACTIVATE CAMERA",
+  "order_details_bypass_title": "⚠️ PAYMENT ERROR",
+  "order_details_bypass_body": "Stripe says: {error}\n\nDo you want to FORCE the order completion anyway? (For testing only)",
+  "@order_details_bypass_body": {
+    "placeholders": {
+      "error": {
+        "type": "String"
+      }
+    }
+  },
+  "order_details_bypass_btn": "FORCE COMPLETION",
+  "order_details_receipt_btn": "OPEN ORIGINAL RECEIPT",
+  "liveness_prompt": "PLACE YOUR FACE IN FRONT OF THE CAMERA",
+  "liveness_eyes_closed": "OPEN YOUR EYES OR BLINK!",
+  "liveness_face_detected": "✅ FACE DETECTED. HOLD STILL.",
+  "liveness_searching": "SEARCHING FOR HUMAN FACE...",
+  "verif_title": "VERIFICATION CENTER",
+  "verif_header": "YOUR SECURITY IS YOUR BEST INVESTMENT",
+  "verif_body": "LAD SYSTEM: Complete the steps to activate your driver account. If you already finished a step in Stripe, pull down to refresh.",
+  "verif_step1_title": "Bank Linking",
+  "verif_step1_desc": "Set up your account to receive direct payments.",
+  "verif_step1_btn_active": "ACCOUNT ACTIVE",
+  "verif_step1_btn_retry": "RETRY / CONTINUE",
+  "verif_step1_btn_config": "CONFIGURE PAYMENTS",
+  "verif_step1_sync_btn": "I ALREADY FINISHED IN STRIPE (VERIFY NOW)",
+  "verif_step1_success": "✅ Account activated successfully!",
+  "verif_step1_pending": "ℹ️ Stripe is still processing your data.",
+  "verif_step2_title": "Verify Identity",
+  "verif_step2_desc": "Scan your ID and take a selfie.",
+  "verif_step2_btn_verified": "IDENTITY VERIFIED",
+  "verif_step2_btn_start": "START ID SCAN",
+  "verif_footer": "Your data is encrypted and processed directly by Stripe under banking standards.",
+  "ss_dialog_title": "WHAT ARE WE LOOKING FOR TODAY?",
+  "ss_dialog_hint": "Ex: Pizza, Pharmacy, Best Buy...",
+  "ss_btn_search": "SEARCH",
+  "ss_notif_title": "BINGO! CAPTURE",
+  "ss_notif_body": "We detected you took a screenshot of the ticket. Do you want to process it now to create your order?",
+  "ss_ocr_error_title": "TICKET NOT DETECTED",
+  "ss_ocr_error_body": "We couldn't extract a clear address from the image. Please make sure the ticket is legible or enter the address manually."
 }

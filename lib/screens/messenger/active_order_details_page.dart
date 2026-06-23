@@ -17,6 +17,7 @@ import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/geodata_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
+import 'package:lad_courier/widgets/walkie_talkie_button.dart';
 
 class ActiveOrderDetailsPage extends StatefulWidget {
   final OrderModel order;
@@ -200,6 +201,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
 
   // 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE INICIO DE RUTA Y NAVEGACIÓN EXTERNA
   Future<void> _startNavigation(GeoPoint dest, String id, bool isPickup) async {
+    final l10n = AppLocalizations.of(context)!;
     /* 🛡️ SISTEMA LAD: BLOQUE DE RETENCIÓN COMENTADO TEMPORALMENTE PARA PRUEBAS DE FLUJO FINANCIERO
     if (isPickup) {
       setState(() => _isUploading = true);
@@ -245,7 +247,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     final uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${dest.latitude},${dest.longitude}&travelmode=driving');
     await _orderService.updateOrderStatus(
         id, isPickup ? OrderStatus.enRouteToPickup : OrderStatus.enRouteToDelivery,
-        message: isPickup ? "🚀 Iniciando ruta de recogida." : "🚚 Iniciando ruta de entrega.");
+        message: isPickup ? l10n.order_details_en_route_pickup : l10n.order_details_en_route_delivery);
     
     setState(() => _isUploading = false);
 
@@ -272,6 +274,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
   // 🟡 ÁREA DE TRABAJO CRÍTICA - FINALIZACIÓN Y COBRO (REVISAR CON CUIDADO)
   Future<void> _completeOrder(OrderModel order) async {
     if (_deliveryPhoto == null) return;
+    final l10n = AppLocalizations.of(context)!;
     setState(() => _isUploading = true);
     try {
       // 1. EJECUTAR EL COBRO REAL E INMEDIATO (MODELO SAAS DIRECTO)
@@ -287,8 +290,6 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
           'amount': ((order.price ?? 0.0) * 100).toInt(),
           'driverStripeAccountId': messenger?.stripeAccountId,
           'orderId': order.id,
-          // 🛡️ SISTEMA LAD: Ya no enviamos paymentMethodId ni customerId.
-          // El servidor los buscará directamente en Firestore para evitar IDs viejos.
         });
 
         if (result.data['success'] != true) {
@@ -296,7 +297,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
         }
       } catch (stripeError) {
         debugPrint("SISTEMA LAD: Error cobrando: $stripeError");
-        bool bypass = await _showBypassDialog(stripeError.toString());
+        bool bypass = await _showBypassDialog(stripeError.toString(), l10n);
         if (!bypass) {
           setState(() => _isUploading = false);
           return;
@@ -330,7 +331,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
             : null,
       }, SetOptions(merge: true));
 
-      await _notifyClientCompletion(order.id);
+      // await _notifyClientCompletion(order.id); // 🛡️ PRIVACIDAD LAD
 
       if (mounted) {
         Navigator.pop(context);
@@ -344,39 +345,40 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     }
   }
 
-  Future<bool> _showBypassDialog(String error) async {
+  Future<bool> _showBypassDialog(String error, AppLocalizations l10n) async {
     return await showDialog(
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        title: const Text("⚠️ ERROR DE COBRO", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
+        title: Text(l10n.order_details_bypass_title, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Stripe dice: $error"),
-            const SizedBox(height: 15),
-            const Text("¿Quieres FORZAR la finalización de la orden de todos modos? (Solo para pruebas)", style: TextStyle(fontWeight: FontWeight.bold)),
+            Text(l10n.order_details_bypass_body(error)),
           ],
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("CANCELAR")),
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.common_cancel)),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.orange),
-            child: const Text("FORZAR FINALIZACIÓN", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            child: Text(l10n.order_details_bypass_btn, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     ) ?? false;
   }
 
+  // 🛡️ PRIVACIDAD LAD: Eliminamos la lógica de notificación SMS para no exponer números
+  /*
   Future<void> _notifyClientCompletion(String orderId) async {
     if (_clientProfile?.phoneNumber == null) return;
     final String message = "LAD COURIER: Pedido #${orderId.substring(0, 5)} entregado con éxito.";
     final Uri smsUri = Uri.parse("sms:${_clientProfile!.phoneNumber}?body=${Uri.encodeComponent(message)}");
     if (await canLaunchUrl(smsUri)) await launchUrl(smsUri);
   }
+  */
 
   /* 🛡️ SISTEMA LAD: Comentado temporalmente junto con el bloque de retención
   Future<void> _notifyPaymentFailure(String orderId, String error) async {
@@ -511,6 +513,11 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black)),
               Text(l10n.order_details_id(order.id.substring(0, 8)), style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
             ])),
+            // 🎙️ BOTÓN WALKIE-TALKIE LAD (PRIVACIDAD TOTAL)
+            WalkieTalkieButton(
+              channelId: order.id,
+              userId: FirebaseAuth.instance.currentUser?.uid ?? "unknown",
+            ),
           ]),
           const Divider(height: 30, color: Colors.black12),
           _locationRow(Icons.location_on, order.pickupAddress, Colors.green[800]!),
@@ -576,8 +583,8 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                   }
                 },
                 icon: const Icon(Icons.open_in_browser, color: Colors.white),
-                label: const Text("ABRIR RECIBO ORIGINAL",
-                    style: TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
+                label: Text(l10n.order_details_receipt_btn,
+                    style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.orange[800],
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
@@ -671,6 +678,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                         lat: pos?.latitude ?? order.pickupLatLng!.latitude,
                         lng: pos?.longitude ?? order.pickupLatLng!.longitude,
                         driverId: driverId,
+                        city: '', // Se inferirá o se puede mejorar capturando la ciudad del fullAddr
                       );
                       debugPrint("LAD: Inteligencia Soberana alimentada con éxito.");
                     }
@@ -689,7 +697,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
               if (_deliveryPhoto == null)
                 // 🛡️ SOBERANÍA GPS: Botón deshabilitado si no está en el punto
                 _btn(
-                  _isNearPoint ? l10n.order_details_btn_photo : "LLEGUE AL DESTINO PARA ACTIVAR CÁMARA", 
+                  _isNearPoint ? l10n.order_details_btn_photo : l10n.order_details_geofence_lock,
                   Icons.camera_alt, 
                   _isNearPoint ? Colors.orange : Colors.grey[400]!, 
                   _isNearPoint ? () => _takePhoto(l10n) : null

@@ -83,10 +83,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   void initState() {
     super.initState();
     
-    // 🛡️ CONFIGURAR EL OÍDO NATIVO PARA SCREENSHOTS
+    // 🛡️ CONFIGURAR EL OÍDO NATIVO PARA SCREENSHOTS Y COMPARTIDOS
     _screenshotChannel.setMethodCallHandler((call) async {
       if (call.method == 'onScreenshotDetected') {
         _autoProcessLastImage();
+      } else if (call.method == 'onImageShared') {
+        final String path = call.arguments;
+        _processSpecificImage(path);
       }
     });
 
@@ -239,11 +242,23 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         }
         
         if (!foundInGeodata) {
-          final res = await _geocodingService.getFullDetails(pickupText);
+          // 🛡️ PASO 1: Mirar en el Búnker Personal (Ahorro Google)
+          final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+          GeocodingResponse? res = await _userService.findPrivateAddress(uid, pickupText);
+          
+          // 🛡️ PASO 2: Si no está en el búnker, ir a Google
+          if (res == null) {
+            res = await _geocodingService.getFullDetails(pickupText);
+            if (res != null) {
+              // 🛡️ PASO 3: Guardar en el Búnker para la próxima vez
+              _userService.savePrivateAddress(uid, res);
+            }
+          }
+
           if (mounted && res != null) {
             setState(() { 
               _isPickupVerified = false; 
-              _validatedPickupLatLng = res.latLng; 
+              _validatedPickupLatLng = res!.latLng; 
               _validatedStoreAddress = pickupText; 
               _pickupGoogleRes = res; 
             });
@@ -290,11 +305,23 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         }
         
         if (!foundInGeodata) {
-          final res = await _geocodingService.getFullDetails(dropoffText);
+          // 🛡️ PASO 1: Mirar en el Búnker Personal (Ahorro Google)
+          final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+          GeocodingResponse? res = await _userService.findPrivateAddress(uid, dropoffText);
+
+          // 🛡️ PASO 2: Si no está en el búnker, ir a Google
+          if (res == null) {
+            res = await _geocodingService.getFullDetails(dropoffText);
+            if (res != null) {
+              // 🛡️ PASO 3: Guardar en el Búnker para la próxima vez
+              _userService.savePrivateAddress(uid, res);
+            }
+          }
+
           if (mounted && res != null) {
             setState(() { 
               _isDropoffVerified = false; 
-              _validatedDropoffLatLng = res.latLng; 
+              _validatedDropoffLatLng = res!.latLng;
               _validatedDropoffAddress = dropoffText; 
               _dropoffGoogleRes = res; 
             });
@@ -432,9 +459,9 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       return;
     }
 
-    // Verificar si la foto es muy antigua (ej. más de 10 minutos) para evitar errores
+    // Verificar si la foto es muy antigua (ej. más de 60 minutos) para evitar errores
     final diff = DateTime.now().difference(entities[0].createDateTime);
-    if (diff.inMinutes > 10) {
+    if (diff.inMinutes > 60) {
       debugPrint("SISTEMA LAD: La última foto es muy antigua (${diff.inMinutes} min). Abriendo selector manual.");
       if (mounted) _pickProductPhoto();
       return;
@@ -482,21 +509,136 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       } catch (_) {}
     }
 
-    if (ocrResult.zipCode != null && ocrResult.streetNumber != null) {
-      validatedStore = await _geodataService.findStoreByDna(zip: ocrResult.zipCode!, streetNumber: ocrResult.streetNumber!, countryCode: _detectedCountryCode, stateCode: ocrResult.stateCode);
+    // 🛡️ SOBERANÍA LAD: Priorizamos datos del ticket sobre el GPS actual para triangulación
+    final String? targetZip = ocrResult.zipCode ?? gpsZip;
+    final String? targetCity = ocrResult.cityName ?? gpsCity;
+    final String? targetState = ocrResult.stateCode ?? gpsState;
+
+    if (targetZip != null && ocrResult.streetNumber != null) {
+      validatedStore = await _geodataService.findStoreByDna(
+        zip: targetZip, 
+        streetNumber: ocrResult.streetNumber!, 
+        countryCode: _detectedCountryCode, 
+        stateCode: targetState
+      );
     }
     
-    if (validatedStore == null && ocrResult.streetNumber != null && gpsZip != null) {
-      validatedStore = await _geodataService.findStoreByDna(zip: gpsZip, streetNumber: ocrResult.streetNumber!, stateCode: gpsState);
+    if (validatedStore == null && ocrResult.streetNumber != null) {
+      validatedStore = await _geodataService.findStoreByTriangulation(
+        brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', 
+        city: targetCity, 
+        streetNumber: ocrResult.streetNumber!, 
+        stateCode: targetState ?? 'FL',
+        userLat: position?.latitude,
+        userLon: position?.longitude,
+      );
     }
-    
-    if (validatedStore == null && ocrResult.streetNumber != null && gpsCity != null) {
-      validatedStore = await _geodataService.findStoreByTriangulation(brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', city: gpsCity, streetNumber: ocrResult.streetNumber!, stateCode: gpsState ?? 'FL');
+
+    // 🩹 AUTO-COMPLETADO SOBERANO: Si la DB falló, parchamos la dirección con el GPS
+    String? finalFullAddr = ocrResult.fullAddress;
+    if (validatedStore == null && finalFullAddr != null && targetCity != null) {
+      if (!finalFullAddr.contains(targetCity.toUpperCase())) {
+        finalFullAddr = "$finalFullAddr, $targetCity, ${targetState ?? 'FL'} ${targetZip ?? ''}".toUpperCase();
+      }
     }
 
     if (mounted) {
       setState(() => _isUploadingPhoto = false);
-      _showOcrSuggestions(ocrResult, validatedStore);
+      _showOcrSuggestions(
+        ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), 
+        validatedStore
+      );
+    }
+  }
+
+  Future<void> _processSpecificImage(String path) async {
+    final File file = File(path);
+    if (!file.existsSync()) {
+      debugPrint("SISTEMA LAD ERROR: El archivo compartido no existe -> $path");
+      return;
+    }
+
+    debugPrint("SISTEMA LAD: Procesando imagen específica (Share): $path");
+    
+    if (!mounted) return;
+    setState(() => _isUploadingPhoto = true);
+
+    // 🚀 PASO 1: SUBIR EL TICKET
+    String? uploadedUrl;
+    try {
+      uploadedUrl = await _storageService.uploadFile(
+        'order_photos', 
+        "shared_${DateTime.now().millisecondsSinceEpoch}", 
+        file
+      );
+    } catch (e) {
+      debugPrint("SISTEMA LAD ERROR: No se pudo subir el ticket compartido -> $e");
+    }
+
+    // 🧠 PASO 2: PROCESAR CON OCR
+    final ocrResult = await _ocrService.analyzeReceipt(file.path);
+    
+    if (!mounted) return;
+    setState(() {
+      _detectedCountryCode = ocrResult.countryCode ?? "US";
+      if (uploadedUrl != null) _productPhotoUrl = uploadedUrl;
+    });
+
+    final Position? position = await _ensureLocationPermission();
+    Map<String, dynamic>? validatedStore;
+    String? gpsZip, gpsCity, gpsState;
+
+    if (position != null) {
+      try {
+        final geoDetails = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
+        if (geoDetails != null) {
+          gpsZip = geoDetails.zipCode;
+          gpsCity = geoDetails.city;
+          gpsState = geoDetails.state;
+        }
+      } catch (_) {}
+    }
+
+    // Reutilizamos la misma lógica de triangulación
+    // 🛡️ SOBERANÍA LAD: Priorizamos datos del ticket sobre el GPS actual para triangulación
+    final String? targetZip = ocrResult.zipCode ?? gpsZip;
+    final String? targetCity = ocrResult.cityName ?? gpsCity;
+    final String? targetState = ocrResult.stateCode ?? gpsState;
+
+    if (targetZip != null && ocrResult.streetNumber != null) {
+      validatedStore = await _geodataService.findStoreByDna(
+        zip: targetZip, 
+        streetNumber: ocrResult.streetNumber!, 
+        countryCode: _detectedCountryCode, 
+        stateCode: targetState
+      );
+    }
+    
+    if (validatedStore == null && ocrResult.streetNumber != null) {
+      validatedStore = await _geodataService.findStoreByTriangulation(
+        brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', 
+        city: targetCity, 
+        streetNumber: ocrResult.streetNumber!, 
+        stateCode: targetState ?? 'FL',
+        userLat: position?.latitude,
+        userLon: position?.longitude,
+      );
+    }
+
+    // 🩹 AUTO-COMPLETADO SOBERANO: Si la DB falló, parchamos la dirección con el GPS
+    String? finalFullAddr = ocrResult.fullAddress;
+    if (validatedStore == null && finalFullAddr != null && targetCity != null) {
+      if (!finalFullAddr.contains(targetCity.toUpperCase())) {
+        finalFullAddr = "$finalFullAddr, $targetCity, ${targetState ?? 'FL'} ${targetZip ?? ''}".toUpperCase();
+      }
+    }
+
+    if (mounted) {
+      setState(() => _isUploadingPhoto = false);
+      _showOcrSuggestions(
+        ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), 
+        validatedStore
+      );
     }
   }
 
@@ -527,19 +669,45 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         debugPrint("SISTEMA LAD: Error obteniendo ciudad del GPS -> $e"); 
       }
       
-      if (ocrResult.zipCode != null && ocrResult.streetNumber != null) {
-        validatedStore = await _geodataService.findStoreByDna(zip: ocrResult.zipCode!, streetNumber: ocrResult.streetNumber!, countryCode: _detectedCountryCode, stateCode: ocrResult.stateCode);
+      // 🛡️ SOBERANÍA LAD: Priorizamos datos del ticket sobre el GPS actual para triangulación
+      final String? targetZip = ocrResult.zipCode ?? gpsZip;
+      final String? targetCity = ocrResult.cityName ?? gpsCity;
+      final String? targetState = ocrResult.stateCode ?? gpsState;
+
+      if (targetZip != null && ocrResult.streetNumber != null) {
+        validatedStore = await _geodataService.findStoreByDna(
+          zip: targetZip, 
+          streetNumber: ocrResult.streetNumber!, 
+          countryCode: _detectedCountryCode, 
+          stateCode: targetState
+        );
       }
       
-      if (validatedStore == null && ocrResult.streetNumber != null && gpsZip != null) {
-        validatedStore = await _geodataService.findStoreByDna(zip: gpsZip, streetNumber: ocrResult.streetNumber!, stateCode: gpsState);
+      if (validatedStore == null && ocrResult.streetNumber != null) {
+        validatedStore = await _geodataService.findStoreByTriangulation(
+          brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', 
+          city: targetCity, 
+          streetNumber: ocrResult.streetNumber!, 
+          stateCode: targetState ?? 'FL',
+          userLat: position.latitude,
+          userLon: position.longitude,
+        );
+      }
+
+      // 🩹 AUTO-COMPLETADO SOBERANO: Si la DB falló, parchamos la dirección con el GPS
+      String? finalFullAddr = ocrResult.fullAddress;
+      if (validatedStore == null && finalFullAddr != null && targetCity != null) {
+        if (!finalFullAddr.contains(targetCity.toUpperCase())) {
+          finalFullAddr = "$finalFullAddr, $targetCity, ${targetState ?? 'FL'} ${targetZip ?? ''}".toUpperCase();
+        }
       }
       
-      if (validatedStore == null && ocrResult.streetNumber != null && gpsCity != null) {
-        validatedStore = await _geodataService.findStoreByTriangulation(brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', city: gpsCity, streetNumber: ocrResult.streetNumber!, stateCode: gpsState ?? 'FL');
+      if (mounted) {
+        _showOcrSuggestions(
+          ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), 
+          validatedStore
+        );
       }
-      
-      if (mounted) _showOcrSuggestions(ocrResult, validatedStore);
     });
     
     if (mounted) { 
@@ -549,13 +717,14 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   void _showOcrSuggestions(OCRResult result, Map<String, dynamic>? validatedStore) {
+    final l10n = AppLocalizations.of(context)!;
     if (result.fullAddress == null && result.storeName == null && validatedStore == null) {
       showDialog(context: context, builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        title: const Text("TICKET NO DETECTADO", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
-        content: const Text("No pudimos extraer una dirección clara de la imagen. Por favor, asegúrate de que el ticket sea legible o ingresa la dirección manualmente."),
+        title: Text(l10n.ss_ocr_error_title, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
+        content: Text(l10n.ss_ocr_error_body),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("ENTENDIDO")),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.driver_btn_understand)),
         ],
       ));
       return;
@@ -754,28 +923,29 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
     // 🧠 PASO 2: PREGUNTAR AL CLIENTE (EXPERIENCIA FRIENDLY)
     if (!mounted) return;
+    final l10n = AppLocalizations.of(context)!;
     String? userChoice = await showDialog<String>(
       context: context,
       builder: (context) {
         final controller = TextEditingController();
         return AlertDialog(
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-          title: const Text("¿QUÉ BUSCAMOS HOY?", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+          title: Text(l10n.ss_dialog_title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
           content: TextField(
             controller: controller,
             autofocus: true,
-            decoration: const InputDecoration(
-              hintText: "Ej: Pizza, Farmacia, Best Buy...",
-              hintStyle: TextStyle(fontSize: 13),
-              border: OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
+            decoration: InputDecoration(
+              hintText: l10n.ss_dialog_hint,
+              hintStyle: const TextStyle(fontSize: 13),
+              border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
             ),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.common_cancel)),
             ElevatedButton(
               onPressed: () => Navigator.pop(context, controller.text.trim()),
               style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
-              child: const Text("BUSCAR"),
+              child: Text(l10n.ss_btn_search),
             ),
           ],
         );
@@ -888,46 +1058,66 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   Widget _buildSmartShopperGrid(AppLocalizations l10n) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(22),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(30),
         border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.15), width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 5))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 8))],
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
           const Row(
             children: [
-              Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 24),
+              Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 26),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
-                  "BUSCADOR UNIVERSAL SMART SHOPPER",
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.black, letterSpacing: 1.1),
+                  "MAGIA SMART SHOPPER",
+                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black, letterSpacing: 1.2),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 15),
-          const Text(
-            "1. Busca tu tienda y compra (selecciona 'Pickup').\n2. Toma un Screenshot (captura) de tu ticket final.\n3. LAD detectará tu captura. Toca la notificación de captura para procesar tu orden de envío.",
-            style: TextStyle(fontSize: 11, color: Colors.blueGrey, fontWeight: FontWeight.bold),
+          const SizedBox(height: 18),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Colors.blueGrey[50], borderRadius: BorderRadius.circular(15)),
+            child: const Text(
+              "🛒 Haz tu compra online (Pickup). Al finalizar, toma una CAPTURA DE PANTALLA de tu ticket.\n\n✨ LAD debería avisarte arriba. Si el aviso no sale, solo regresa aquí y toca el botón de abajo.",
+              style: TextStyle(fontSize: 11, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
+            ),
           ),
           const SizedBox(height: 20),
+          // 🚀 BOTÓN PRINCIPAL: SALTO AL BUSCADOR
           SizedBox(
             width: double.infinity,
             height: 60,
             child: ElevatedButton.icon(
               onPressed: () => _openSmartShopperResults("UNIVERSAL", "Cualquier cosa"),
               icon: const Icon(Icons.search, color: Colors.white),
-              label: const Text("BUSCAR Y COMPRAR", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+              label: const Text("IR A BUSCAR Y COMPRAR", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.deepPurple[800],
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                elevation: 5,
+                elevation: 4,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // 🛡️ BOTÓN DE RESPALDO: PROCESAR ÚLTIMA CAPTURA (MANUAL)
+          SizedBox(
+            width: double.infinity,
+            height: 50,
+            child: OutlinedButton.icon(
+              onPressed: () => _autoProcessLastImage(),
+              icon: const Icon(Icons.wallpaper, color: Colors.deepPurple),
+              label: const Text("YA TENGO MI TICKET", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.deepPurple)),
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(color: Colors.deepPurple, width: 2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
               ),
             ),
           ),

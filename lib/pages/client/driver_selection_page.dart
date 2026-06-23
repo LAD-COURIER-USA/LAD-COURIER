@@ -5,6 +5,7 @@ import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
+import 'package:lad_courier/widgets/walkie_talkie_button.dart';
 
 class DriverSelectionPage extends StatefulWidget {
   final GeoPoint pickupLatLng;
@@ -301,14 +302,15 @@ class _DriverSelectionPageState extends State<DriverSelectionPage> {
                           const Icon(Icons.star, color: Colors.amber, size: 16),
                           const SizedBox(width: 4),
                           Text(driver.rating.toStringAsFixed(1), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12)),
-                          const SizedBox(width: 15),
-                          const Icon(Icons.phone, size: 14, color: Colors.grey),
-                          const SizedBox(width: 4),
-                          Text(driver.phoneNumber ?? "---", style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
                         ],
                       ),
                     ],
                   ),
+                ),
+                // 🎙️ CONSULTA ANTES DE ORDENAR (SISTEMA LAD)
+                WalkieTalkieButton(
+                  channelId: "chat_${FirebaseAuth.instance.currentUser?.uid.substring(0, 5)}_${driver.uid.substring(0, 5)}", 
+                  userId: FirebaseAuth.instance.currentUser?.uid ?? 'unknown'
                 ),
               ],
             ),
