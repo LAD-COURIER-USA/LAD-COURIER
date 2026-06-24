@@ -497,6 +497,7 @@
     }
   },
   "client_dash_invite_code_label": "INGRESE EL CÓDIGO DE VINCULACIÓN DEL DRIVER:",
+  "order_status_timeout_client": "EXPIRADA POR INACTIVIDAD DEL CLIENTE",
   "order_details_arrived_pickup": "LLEGUÉ / RECOGIDO",
   "order_details_en_route_pickup": "🚀 Iniciando ruta de recogida.",
   "order_details_en_route_delivery": "🚚 Iniciando ruta de entrega.",

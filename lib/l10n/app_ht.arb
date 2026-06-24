@@ -460,6 +460,7 @@
   "driver_service_courier": "Mesajeri ak Pakè",
   "driver_service_logistics": "Lojistik Espesyalize",
   "driver_service_shopping": "Acha ak Komisyon",
+  "driver_service_smartshopper": "SmartShopper",
   "shopping_nav_instruction_title_alt": "💡 PLAN SOVETAY",
   "shopping_nav_instruction_body_alt": "Si magazen an fòse ou sèvi ak App ofisyèl li a, fè kòmand ou la, pran yon screenshot resi a epi monte li isit la.",
   "client_dash_order_here": "KÒMANDE ISIT LA",
@@ -496,6 +497,7 @@
     }
   },
   "client_dash_invite_code_label": "ANTRE KÒD LYEZON CHOFÈ A:",
+  "order_status_timeout_client": "EKSPIRE POU INAKTIVITE KLIYAN",
   "order_details_arrived_pickup": "MWEN RIVE / RANMASE",
   "order_details_en_route_pickup": "🚀 Kòmanse wout ramase.",
   "order_details_en_route_delivery": "🚚 Kòmanse wout livrezon.",

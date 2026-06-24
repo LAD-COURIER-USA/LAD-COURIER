@@ -460,6 +460,7 @@
   "driver_service_courier": "Messagerie et colis",
   "driver_service_logistics": "Logistique spécialisée",
   "driver_service_shopping": "Achats et courses",
+  "driver_service_smartshopper": "SmartShopper",
   "shopping_nav_instruction_title_alt": "💡 PLAN DE SECOURS",
   "shopping_nav_instruction_body_alt": "Si l'établissement vous oblige à utiliser son application officielle, passez votre commande là-bas, prenez une capture d'écran du reçu et téléchargez-la ici.",
   "client_dash_order_here": "COMMANDEZ ICI",
@@ -496,6 +497,7 @@
     }
   },
   "client_dash_invite_code_label": "ENTREZ LE CODE DE LIAISON DU DRIVER :",
+  "order_status_timeout_client": "EXPIRÉ EN RAISON DE L'INACTIVITÉ DU CLIENT",
   "order_details_arrived_pickup": "ARRIVÉ / RAMASSÉ",
   "order_details_en_route_pickup": "🚀 Démarrage de l'itinéraire de ramassage.",
   "order_details_en_route_delivery": "🚚 Démarrage de l'itinéraire de livraison.",

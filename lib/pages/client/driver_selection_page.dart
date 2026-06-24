@@ -5,7 +5,7 @@ import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
-import 'package:lad_courier/widgets/walkie_talkie_button.dart';
+import 'package:lad_courier/screens/chat_screen.dart';
 
 class DriverSelectionPage extends StatefulWidget {
   final GeoPoint pickupLatLng;
@@ -15,7 +15,8 @@ class DriverSelectionPage extends StatefulWidget {
   final String serviceType;
   final String packageDetails;
   final String? productPhotoUrl;
-  final String countryCode; // 🌍 SOPORTE INTERNACIONAL
+  final String countryCode;
+  final String clientName; // 👤 NOMBRE SOBERANO
 
   const DriverSelectionPage({
     super.key,
@@ -25,6 +26,7 @@ class DriverSelectionPage extends StatefulWidget {
     required this.dropoffAddress,
     required this.serviceType,
     required this.packageDetails,
+    required this.clientName,
     this.productPhotoUrl,
     this.countryCode = "US",
   });
@@ -149,7 +151,7 @@ class _DriverSelectionPageState extends State<DriverSelectionPage> {
 
       await _orderService.createOrder(
         clientId: currentUser.uid,
-        clientName: currentUser.displayName ?? 'Cliente',
+        clientName: widget.clientName,
         clientPhotoUrl: currentUser.photoURL,
         assignedMessengerId: driver.uid,
         messengerName: driver.displayName ?? 'Driver',
@@ -307,10 +309,15 @@ class _DriverSelectionPageState extends State<DriverSelectionPage> {
                     ],
                   ),
                 ),
-                // 🎙️ CONSULTA ANTES DE ORDENAR (SISTEMA LAD)
-                WalkieTalkieButton(
-                  channelId: "chat_${FirebaseAuth.instance.currentUser?.uid.substring(0, 5)}_${driver.uid.substring(0, 5)}", 
-                  userId: FirebaseAuth.instance.currentUser?.uid ?? 'unknown'
+                // 💬 CONSULTA ANTES DE ORDENAR (SISTEMA LAD)
+                IconButton(
+                  icon: const Icon(Icons.chat_bubble_outline, color: Colors.black, size: 28),
+                  onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                    chatId: "chat_${FirebaseAuth.instance.currentUser?.uid.substring(0, 5)}_${driver.uid.substring(0, 5)}",
+                    title: driver.displayName ?? 'Driver',
+                    targetUserId: driver.uid,
+                    senderName: widget.clientName,
+                  ))),
                 ),
               ],
             ),

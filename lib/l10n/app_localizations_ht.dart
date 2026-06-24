@@ -1059,6 +1059,9 @@ class AppLocalizationsHt extends AppLocalizations {
   String get client_dash_invite_code_label => 'ANTRE KÒD LYEZON CHOFÈ A:';
 
   @override
+  String get order_status_timeout_client => 'EKSPIRE POU INAKTIVITE KLIYAN';
+
+  @override
   String get order_details_arrived_pickup => 'MWEN RIVE / RANMASE';
 
   @override

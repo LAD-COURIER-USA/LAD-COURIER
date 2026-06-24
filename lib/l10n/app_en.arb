@@ -497,6 +497,7 @@
     }
   },
   "client_dash_invite_code_label": "ENTER DRIVER LINKING CODE:",
+  "order_status_timeout_client": "EXPIRED DUE TO CUSTOMER INACTIVITY",
   "order_details_arrived_pickup": "ARRIVED / PICKED UP",
   "order_details_en_route_pickup": "🚀 Starting pickup route.",
   "order_details_en_route_delivery": "🚚 Starting delivery route.",

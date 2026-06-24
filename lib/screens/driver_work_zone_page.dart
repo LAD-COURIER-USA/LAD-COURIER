@@ -10,12 +10,15 @@ import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:lad_courier/models/order_model.dart';
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/order_service.dart';
+import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/screens/messenger/order_negotiation_page.dart';
 import 'package:lad_courier/screens/messenger/active_order_details_page.dart';
 import 'package:lad_courier/services/location_service.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/services/invitation_service.dart';
+import 'package:lad_courier/services/chat_service.dart';
+import 'package:lad_courier/screens/chat_screen.dart';
 
 class DriverWorkZonePage extends StatefulWidget {
   const DriverWorkZonePage({super.key});
@@ -25,6 +28,8 @@ class DriverWorkZonePage extends StatefulWidget {
 
 class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
   final OrderService _orderService = OrderService();
+  final UserService _userService = UserService();
+  final ChatService _chatService = ChatService();
   final LocationService _locationService = LocationService();
   final InvitationService _invitationService = InvitationService();
   final DraggableScrollableController _panelController = DraggableScrollableController();
@@ -363,6 +368,52 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
           ),
           
           _buildDraggablePanel(l10n),
+
+          // 💬 CHAT SOBERANO (CONSULTAS PREVIAS)
+          Positioned(
+            right: 15,
+            bottom: 220, 
+            child: StreamBuilder<UserModel?>(
+              stream: _userService.getUserStream(FirebaseAuth.instance.currentUser?.uid ?? ''),
+              builder: (context, snapshot) {
+                final user = snapshot.data;
+                if (user?.lastIncomingChatId == null) return const SizedBox.shrink();
+
+                return Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(10)),
+                      child: Text(
+                        "CHAT: ${user!.lastIncomingChatTitle ?? 'CLIENTE'}",
+                        style: const TextStyle(color: Colors.greenAccent, fontSize: 8, fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 5),
+                    CircleAvatar(
+                      backgroundColor: Colors.greenAccent,
+                      radius: 25,
+                      child: IconButton(
+                        icon: const Icon(Icons.chat, color: Colors.black),
+                        onPressed: () async {
+                          // 🧹 LIMPIEZA INMEDIATA ANTES DE ENTRAR
+                          final navigator = Navigator.of(context);
+                          await _chatService.clearChatNotification(FirebaseAuth.instance.currentUser?.uid ?? '');
+                          
+                          if (mounted) {
+                            navigator.push(MaterialPageRoute(builder: (context) => ChatScreen(
+                              chatId: user.lastIncomingChatId!,
+                              title: user.lastIncomingChatTitle ?? 'Cliente',
+                            )));
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
@@ -437,10 +488,12 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
 
   Widget _buildRequestCard(OrderModel order, String name, String? photo, AppLocalizations l10n) {
     bool isCounterOffer = order.negotiationHistory.isNotEmpty;
+    bool waitingForClient = order.lastPriceOfferedBy == 'messenger';
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: isCounterOffer ? Colors.orange[800] : Colors.deepPurple[900],
+        color: waitingForClient ? Colors.grey[800] : (isCounterOffer ? Colors.orange[800] : Colors.deepPurple[900]),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(color: Colors.black, width: 2),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, 2))],
@@ -469,9 +522,9 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
                 borderRadius: BorderRadius.circular(10)
               ),
               child: Text(
-                isCounterOffer ? "CONTRAOFERTA" : "NUEVA ORDEN",
+                waitingForClient ? "ESPERANDO" : (isCounterOffer ? "CONTRAOFERTA" : "NUEVA ORDEN"),
                 style: TextStyle(
-                  color: isCounterOffer ? Colors.orange[900] : Colors.deepPurple[900],
+                  color: waitingForClient ? Colors.grey[900] : (isCounterOffer ? Colors.orange[900] : Colors.deepPurple[900]),
                   fontSize: 9,
                   fontWeight: FontWeight.w900
                 )
@@ -481,11 +534,27 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 5),
-          child: Text(
-            order.pickupAddress,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white70)
+          child: Row(
+            children: [
+              Expanded(
+                child: Text(
+                  order.pickupAddress,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.white70)
+                ),
+              ),
+              // 💬 CHAT ACCESO RÁPIDO PARA EL DRIVER
+              IconButton(
+                icon: const Icon(Icons.chat_bubble_outline, color: Colors.white, size: 20),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                  chatId: order.id, 
+                  title: name,
+                  targetUserId: order.clientId,
+                  senderName: FirebaseAuth.instance.currentUser?.displayName ?? "Driver",
+                ))),
+              ),
+            ],
           ),
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 16, color: Colors.white),

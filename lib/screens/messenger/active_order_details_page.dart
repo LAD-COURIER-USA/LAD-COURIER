@@ -17,7 +17,7 @@ import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/geodata_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
-import 'package:lad_courier/widgets/walkie_talkie_button.dart';
+import 'package:lad_courier/screens/chat_screen.dart';
 
 class ActiveOrderDetailsPage extends StatefulWidget {
   final OrderModel order;
@@ -513,10 +513,15 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black)),
               Text(l10n.order_details_id(order.id.substring(0, 8)), style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
             ])),
-            // 🎙️ BOTÓN WALKIE-TALKIE LAD (PRIVACIDAD TOTAL)
-            WalkieTalkieButton(
-              channelId: order.id,
-              userId: FirebaseAuth.instance.currentUser?.uid ?? "unknown",
+            // 💬 CHAT PRIVADO LAD (SIN TELÉFONO)
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.black, size: 28),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                chatId: widget.order.id, 
+                title: widget.order.clientName,
+                targetUserId: widget.order.clientId,
+                senderName: widget.order.messengerName ?? "Driver",
+              ))),
             ),
           ]),
           const Divider(height: 30, color: Colors.black12),

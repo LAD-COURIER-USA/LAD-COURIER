@@ -63,6 +63,10 @@ class UserModel {
   final int monthlyBagReferralCount;
   final int monthlyClientReferralCount;
 
+  // 🎙️ COMUNICACIÓN DE CHAT
+  final String? lastIncomingChatId;
+  final String? lastIncomingChatTitle;
+
   UserModel({
     required this.uid,
     required this.email,
@@ -114,6 +118,8 @@ class UserModel {
     this.monthlyDirectNetworkCount = 0,
     this.monthlyBagReferralCount = 0,
     this.monthlyClientReferralCount = 0,
+    this.lastIncomingChatId,
+    this.lastIncomingChatTitle,
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -169,6 +175,8 @@ class UserModel {
       monthlyDirectNetworkCount: data['monthlyDirectNetworkCount'] ?? 0,
       monthlyBagReferralCount: data['monthlyBagReferralCount'] ?? 0,
       monthlyClientReferralCount: data['monthlyClientReferralCount'] ?? 0,
+      lastIncomingChatId: data['lastIncomingChatId'],
+      lastIncomingChatTitle: data['lastIncomingChatTitle'],
     );
   }
 
@@ -224,6 +232,8 @@ class UserModel {
       'monthlyDirectNetworkCount': monthlyDirectNetworkCount,
       'monthlyBagReferralCount': monthlyBagReferralCount,
       'monthlyClientReferralCount': monthlyClientReferralCount,
+      'lastIncomingChatId': lastIncomingChatId,
+      'lastIncomingChatTitle': lastIncomingChatTitle,
     };
   }
 
@@ -278,6 +288,8 @@ class UserModel {
     int? monthlyDirectNetworkCount,
     int? monthlyBagReferralCount,
     int? monthlyClientReferralCount,
+    String? lastIncomingChatId,
+    String? lastIncomingChatTitle,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -330,6 +342,8 @@ class UserModel {
       monthlyDirectNetworkCount: monthlyDirectNetworkCount ?? this.monthlyDirectNetworkCount,
       monthlyBagReferralCount: monthlyBagReferralCount ?? this.monthlyBagReferralCount,
       monthlyClientReferralCount: monthlyClientReferralCount ?? this.monthlyClientReferralCount,
+      lastIncomingChatId: lastIncomingChatId ?? this.lastIncomingChatId,
+      lastIncomingChatTitle: lastIncomingChatTitle ?? this.lastIncomingChatTitle,
     );
   }
 }

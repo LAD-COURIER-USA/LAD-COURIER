@@ -751,7 +751,17 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         if (address != null) ...[
           const Text("DIRECCIÓN SUGERIDA:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
           const SizedBox(height: 4), 
-          Text(address.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14))
+          Text(address.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
+          const SizedBox(height: 12)
+        ],
+        if (result.orderNumber != null) ...[
+          const Text("NÚMERO DE ORDEN DETECTADO:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
+          const SizedBox(height: 4), 
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.green[200]!)),
+            child: Text(result.orderNumber!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.green)),
+          ),
         ],
       ]),
       actions: [
@@ -769,7 +779,16 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                   _triggerDynamicFiltering(); 
                 } 
               } 
-              if (storeName != null) _descriptionController.text = "RECOGER EN $storeName. ${_descriptionController.text}"; 
+              
+              String extraDesc = "";
+              if (result.orderNumber != null) {
+                extraDesc = "ORDEN #${result.orderNumber}. ";
+              }
+              if (storeName != null) {
+                _descriptionController.text = "${extraDesc}RECOGER EN $storeName. ${_descriptionController.text}"; 
+              } else if (extraDesc.isNotEmpty) {
+                _descriptionController.text = "$extraDesc ${_descriptionController.text}";
+              }
             }); 
             Navigator.pop(context); 
           }, 
@@ -810,6 +829,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           dropoffAddress: _dropoffController.text, 
           serviceType: _selectedService, 
           packageDetails: _descriptionController.text, 
+          clientName: _clientModel?.displayName ?? FirebaseAuth.instance.currentUser?.displayName ?? 'Cliente',
           productPhotoUrl: _productPhotoUrl, 
           countryCode: _detectedCountryCode
         )));
@@ -854,11 +874,22 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   Future<void> _createOrderDirect(GeoPoint p, GeoPoint d) async {
     final user = FirebaseAuth.instance.currentUser;
-    if (_currentMessenger == null) return;
+    if (_currentMessenger == null || user == null) return;
     
+    // 🛡️ SISTEMA LAD: Resolvemos el nombre del cliente de forma robusta
+    String finalClientName = 'Cliente';
+    if (_clientModel?.displayName != null && _clientModel!.displayName!.isNotEmpty) {
+      finalClientName = _clientModel!.displayName!;
+    } else if (user.displayName != null && user.displayName!.isNotEmpty) {
+      finalClientName = user.displayName!;
+    } else if (user.email != null) {
+      // Si no hay nombre, usamos la primera parte del email en lugar del email completo
+      finalClientName = user.email!.split('@').first.toUpperCase();
+    }
+
     await _orderService.createOrder(
-      clientId: user!.uid, 
-      clientName: user.displayName ?? 'Cliente', 
+      clientId: user.uid, 
+      clientName: finalClientName,
       clientEmail: user.email, 
       clientPhotoUrl: user.photoURL,
       assignedMessengerId: _currentMessenger!['id'], 

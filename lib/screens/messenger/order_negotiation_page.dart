@@ -6,7 +6,7 @@ import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/route_service.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
-import 'package:lad_courier/widgets/walkie_talkie_button.dart';
+import 'package:lad_courier/screens/chat_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class OrderNegotiationPage extends StatefulWidget {
@@ -286,10 +286,15 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
                   ],
                 ),
               ),
-              // 🎙️ WALKIE-TALKIE EN NEGOCIACIÓN (DRIVER SIDE)
-              WalkieTalkieButton(
-                channelId: order.id,
-                userId: FirebaseAuth.instance.currentUser?.uid ?? 'unknown',
+              // 💬 CHAT EN NEGOCIACIÓN (DRIVER SIDE)
+              IconButton(
+                icon: const Icon(Icons.chat_bubble_outline, color: Colors.greenAccent, size: 28),
+                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                  chatId: widget.order.id, 
+                  title: widget.order.clientName,
+                  targetUserId: widget.order.clientId,
+                  senderName: FirebaseAuth.instance.currentUser?.displayName ?? "Driver",
+                ))),
               ),
             ],
           ),

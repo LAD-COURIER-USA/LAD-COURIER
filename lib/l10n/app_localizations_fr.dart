@@ -1073,6 +1073,10 @@ class AppLocalizationsFr extends AppLocalizations {
       'ENTREZ LE CODE DE LIAISON DU DRIVER :';
 
   @override
+  String get order_status_timeout_client =>
+      'EXPIRÉ EN RAISON DE L\'INACTIVITÉ DU CLIENT';
+
+  @override
   String get order_details_arrived_pickup => 'ARRIVÉ / RAMASSÉ';
 
   @override

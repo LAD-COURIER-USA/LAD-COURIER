@@ -245,13 +245,14 @@ class GeodataService {
         
         for (var store in nearbyStores) {
           final storeName = (store['name'] as String? ?? '').toUpperCase();
-          final storeBrand = (store['brand'] as String? ?? '').toUpperCase();
           final storeNum = (store['address']['number'] as String? ?? '');
           final storeId = (store['id'] as String? ?? '').toUpperCase();
 
-          // Caso McDonald's/BK/Walmart (Sin nombre en texto, solo logo)
-          // Buscamos si el StoreID (#XXXXX) coincide con el número del local o su ID en Firestore
-          if (storeNum == streetNumber || storeId.contains(streetNumber) || storeName.contains(streetNumber)) {
+          // 🛡️ REGLA SOBERANA V12: Match por Número + Marca (Si el nombre de la tienda contiene la marca)
+          bool numberMatch = (storeNum == streetNumber || storeId.contains(streetNumber) || storeName.contains(streetNumber));
+          bool brandMatch = storeName.contains(brand.toUpperCase()) || brand.toUpperCase().contains(storeName);
+
+          if (numberMatch && brandMatch) {
             return store;
           }
         }
@@ -425,11 +426,16 @@ class GeodataService {
       final addr = data['address'];
       final String number = addr['number'] ?? '';
       final String street = addr['street'] ?? '';
-      final String city = (addr['city'] != null && addr['city'].toString().isNotEmpty) ? "${addr['city']}, " : "";
+      final String city = (addr['city'] != null && addr['city'].toString().isNotEmpty) ? addr['city'] : '';
       final String state = addr['state'] ?? '';
       final String zip = addr['zip'] ?? '';
       
-      data['address']['full'] = "$number $street, $city$state $zip".toUpperCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+      String full = "$number $street".trim();
+      if (city.isNotEmpty) full += ", $city";
+      if (state.isNotEmpty) full += ", $state";
+      if (zip.isNotEmpty) full += " $zip";
+      
+      data['address']['full'] = full.toUpperCase().replaceAll(RegExp(r'\s+'), ' ').trim();
     }
   }
 }

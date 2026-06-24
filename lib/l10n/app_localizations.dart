@@ -2036,6 +2036,12 @@ abstract class AppLocalizations {
   /// **'INGRESE EL CÓDIGO DE VINCULACIÓN DEL DRIVER:'**
   String get client_dash_invite_code_label;
 
+  /// No description provided for @order_status_timeout_client.
+  ///
+  /// In es, this message translates to:
+  /// **'EXPIRADA POR INACTIVIDAD DEL CLIENTE'**
+  String get order_status_timeout_client;
+
   /// No description provided for @order_details_arrived_pickup.
   ///
   /// In es, this message translates to:

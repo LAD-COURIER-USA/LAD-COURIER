@@ -203,6 +203,18 @@ class UserService {
     }
   }
 
+  /// 🎙️ ACTUALIZAR CANAL DE RADIO ACTIVO (Para respuesta del Driver)
+  Future<void> updateActiveRadioChannel(String userId, String? channelId, String? senderName) async {
+    try {
+      await _usersRef.doc(userId).set({
+        'lastIncomingRadioChannel': channelId,
+        'lastIncomingRadioName': senderName,
+      }, SetOptions(merge: true));
+    } catch (e) {
+      debugPrint("SISTEMA LAD ERROR Radio Channel: $e");
+    }
+  }
+
   Stream<int> getReferralsCountStream(String messengerId) {
     return _usersRef
         .where('invitingMessengerId', isEqualTo: messengerId)

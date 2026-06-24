@@ -1060,6 +1060,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get client_dash_invite_code_label => 'ENTER DRIVER LINKING CODE:';
 
   @override
+  String get order_status_timeout_client =>
+      'EXPIRED DUE TO CUSTOMER INACTIVITY';
+
+  @override
   String get order_details_arrived_pickup => 'ARRIVED / PICKED UP';
 
   @override

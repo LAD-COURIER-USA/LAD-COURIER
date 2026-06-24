@@ -1067,6 +1067,10 @@ class AppLocalizationsEs extends AppLocalizations {
       'INGRESE EL CÓDIGO DE VINCULACIÓN DEL DRIVER:';
 
   @override
+  String get order_status_timeout_client =>
+      'EXPIRADA POR INACTIVIDAD DEL CLIENTE';
+
+  @override
   String get order_details_arrived_pickup => 'LLEGUÉ / RECOGIDO';
 
   @override

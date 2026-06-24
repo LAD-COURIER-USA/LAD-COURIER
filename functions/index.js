@@ -377,20 +377,63 @@ exports.processImmediatePayment = onCall({ region: REGION, invoker: "public", se
 });
 
 /**
- * 🧹 16. EL BARRENDERO LAD
- * 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE LIMPIEZA PROBADA
+ * 🧹 16. EL GRAN BARRENDERO LAD (ÚNICO RELOJ SOBERANO)
+ * 🛡️ SISTEMA LAD: Centralizamos todas las limpiezas en un solo reloj para ahorrar recursos de Google.
+ * Frecuencia: Cada 5 minutos.
  */
 const { onSchedule } = require("firebase-functions/v2/scheduler");
-exports.autoCleanupOrders = onSchedule({ schedule: "every 5 minutes", region: REGION }, async (event) => {
+exports.autoLADSystemCleanup = onSchedule({ schedule: "every 5 minutes", region: REGION }, async (event) => {
     const now = admin.firestore.Timestamp.now().toMillis();
-    const expiryTime = 30 * 60 * 1000;
-    const snapshot = await admin.firestore().collection("orders")
-        .where("status", "in", ["rejected", "cancelled", "negotiating"])
+    const db = admin.firestore();
+    const batch = db.batch();
+    let totalOpCount = 0;
+
+    // --- SUB-MISIÓN A: LIMPIEZA DE ÓRDENES HUÉRFANAS Y EXPIRACIÓN ---
+    const orderExpiry = 30 * 60 * 1000; // 30 min para borrado definitivo
+    const clientTimeout = 10 * 60 * 1000; // 10 min para desatención del cliente
+
+    const ordersSnapshot = await db.collection("orders")
+        .where("status", "in", ["rejected", "cancelled", "negotiating", "price_proposed"])
         .get();
-    const batch = admin.firestore().batch();
-    let count = 0;
-    snapshot.forEach(doc => {
-        if (now - doc.data().createdAt.toMillis() > expiryTime) { batch.delete(doc.ref); count++; }
+
+    ordersSnapshot.forEach(doc => {
+        const data = doc.data();
+        const age = now - data.createdAt.toMillis();
+
+        // 1. Si el cliente no responde en 10 min a una oferta del Driver
+        if (data.status === "price_proposed" && data.lastPriceOfferedBy === "messenger" && age > clientTimeout) {
+            batch.update(doc.ref, {
+                status: "rejected",
+                statusMessage: "TIMEOUT_CLIENT" // Sello distintivo LAD
+            });
+            totalOpCount++;
+        }
+        // 2. Borrado definitivo tras 30 min (Rejected/Cancelled)
+        else if (age > orderExpiry) {
+            batch.delete(doc.ref);
+            totalOpCount++;
+        }
     });
-    if (count > 0) await batch.commit();
+
+    // --- SUB-MISIÓN B: LIMPIEZA DE CHATS INACTIVOS (36 HORAS) ---
+    // Nota: Como este reloj corre cada 5 min, mantenemos el búnker de chats impecable.
+    const chatExpiry = 36 * 60 * 60 * 1000;
+    const chatsSnapshot = await db.collection("chats").get();
+
+    for (const chatDoc of chatsSnapshot.docs) {
+        if (totalOpCount >= 450) break; // Evitar exceder límite de batch (500)
+
+        const chatData = chatDoc.data();
+        const lastTimestamp = chatData.lastTimestamp ? chatData.lastTimestamp.toMillis() : 0;
+
+        if (now - lastTimestamp > chatExpiry) {
+            batch.delete(chatDoc.ref);
+            totalOpCount++;
+        }
+    }
+
+    if (totalOpCount > 0) {
+        await batch.commit();
+        console.log(`[LAD MASTER CLEANUP] Se ejecutaron ${totalOpCount} eliminaciones (Órdenes y Chats).`);
+    }
 });

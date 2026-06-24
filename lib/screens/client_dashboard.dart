@@ -12,7 +12,7 @@ import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
-import 'package:lad_courier/widgets/walkie_talkie_button.dart';
+import 'package:lad_courier/screens/chat_screen.dart';
 
 class ClientDashboard extends StatefulWidget {
   const ClientDashboard({super.key});
@@ -330,9 +330,14 @@ class _ClientDashboardState extends State<ClientDashboard> {
                       CircleAvatar(radius: 18, backgroundImage: order.messengerPhotoUrl != null ? NetworkImage(order.messengerPhotoUrl!) : null),
                       const SizedBox(width: 10),
                       Expanded(child: Text(order.messengerName ?? 'Driver', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.indigo))),
-                      WalkieTalkieButton(
-                        channelId: order.id,
-                        userId: uid,
+                      IconButton(
+                        icon: const Icon(Icons.chat_bubble_outline, color: Colors.indigo),
+                        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                          chatId: order.id, 
+                          title: order.messengerName ?? 'Driver',
+                          targetUserId: order.assignedMessengerId,
+                          senderName: _clientProfile?.displayName ?? "Cliente",
+                        ))),
                       ),
                       const SizedBox(width: 10),
                       Text("\$${order.price?.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.indigo)),
@@ -372,17 +377,38 @@ class _ClientDashboardState extends State<ClientDashboard> {
         }
         return Column(
           children: orders.map((order) {
+            bool isWaitingForMessenger = order.lastPriceOfferedBy == 'client';
+            
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
-                color: Colors.orange[50],
+                color: isWaitingForMessenger ? Colors.grey[100] : Colors.orange[50],
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.orange[100]!),
+                border: Border.all(color: isWaitingForMessenger ? Colors.grey[300]! : Colors.orange[100]!),
               ),
               child: ListTile(
                 leading: CircleAvatar(backgroundImage: order.messengerPhotoUrl != null ? NetworkImage(order.messengerPhotoUrl!) : null),
-                title: Text("\$${order.negotiationHistory.last['price']}", style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.orange)),
-                subtitle: Text("OFERTA DE ${order.messengerName?.toUpperCase()}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.orange)),
+                title: Row(
+                  children: [
+                    Expanded(child: Text(
+                      isWaitingForMessenger ? "ORDEN ENVIADA" : "\$${order.negotiationHistory.last['price']}", 
+                      style: TextStyle(fontWeight: FontWeight.w900, color: isWaitingForMessenger ? Colors.black54 : Colors.orange)
+                    )),
+                    IconButton(
+                      icon: const Icon(Icons.chat_outlined, color: Colors.orange),
+                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                        chatId: order.id, 
+                        title: order.messengerName ?? 'Driver',
+                        targetUserId: order.assignedMessengerId,
+                        senderName: _clientProfile?.displayName ?? "Cliente",
+                      ))),
+                    ),
+                  ],
+                ),
+                subtitle: Text(
+                  isWaitingForMessenger ? "ESPERANDO RESPUESTA DE ${order.messengerName?.toUpperCase()}" : "OFERTA DE ${order.messengerName?.toUpperCase()}", 
+                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: isWaitingForMessenger ? Colors.black45 : Colors.orange)
+                ),
                 trailing: const Icon(Icons.chevron_right, color: Colors.orange),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ClientNegotiationPage(orderId: order.id))),
               ),
@@ -419,7 +445,16 @@ class _ClientDashboardState extends State<ClientDashboard> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("MISIÓN RECHAZADA", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.red)),
+                        Text(
+                          order.statusMessage == "TIMEOUT_CLIENT" 
+                            ? l10n.order_status_timeout_client 
+                            : "MISIÓN RECHAZADA", 
+                          style: TextStyle(
+                            fontWeight: FontWeight.w900, 
+                            fontSize: 13, 
+                            color: order.statusMessage == "TIMEOUT_CLIENT" ? Colors.orange[900] : Colors.red
+                          )
+                        ),
                         Text("Por: ${order.messengerName ?? 'Driver'}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54)),
                       ],
                     ),
@@ -538,10 +573,15 @@ class _ClientDashboardState extends State<ClientDashboard> {
                 ],
               ),
             ),
-            // 🎙️ CONSULTA RÁPIDA (SIN TELÉFONO)
-            WalkieTalkieButton(
-              channelId: "chat_${uid.substring(0, 5)}_${m.uid.substring(0, 5)}", 
-              userId: uid
+            // 💬 CHAT PRIVADO (SIN TELÉFONO)
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline, color: Colors.deepPurple, size: 28),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                chatId: "chat_${uid.substring(0, 5)}_${m.uid.substring(0, 5)}",
+                title: m.displayName ?? 'Driver',
+                targetUserId: m.uid,
+                senderName: _clientProfile?.displayName ?? "Cliente",
+              ))),
             ),
           ],
         ),

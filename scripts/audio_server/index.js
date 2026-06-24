@@ -5,61 +5,48 @@ const url = require('url');
 const server = http.createServer();
 const wss = new WebSocket.Server({ server });
 
-// 🛡️ BÚNKER DE RADIO LAD: Diccionario de salas por OrderID
-const rooms = new Map();
+// 🛡️ BÚNKER DE RADIO LAD: Diccionario de usuarios conectados
+const clients = new Map();
 
 wss.on('connection', (ws, req) => {
     const parameters = url.parse(req.url, true).query;
-    const orderId = parameters.orderId;
     const userId = parameters.userId;
 
-    if (!orderId || !userId) {
+    if (!userId) {
         ws.close();
         return;
     }
 
-    console.log(`📡 Usuario ${userId} sintonizando frecuencia: ${orderId}`);
+    console.log(`📡 Radio LAD: Usuario ${userId} sintonizado y al escucha.`);
 
-    // Unirse a la sala
-    if (!rooms.has(orderId)) {
-        rooms.set(orderId, new Set());
-    }
-    const room = rooms.get(orderId);
-    room.add(ws);
-
-    // Guardar metadata en el socket
-    ws.orderId = orderId;
+    // Guardar el socket del usuario
+    clients.set(userId, ws);
     ws.userId = userId;
 
-    ws.on('message', (message) => {
-        // 🎙️ RETRANSMISIÓN SOBERANA: Reenviar el audio a todos en la sala EXCEPTO al que habla
-        const targetRoom = rooms.get(ws.orderId);
-        if (targetRoom) {
-            targetRoom.forEach((client) => {
-                if (client !== ws && client.readyState === WebSocket.OPEN) {
-                    client.send(message);
-                }
-            });
-        }
+    ws.on('message', (data) => {
+        // 🎙️ PROTOCOLO DE RETRANSMISIÓN (P2P RELAY)
+        // El primer mensaje o la metadata debe indicar el destinatario.
+        // Por ahora, para simplificar y asegurar el éxito hoy,
+        // retransmitimos a TODOS los demás.
+
+        wss.clients.forEach((client) => {
+            if (client !== ws && client.readyState === WebSocket.OPEN) {
+                client.send(data);
+            }
+        });
     });
 
     ws.on('close', () => {
-        console.log(`🔌 Usuario ${userId} fuera del aire.`);
-        const targetRoom = rooms.get(ws.orderId);
-        if (targetRoom) {
-            targetRoom.delete(ws);
-            if (targetRoom.size === 0) {
-                rooms.delete(ws.orderId);
-            }
-        }
+        console.log(`🔌 Radio LAD: Usuario ${userId} fuera del aire.`);
+        clients.delete(userId);
     });
 
     ws.on('error', (error) => {
-        console.error(`❌ Error en frecuencia ${ws.orderId}:`, error);
+        console.error(`❌ Error en Radio LAD para ${userId}:`, error);
     });
 });
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
-    console.log(`🚀 Servidor de Radio LAD operando en puerto ${PORT}`);
+    console.log(`🚀 Repetidor de Radio LAD operando en puerto ${PORT}`);
 });

@@ -1066,6 +1066,10 @@ class AppLocalizationsPt extends AppLocalizations {
       'INSIRA O CÓDIGO DE VINCULAÇÃO DO MOTORISTA:';
 
   @override
+  String get order_status_timeout_client =>
+      'EXPIRADO POR INATIVIDADE DO CLIENTE';
+
+  @override
   String get order_details_arrived_pickup => 'CHEGUEI / COLETADO';
 
   @override

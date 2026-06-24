@@ -67,10 +67,7 @@ class OrderService {
         .where('assignedMessengerId', isEqualTo: messengerId)
         .where('status', whereIn: [OrderStatus.negotiating, OrderStatus.priceProposed])
         .snapshots()
-        .map((s) {
-      final allOrders = s.docs.map((d) => d.data()).toList();
-      return allOrders.where((order) => order.lastPriceOfferedBy == 'client').toList();
-    });
+        .map((s) => s.docs.map((d) => d.data()).toList());
   }
 
   Future<void> proposePrice({required String orderId, required double price}) async {
@@ -179,8 +176,7 @@ class OrderService {
   Stream<List<OrderModel>> getOrdersForClientResponseStream(String clientId) {
     return _ordersRef.where('clientId', isEqualTo: clientId)
         .where('status', whereIn: [OrderStatus.negotiating, OrderStatus.priceProposed])
-        .snapshots().map((s) => s.docs.map((d) => d.data())
-        .where((order) => order.lastPriceOfferedBy == 'messenger').toList());
+        .snapshots().map((s) => s.docs.map((d) => d.data()).toList());
   }
 
   Stream<List<OrderModel>> getActiveOrdersForClientStream(String clientId) {

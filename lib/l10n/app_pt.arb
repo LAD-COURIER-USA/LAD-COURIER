@@ -460,6 +460,7 @@
   "driver_service_courier": "Mensageria e Pacotes",
   "driver_service_logistics": "Logística Especializada",
   "driver_service_shopping": "Compras e Recados",
+  "driver_service_smartshopper": "SmartShopper",
   "shopping_nav_instruction_title_alt": "💡 PLANO DE RESERVA",
   "shopping_nav_instruction_body_alt": "Se o local te obrigar a usar o App oficial dele, faça seu pedido lá, tire um screenshot do recibo e suba-o aqui.",
   "client_dash_order_here": "ORDENE AQUI",
@@ -496,6 +497,7 @@
     }
   },
   "client_dash_invite_code_label": "INSIRA O CÓDIGO DE VINCULAÇÃO DO MOTORISTA:",
+  "order_status_timeout_client": "EXPIRADO POR INATIVIDADE DO CLIENTE",
   "order_details_arrived_pickup": "CHEGUEI / COLETADO",
   "order_details_en_route_pickup": "🚀 Iniciando rota de coleta.",
   "order_details_en_route_delivery": "🚚 Iniciando rota de entrega.",
