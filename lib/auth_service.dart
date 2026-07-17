@@ -1,13 +1,11 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:lad_courier/services/user_service.dart';
 
 /// Servicio encargado de la autenticación y gestión de perfiles en Firestore.
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final UserService _userService = UserService();
 
   User? get currentUser => _auth.currentUser;
   Stream<User?> get authStateChanges => _auth.authStateChanges();
@@ -67,7 +65,7 @@ class AuthService {
       'email': email,
       'displayName': name,
       'role': 'CLIENT',
-      'createdAt': FieldValue.serverTimestamp(), // 🚀 Cambio a ServerTimestamp para mayor precisión
+      'createdAt': FieldValue.serverTimestamp(),
       'invitingMessengerId': invitingId,
       'linkedMessengerIds': invitingId != null ? [invitingId] : [],
       'availableServices': [],
@@ -82,12 +80,7 @@ class AuthService {
       // ✨ ESTRATEGIA LAD DIGITAL SYSTEMS LLC - CAMPOS INICIALES
       'recruitedBy': invitingId != null ? 'driver_invite' : 'organic',
       'driverCategory': invitingId != null ? 'direct_network' : null,
-      'hasBeenCountedForBonus': false,
-      'monthlyDirectNetworkCount': 0,
-      'monthlyBagReferralCount': 0,
-      'monthlyClientReferralCount': 0,
-      'lastBonusMonthEarned': null,
-    }, SetOptions(merge: true)); // 🛡️ BLINDAJE LAD: Evita borrar el token si se guardó milisegundos antes
+    }, SetOptions(merge: true));
   }
 
   /// Finaliza la configuración inicial asignando el rol seleccionado.
@@ -119,16 +112,6 @@ class AuthService {
         'isMessengerActive': true,
         'setupComplete': true,
       }, SetOptions(merge: true));
-
-      // 2. Ejecutar lógica de Bonos si es referido por otro driver
-      final userDoc = await _firestore.collection('users').doc(user.uid).get();
-      final String? inviterId = userDoc.data()?['invitingMessengerId'];
-      final bool alreadyCounted = userDoc.data()?['hasBeenCountedForBonus'] ?? false;
-
-      if (inviterId != null && !alreadyCounted) {
-        // Llamamos al UserService para procesar el reclutamiento táctico
-        await _userService.processReferralBonus(inviterId, user.uid);
-      }
 
       return "SUCCESS";
     } catch (e) {

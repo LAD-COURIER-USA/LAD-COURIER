@@ -5,14 +5,23 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
-  final FirebaseMessaging _fcm = FirebaseMessaging.instance;
-  final FirebaseFirestore _db = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  FirebaseMessaging get _fcm => FirebaseMessaging.instance;
+  FirebaseFirestore get _db => FirebaseFirestore.instance;
+  FirebaseAuth get _auth => FirebaseAuth.instance;
 
-  // Plugin para disparar las alertas visuales y sonoras
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  // 🛡️ REFUERZO V18.7: Instanciación bajo demanda para evitar crash en Web
+  FlutterLocalNotificationsPlugin? _localNotifications;
 
   Future<void> initialize() async {
+    // 🛡️ REFUERZO WEB (iPad/iPhone): Safari no soporta notificaciones locales
+    // de la misma forma que Android. Saltamos para evitar PlatformException.
+    if (kIsWeb) {
+      debugPrint('SISTEMA LAD: Notificaciones en Web - Modo Pasivo.');
+      return;
+    }
+
+    _localNotifications = FlutterLocalNotificationsPlugin();
+
     // 1. Pedir permisos (Android 13+ y S24)
     NotificationSettings settings = await _fcm.requestPermission(
       alert: true,
@@ -22,25 +31,23 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      debugPrint('SISTEMA LAD: Permiso concedido.');
+      debugPrint('SISTEMA LAD: Permiso de notificaciones concedido.');
 
-      // 2. CONFIGURACIÓN DEL CANAL (Bunker de sonido)
+      // 2. CONFIGURACIÓN DEL CANAL
       const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        'high_importance_channel', // DEBE coincidir con el de la Cloud Function
+        'high_importance_channel',
         'Alertas de Pedidos Urgentes',
-        description: 'Este canal se usa para notificaciones que deben sonar sí o sí.',
+        description: 'Canal para misiones críticas.',
         importance: Importance.max,
         playSound: true,
         enableVibration: true,
-        showBadge: true,
       );
 
-      // Creamos el canal físicamente en el Android de Lucrecio
-      await _localNotifications
+      await _localNotifications!
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
 
-      // 3. INICIALIZACIÓN DE NOTIFICACIONES LOCALES (Para primer plano)
+      // 3. INICIALIZACIÓN
       const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
@@ -48,18 +55,15 @@ class NotificationService {
         android: initializationSettingsAndroid,
       );
 
-      await _localNotifications.initialize(initializationSettings);
+      await _localNotifications!.initialize(initializationSettings);
 
-      // 4. EL ESCUCHA DE PRIMER PLANO (El que hace sonar el panel)
-      // Este bloque captura el mensaje cuando Lucrecio tiene el panel abierto
+      // 4. ESCUCHA DE PRIMER PLANO
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         RemoteNotification? notification = message.notification;
         AndroidNotification? android = message.notification?.android;
 
-        if (notification != null && android != null) {
-          debugPrint('SISTEMA LAD: Disparando alerta sonora en primer plano.');
-
-          _localNotifications.show(
+        if (notification != null && android != null && _localNotifications != null) {
+          _localNotifications!.show(
             notification.hashCode,
             notification.title,
             notification.body,
@@ -71,14 +75,12 @@ class NotificationService {
                 importance: Importance.max,
                 priority: Priority.high,
                 icon: android.smallIcon ?? '@mipmap/ic_launcher',
-                playSound: true,
               ),
             ),
           );
         }
       });
 
-      // 5. Configuración global de Firebase
       await _fcm.setForegroundNotificationPresentationOptions(
         alert: true,
         badge: true,
@@ -98,20 +100,17 @@ class NotificationService {
 
   Future<void> saveTokenToDatabase() async {
     final user = _auth.currentUser;
-    if (user == null) return;
+    if (user == null || kIsWeb) return;
     try {
       final String? token = await _fcm.getToken();
       if (token != null) {
-        // 🛡️ SISTEMA LAD: Usamos set con merge:true para evitar errores de "documento no encontrado"
-        // durante el registro de nuevos clientes.
         await _db.collection('users').doc(user.uid).set({
           'fcmToken': token,
           'lastTokenUpdate': FieldValue.serverTimestamp(),
         }, SetOptions(merge: true));
-        debugPrint('SISTEMA LAD: Token FCM guardado con éxito.');
       }
     } catch (e) {
-      debugPrint('SISTEMA LAD ERROR: Error guardando token (No crítico): $e');
+      debugPrint('SISTEMA LAD: Error token: $e');
     }
   }
 }

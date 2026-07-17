@@ -1,5 +1,18 @@
 {
   "projects": {
     "default": "dev-access-472419-f1"
-  }
+  },
+  "targets": {
+    "dev-access-472419-f1": {
+      "hosting": {
+        "landing": [
+          "dev-access-472419-f1"
+        ],
+        "app": [
+          "app-lad-courier"
+        ]
+      }
+    }
+  },
+  "etags": {}
 }

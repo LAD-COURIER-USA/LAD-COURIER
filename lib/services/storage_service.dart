@@ -1,7 +1,6 @@
-import 'dart:io';
-import 'dart:typed_data'; // 🎯 INDISPENSABLE: Para manejar los bytes de la captura automática
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // 🛡️ PARA kIsWeb e inyecta Uint8List
 import 'package:image_picker/image_picker.dart';
 
 class StorageService {
@@ -77,14 +76,23 @@ class StorageService {
         onLocalPathPicked(image.path);
       }
 
-      final File imageFile = File(image.path);
       final String filePath = '$folder/$fileName.jpg';
-
       final Reference storageRef = _storage.ref().child(filePath);
 
-      final UploadTask uploadTask = storageRef.putFile(imageFile);
-      final TaskSnapshot snapshot = await uploadTask;
-      return await snapshot.ref.getDownloadURL();
+      // 🛡️ REFUERZO WEB: putFile no es seguro en Web sin Mobile 'File'
+      if (kIsWeb) {
+        final bytes = await image.readAsBytes();
+        final UploadTask uploadTask = storageRef.putData(bytes);
+        final TaskSnapshot snapshot = await uploadTask;
+        return await snapshot.ref.getDownloadURL();
+      } else {
+        // Ignoramos la advertencia de 'File' aquí ya que estamos en ambiente nativo
+        // pero usaremos putData para ser 100% universales
+        final bytes = await image.readAsBytes();
+        final UploadTask uploadTask = storageRef.putData(bytes);
+        final TaskSnapshot snapshot = await uploadTask;
+        return await snapshot.ref.getDownloadURL();
+      }
 
     } catch (e) {
       debugPrint("Error al subir imagen: $e");
@@ -102,14 +110,35 @@ class StorageService {
     return _uploadImage('order_photos', orderId, context, customTitle: customTitle, customSubtitle: customSubtitle, onLocalPathPicked: onLocalPathPicked);
   }
 
-  /// 🎯 SUBIDA DE ARCHIVO DIRECTO (Para el BINGO de Screenshots)
-  Future<String?> uploadFile(String folder, String fileName, File file) async {
+  /// 🎯 SUBIDA DE ARCHIVO DIRECTO (Adaptado para Web/Nativo)
+  Future<String?> uploadFile(String folder, String fileName, dynamic fileSource) async {
     try {
       final String filePath = '$folder/$fileName.jpg';
       final Reference storageRef = _storage.ref().child(filePath);
-      final UploadTask uploadTask = storageRef.putFile(file);
+      
+      if (kIsWeb) {
+        // En web, fileSource debería ser Uint8List o similar
+        if (fileSource is Uint8List) {
+          final UploadTask uploadTask = storageRef.putData(fileSource);
+          final TaskSnapshot snapshot = await uploadTask;
+          return await snapshot.ref.getDownloadURL();
+        }
+        return null;
+      }
+
+      // En nativo, fileSource puede ser un String (path) o un File
+      // IMPORTANTE: putFile requiere un objeto File. Usamos dynamic para evitar el import 'dart:io'
+      // pero solo lo ejecutamos en nativo.
+      // ignore: undefined_identifier
+      // final actualFile = fileSource is String ? File(fileSource) : fileSource;
+      // Para ser 100% seguros sin el import, usamos putData leyendo los bytes antes
+      
+      final XFile xFile = fileSource is String ? XFile(fileSource) : fileSource as XFile;
+      final bytes = await xFile.readAsBytes();
+      final UploadTask uploadTask = storageRef.putData(bytes);
       final TaskSnapshot snapshot = await uploadTask;
       return await snapshot.ref.getDownloadURL();
+
     } catch (e) {
       debugPrint("Error al subir archivo directo: $e");
       return null;

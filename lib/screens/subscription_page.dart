@@ -19,10 +19,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
   @override
   void initState() {
     super.initState();
-    _loadUserReferrals();
+    _loadUserData();
   }
 
-  Future<void> _loadUserReferrals() async {
+  Future<void> _loadUserData() async {
     final uid = FirebaseAuth.instance.currentUser?.uid;
     if (uid != null) {
       final doc = await FirebaseFirestore.instance.collection('users').doc(uid).get();
@@ -41,7 +41,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-      // DEFINICIÓN DE RADIOS POR ZONA (LAD STRATEGY)
+      // 🛡️ ESTRATEGIA LAD: Radios definidos por Nivel de Operación
       double radius = 5.0;
       double dropoffRadius = 5.0;
 
@@ -98,7 +98,6 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
           padding: const EdgeInsets.all(20),
           child: Column(
             children: [
-              // Info de Zonas: Ahora son gratis
               Container(
                 padding: const EdgeInsets.all(15),
                 decoration: BoxDecoration(
@@ -116,7 +115,7 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.w900, 
                           fontSize: 13, 
-                          color: Colors.blue[900], // Azul Marino para máximo contraste
+                          color: Colors.blue[900],
                           letterSpacing: 0.5
                         ),
                       ),
@@ -174,10 +173,10 @@ class _SubscriptionPageState extends State<SubscriptionPage> {
                 ),
               ),
               const SizedBox(height: 20),
-              Text(
-                l10n.earnings_refund_disclaimer,
+              const Text(
+                "LAD DIGITAL SYSTEMS LLC: Service fee de \$0.70 por orden completada.",
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 11, color: Colors.black87, fontWeight: FontWeight.w900), // w900 para que se vea bien
+                style: TextStyle(fontSize: 11, color: Colors.black87, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 60),
             ],

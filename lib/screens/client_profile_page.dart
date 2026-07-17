@@ -8,7 +8,8 @@ import 'package:lad_courier/services/storage_service.dart';
 import 'package:lad_courier/services/stripe_service.dart';
 import 'package:lad_courier/auth_service.dart';
 import 'package:lad_courier/screens/subscription_page.dart';
-import 'package:lad_courier/pages/client/completed_orders_page.dart';
+import 'package:lad_courier/pages/client/completed_orders_page.dart'; // 🛡️ RESTAURADO
+import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
 
 class ClientProfilePage extends StatefulWidget {
   const ClientProfilePage({super.key});
@@ -103,16 +104,35 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
           }
         }
 
-        final bool hasPayment = _userModel?.defaultPaymentMethodId != null;
+        final bool isLive = StripeModeService().isLive();
+        final bool hasPayment = isLive 
+            ? (_userModel?.defaultPaymentMethodIdLive != null)
+            : (_userModel?.defaultPaymentMethodId != null);
 
         return Scaffold(
           backgroundColor: Colors.white,
           appBar: AppBar(
-              title: Text(l10n.client_prof_title, style: const TextStyle(fontWeight: FontWeight.w900)),
+              title: Column(
+                children: [
+                  Text(l10n.client_prof_title, style: const TextStyle(fontWeight: FontWeight.w900)),
+                  Text(
+                    isLive ? "🚀 MODO REAL ACTIVO" : "🧪 MODO PRUEBA ACTIVO",
+                    style: TextStyle(fontSize: 10, color: isLive ? Colors.green : Colors.orange, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
               centerTitle: true,
               elevation: 0,
               backgroundColor: Colors.white,
-              foregroundColor: Colors.black
+              foregroundColor: Colors.black,
+              actions: [
+                // 🛠️ BOTÓN DE EMERGENCIA PARA REFRESCAR EL ADN
+                IconButton(
+                  icon: const Icon(Icons.refresh, color: Color(0xFF4B39A8)),
+                  onPressed: () => setState(() {}),
+                  tooltip: "Refrescar Modo Stripe",
+                )
+              ],
           ),
           body: SingleChildScrollView(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 50),

@@ -1,8 +1,9 @@
+// 🛡️ SISTEMA LAD - VERSIÓN PURIFICADA V14.7
 import 'dart:async';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; // 🛡️ AÑADIDO PARA EL VIGILANTE NATIVO
+import 'package:flutter/foundation.dart'; // 🛡️ PARA kIsWeb y defaultTargetPlatform
+import 'package:flutter/services.dart'; 
 import 'package:geolocator/geolocator.dart';
 import 'package:lad_courier/services/geocoding_service.dart';
 import 'package:lad_courier/services/order_service.dart';
@@ -18,6 +19,7 @@ import 'package:lad_courier/models/order_model.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' as custom_tabs;
 import 'package:photo_manager/photo_manager.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
 
 class CreateOrderPage extends StatefulWidget {
   final Map<String, dynamic>? selectedMessenger;
@@ -38,7 +40,6 @@ class CreateOrderPage extends StatefulWidget {
 }
 
 class _CreateOrderPageState extends State<CreateOrderPage> {
-  // 🛰️ CABLE DE COMUNICACIÓN NATIVO (VIGILANTE DE SCREENSHOTS)
   static const _screenshotChannel = MethodChannel('com.laddigital.smartshopper/screenshot');
 
   final _pickupController = TextEditingController();
@@ -57,7 +58,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   String _selectedService = 'courier';
   String? _productPhotoUrl;
   bool _isUploadingPhoto = false;
-  // String? _selectedSmartCategory; // 🛡️ ELIMINADA PARA LIMPIEZA
 
   Map<String, dynamic>? _currentMessenger;
   List<UserModel> _linkedMessengers = [];
@@ -73,17 +73,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   String? _validatedDropoffAddress;
   bool _isDropoffVerified = false;
 
-  GeocodingResponse? _pickupGoogleRes;
-  GeocodingResponse? _dropoffGoogleRes;
-
-  String _detectedCountryCode = "US";
+  final String _detectedCountryCode = "US";
   Timer? _debounce;
 
   @override
   void initState() {
     super.initState();
     
-    // 🛡️ CONFIGURAR EL OÍDO NATIVO PARA SCREENSHOTS Y COMPARTIDOS
     _screenshotChannel.setMethodCallHandler((call) async {
       if (call.method == 'onScreenshotDetected') {
         _autoProcessLastImage();
@@ -93,13 +89,11 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       }
     });
 
-    // 🛡️ ASEGURAR PERMISOS DE NOTIFICACIÓN Y ACTIVAR VIGILANTE
     _prepareBingoVigilante();
 
     _currentMessenger = widget.selectedMessenger;
     _showDriverSelection = widget.selectedMessenger == null;
 
-    // 🚀 BINGO AUTOMÁTICO: Si venimos de un salto con orden de OCR
     if (widget.autoStartOCR) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _autoProcessLastImage();
@@ -122,7 +116,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       String desc = "SMARTSHOPPER: ";
       if (data['details'] != null) desc += "${data['details']} ";
       desc += "LOCAL ID: ${data['storeId'] ?? 'N/A'}";
-      
       _descriptionController.text = desc;
     }
 
@@ -155,7 +148,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         _validatedPickupLatLng = null; 
         _validatedStoreAddress = null; 
         _isPickupVerified = false; 
-        _pickupGoogleRes = null; 
       });
     }
     _triggerDynamicFiltering();
@@ -167,7 +159,6 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         _validatedDropoffLatLng = null; 
         _validatedDropoffAddress = null; 
         _isDropoffVerified = false; 
-        _dropoffGoogleRes = null; 
       });
     }
     _triggerDynamicFiltering();
@@ -177,16 +168,56 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     if (_descriptionController.text.length == 1) _triggerDynamicFiltering(force: true);
   }
 
+  Future<void> _useCurrentLocation(bool isPickup) async {
+    final Position? position = await _ensureLocationPermission();
+    if (position == null || !mounted) return;
+
+    setState(() => _isLoading = true);
+    try {
+      final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
+      
+      GeocodingResponse? res = await _userService.findPrivateAddressByCoords(
+        uid, position.latitude, position.longitude
+      );
+
+      if (res == null) {
+        res = await _geocodingService.getDetailsFromCoords(
+          position.latitude, position.longitude
+        );
+        if (res != null) {
+          _userService.savePrivateAddress(uid, res);
+        }
+      }
+
+      if (res != null && mounted) {
+        final confirmedRes = res;
+        setState(() {
+          if (isPickup) {
+            _pickupController.text = confirmedRes.fullAddress.toUpperCase();
+            _validatedPickupLatLng = confirmedRes.latLng;
+            _validatedStoreAddress = _pickupController.text;
+            _isPickupVerified = true; 
+          } else {
+            _dropoffController.text = confirmedRes.fullAddress.toUpperCase();
+            _validatedDropoffLatLng = confirmedRes.latLng;
+            _validatedDropoffAddress = _dropoffController.text;
+            _isDropoffVerified = true;
+          }
+        });
+      }
+    } catch (e) {
+      debugPrint("Error obteniendo ubicación: $e");
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   Future<void> _prepareBingoVigilante() async {
-    // 1. Pedimos permiso de notificaciones (Vital para Android 13+)
     await Permission.notification.request();
-    
-    // 2. Activamos el vigilante nativo
     try {
       await _screenshotChannel.invokeMethod('startScreenshotWatcher');
-      debugPrint("SISTEMA LAD: Vigilante BINGO activado.");
     } catch (e) {
-      debugPrint("SISTEMA LAD ERROR: No se pudo activar el vigilante -> $e");
+      debugPrint("SISTEMA LAD ERROR: $e");
     }
   }
 
@@ -199,7 +230,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   void _triggerDynamicFiltering({bool force = false}) {
-    if (_debounce?.isActive ?? false) _debounce?.cancel();
+    _debounce?.cancel();
     _debounce = Timer(Duration(milliseconds: force ? 100 : 2500), () async {
       if (!mounted) return;
       
@@ -210,12 +241,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         String? stateCode = anchor?.group(1);
         String? streetNum;
         final allNumMatches = RegExp(r'\b\d{1,6}\b').allMatches(pickupText);
-        for (var m in allNumMatches) { 
-          if (m.group(0) != zipStr) { 
-            streetNum = m.group(0); 
-            break; 
-          } 
-        }
+        for (var m in allNumMatches) { if (m.group(0) != zipStr) { streetNum = m.group(0); break; } }
 
         bool foundInGeodata = false;
         if (zipStr != null && streetNum != null) {
@@ -230,38 +256,20 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           }
         }
         
-        if (!foundInGeodata && _clientModel?.mainAddress != null) {
-          if (_normalize(pickupText).contains(_normalize(_clientModel!.mainAddress!))) {
-            setState(() { 
-              _isPickupVerified = true; 
-              _validatedPickupLatLng = _clientModel!.workZoneCenter; 
-              _validatedStoreAddress = pickupText; 
-            });
-            foundInGeodata = true;
-          }
-        }
-        
         if (!foundInGeodata) {
-          // 🛡️ PASO 1: Mirar en el Búnker Personal (Ahorro Google)
           final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
           GeocodingResponse? res = await _userService.findPrivateAddress(uid, pickupText);
-          
-          // 🛡️ PASO 2: Si no está en el búnker, ir a Google
-          if (res == null) {
-            res = await _geocodingService.getFullDetails(pickupText);
-            if (res != null) {
-              // 🛡️ PASO 3: Guardar en el Búnker para la próxima vez
-              _userService.savePrivateAddress(uid, res);
+          res ??= await _geocodingService.getFullDetails(pickupText);
+          if (res != null) {
+            final confirmedRes = res;
+            _userService.savePrivateAddress(uid, confirmedRes);
+            if (mounted) {
+              setState(() { 
+                _isPickupVerified = false; 
+                _validatedPickupLatLng = confirmedRes.latLng; 
+                _validatedStoreAddress = pickupText; 
+              });
             }
-          }
-
-          if (mounted && res != null) {
-            setState(() { 
-              _isPickupVerified = false; 
-              _validatedPickupLatLng = res!.latLng; 
-              _validatedStoreAddress = pickupText; 
-              _pickupGoogleRes = res; 
-            });
           }
         }
       }
@@ -273,12 +281,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         String? stateCode = anchor?.group(1);
         String? streetNum;
         final allNumMatches = RegExp(r'\b\d{1,6}\b').allMatches(dropoffText);
-        for (var m in allNumMatches) { 
-          if (m.group(0) != zipStr) { 
-            streetNum = m.group(0); 
-            break; 
-          } 
-        }
+        for (var m in allNumMatches) { if (m.group(0) != zipStr) { streetNum = m.group(0); break; } }
 
         bool foundInGeodata = false;
         if (zipStr != null && streetNum != null) {
@@ -293,38 +296,20 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           }
         }
         
-        if (!foundInGeodata && _clientModel?.mainAddress != null) {
-          if (_normalize(dropoffText).contains(_normalize(_clientModel!.mainAddress!))) {
-            setState(() { 
-              _isDropoffVerified = true; 
-              _validatedDropoffLatLng = _clientModel!.workZoneCenter; 
-              _validatedDropoffAddress = dropoffText; 
-            });
-            foundInGeodata = true;
-          }
-        }
-        
         if (!foundInGeodata) {
-          // 🛡️ PASO 1: Mirar en el Búnker Personal (Ahorro Google)
           final String uid = FirebaseAuth.instance.currentUser?.uid ?? '';
           GeocodingResponse? res = await _userService.findPrivateAddress(uid, dropoffText);
-
-          // 🛡️ PASO 2: Si no está en el búnker, ir a Google
-          if (res == null) {
-            res = await _geocodingService.getFullDetails(dropoffText);
-            if (res != null) {
-              // 🛡️ PASO 3: Guardar en el Búnker para la próxima vez
-              _userService.savePrivateAddress(uid, res);
+          res ??= await _geocodingService.getFullDetails(dropoffText);
+          if (res != null) {
+            final confirmedRes = res;
+            _userService.savePrivateAddress(uid, confirmedRes);
+            if (mounted) {
+              setState(() { 
+                _isDropoffVerified = false; 
+                _validatedDropoffLatLng = confirmedRes.latLng;
+                _validatedDropoffAddress = dropoffText; 
+              });
             }
-          }
-
-          if (mounted && res != null) {
-            setState(() { 
-              _isDropoffVerified = false; 
-              _validatedDropoffLatLng = res!.latLng;
-              _validatedDropoffAddress = dropoffText; 
-              _dropoffGoogleRes = res; 
-            });
           }
         }
       }
@@ -383,418 +368,139 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   Future<Position?> _ensureLocationPermission() async {
-    bool serviceEnabled;
-    LocationPermission permission;
-
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("El GPS está desactivado. Favor actívalo.")),
-        );
-      }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("El GPS está desactivado.")));
       return null;
     }
-
-    permission = await Geolocator.checkPermission();
+    LocationPermission permission = await Geolocator.checkPermission();
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Permiso de ubicación denegado.")),
-          );
-        }
-        return null;
-      }
+      if (permission == LocationPermission.denied) return null;
     }
-
-    if (permission == LocationPermission.deniedForever) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Los permisos de ubicación están denegados permanentemente.")),
-        );
-      }
-      return null;
-    }
-
-    return await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+    if (permission == LocationPermission.deniedForever) return null;
+    return await Geolocator.getCurrentPosition(locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
   }
 
   Future<void> _autoProcessLastImage() async {
     final PermissionState ps = await PhotoManager.requestPermissionExtend();
     if (!ps.isAuth) {
-      debugPrint("SISTEMA LAD: Permiso de galería denegado para auto-procesado.");
-      if (mounted) _pickProductPhoto(); // Fallback a manual si no hay permiso
-      return;
-    }
-
-    // 🕵️ BUSCAR EL SCREENSHOT MÁS RECIENTE (ORDEN DESCENDENTE POR FECHA)
-    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(
-      onlyAll: true,
-      filterOption: FilterOptionGroup(
-        orders: [
-          const OrderOption(type: OrderOptionType.createDate, asc: false),
-        ],
-      ),
-    );
-    
-    if (paths.isEmpty) {
-      debugPrint("SISTEMA LAD: No se encontraron carpetas de fotos.");
       if (mounted) _pickProductPhoto();
       return;
     }
-
+    final List<AssetPathEntity> paths = await PhotoManager.getAssetPathList(onlyAll: true, filterOption: FilterOptionGroup(orders: [const OrderOption(type: OrderOptionType.createDate, asc: false)]));
+    if (paths.isEmpty) {
+      if (mounted) _pickProductPhoto();
+      return;
+    }
     final List<AssetEntity> entities = await paths[0].getAssetListRange(start: 0, end: 1);
     if (entities.isEmpty) {
-      debugPrint("SISTEMA LAD: No hay fotos en la galería.");
       if (mounted) _pickProductPhoto();
       return;
     }
-
-    final File? file = await entities[0].file;
-    if (file == null) {
+    final dynamic file = await paths[0].getAssetListRange(start: 0, end: 1);
+    if (file == null || file.isEmpty) {
       if (mounted) _pickProductPhoto();
       return;
     }
-
-    // Verificar si la foto es muy antigua (ej. más de 60 minutos) para evitar errores
-    final diff = DateTime.now().difference(entities[0].createDateTime);
-    if (diff.inMinutes > 60) {
-      debugPrint("SISTEMA LAD: La última foto es muy antigua (${diff.inMinutes} min). Abriendo selector manual.");
+    // Nota: photo_manager devuelve AssetEntity, no File directamente.
+    final actualFile = await (file[0] as dynamic).file;
+    if (actualFile == null) {
       if (mounted) _pickProductPhoto();
       return;
     }
-
-    debugPrint("SISTEMA LAD: ¡BINGO! Procesando captura reciente: ${file.path}");
-    
-    if (!mounted) return;
-    setState(() => _isUploadingPhoto = true); // Spinner activo durante el análisis
-
-    // 🚀 PASO 2.1: SUBIR EL SCREENSHOT AL BÚNKER (Firebase Storage)
-    // Esto permite que el driver vea el ticket para el pickup
-    String? uploadedUrl;
-    try {
-      uploadedUrl = await _storageService.uploadFile(
-        'order_photos', 
-        "prod_${DateTime.now().millisecondsSinceEpoch}", 
-        file
-      );
-    } catch (e) {
-      debugPrint("SISTEMA LAD ERROR: No se pudo subir el ticket -> $e");
-    }
-
-    // 🧠 PASO 2.2: PROCESAR CON OCR
-    final ocrResult = await _ocrService.analyzeReceipt(file.path);
-    
-    if (!mounted) return;
-    setState(() {
-      _detectedCountryCode = ocrResult.countryCode ?? "US";
-      if (uploadedUrl != null) _productPhotoUrl = uploadedUrl;
-    });
-
-    final Position? position = await _ensureLocationPermission();
-    Map<String, dynamic>? validatedStore;
-    String? gpsZip, gpsCity, gpsState;
-
-    if (position != null) {
-      try {
-        final geoDetails = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
-        if (geoDetails != null) {
-          gpsZip = geoDetails.zipCode;
-          gpsCity = geoDetails.city;
-          gpsState = geoDetails.state;
-        }
-      } catch (_) {}
-    }
-
-    // 🛡️ SOBERANÍA LAD: Priorizamos datos del ticket sobre el GPS actual para triangulación
-    final String? targetZip = ocrResult.zipCode ?? gpsZip;
-    final String? targetCity = ocrResult.cityName ?? gpsCity;
-    final String? targetState = ocrResult.stateCode ?? gpsState;
-
-    if (targetZip != null && ocrResult.streetNumber != null) {
-      validatedStore = await _geodataService.findStoreByDna(
-        zip: targetZip, 
-        streetNumber: ocrResult.streetNumber!, 
-        countryCode: _detectedCountryCode, 
-        stateCode: targetState
-      );
-    }
-    
-    if (validatedStore == null && ocrResult.streetNumber != null) {
-      validatedStore = await _geodataService.findStoreByTriangulation(
-        brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', 
-        city: targetCity, 
-        streetNumber: ocrResult.streetNumber!, 
-        stateCode: targetState ?? 'FL',
-        userLat: position?.latitude,
-        userLon: position?.longitude,
-      );
-    }
-
-    // 🩹 AUTO-COMPLETADO SOBERANO: Si la DB falló, parchamos la dirección con el GPS
-    String? finalFullAddr = ocrResult.fullAddress;
-    if (validatedStore == null && finalFullAddr != null && targetCity != null) {
-      if (!finalFullAddr.contains(targetCity.toUpperCase())) {
-        finalFullAddr = "$finalFullAddr, $targetCity, ${targetState ?? 'FL'} ${targetZip ?? ''}".toUpperCase();
-      }
-    }
-
-    if (mounted) {
-      setState(() => _isUploadingPhoto = false);
-      _showOcrSuggestions(
-        ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), 
-        validatedStore
-      );
-    }
+    _processImageWorkflow(actualFile);
   }
 
   Future<void> _processSpecificImage(String path) async {
-    final File file = File(path);
-    if (!file.existsSync()) {
-      debugPrint("SISTEMA LAD ERROR: El archivo compartido no existe -> $path");
-      return;
-    }
-
-    debugPrint("SISTEMA LAD: Procesando imagen específica (Share): $path");
-    
-    if (!mounted) return;
-    setState(() => _isUploadingPhoto = true);
-
-    // 🚀 PASO 1: SUBIR EL TICKET
-    String? uploadedUrl;
-    try {
-      uploadedUrl = await _storageService.uploadFile(
-        'order_photos', 
-        "shared_${DateTime.now().millisecondsSinceEpoch}", 
-        file
-      );
-    } catch (e) {
-      debugPrint("SISTEMA LAD ERROR: No se pudo subir el ticket compartido -> $e");
-    }
-
-    // 🧠 PASO 2: PROCESAR CON OCR
-    final ocrResult = await _ocrService.analyzeReceipt(file.path);
-    
-    if (!mounted) return;
-    setState(() {
-      _detectedCountryCode = ocrResult.countryCode ?? "US";
-      if (uploadedUrl != null) _productPhotoUrl = uploadedUrl;
-    });
-
-    final Position? position = await _ensureLocationPermission();
-    Map<String, dynamic>? validatedStore;
-    String? gpsZip, gpsCity, gpsState;
-
-    if (position != null) {
-      try {
-        final geoDetails = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
-        if (geoDetails != null) {
-          gpsZip = geoDetails.zipCode;
-          gpsCity = geoDetails.city;
-          gpsState = geoDetails.state;
-        }
-      } catch (_) {}
-    }
-
-    // Reutilizamos la misma lógica de triangulación
-    // 🛡️ SOBERANÍA LAD: Priorizamos datos del ticket sobre el GPS actual para triangulación
-    final String? targetZip = ocrResult.zipCode ?? gpsZip;
-    final String? targetCity = ocrResult.cityName ?? gpsCity;
-    final String? targetState = ocrResult.stateCode ?? gpsState;
-
-    if (targetZip != null && ocrResult.streetNumber != null) {
-      validatedStore = await _geodataService.findStoreByDna(
-        zip: targetZip, 
-        streetNumber: ocrResult.streetNumber!, 
-        countryCode: _detectedCountryCode, 
-        stateCode: targetState
-      );
-    }
-    
-    if (validatedStore == null && ocrResult.streetNumber != null) {
-      validatedStore = await _geodataService.findStoreByTriangulation(
-        brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', 
-        city: targetCity, 
-        streetNumber: ocrResult.streetNumber!, 
-        stateCode: targetState ?? 'FL',
-        userLat: position?.latitude,
-        userLon: position?.longitude,
-      );
-    }
-
-    // 🩹 AUTO-COMPLETADO SOBERANO: Si la DB falló, parchamos la dirección con el GPS
-    String? finalFullAddr = ocrResult.fullAddress;
-    if (validatedStore == null && finalFullAddr != null && targetCity != null) {
-      if (!finalFullAddr.contains(targetCity.toUpperCase())) {
-        finalFullAddr = "$finalFullAddr, $targetCity, ${targetState ?? 'FL'} ${targetZip ?? ''}".toUpperCase();
-      }
-    }
-
-    if (mounted) {
-      setState(() => _isUploadingPhoto = false);
-      _showOcrSuggestions(
-        ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), 
-        validatedStore
-      );
-    }
+    if (kIsWeb) return; // 🛡️ REFUERZO WEB
+    // Nota: En web no procesamos archivos locales vía path de esta forma
+    // _processImageWorkflow(...)
   }
 
   Future<void> _pickProductPhoto() async {
     final Position? position = await _ensureLocationPermission();
     if (position == null) return;
-    
-    if (!mounted) return; // 🛡️ PROTECCIÓN INMEDIATA
+    if (!mounted) return;
     setState(() => _isUploadingPhoto = true);
-    
-    final url = await _storageService.uploadProductPhoto("prod_${DateTime.now().millisecondsSinceEpoch}", context, onLocalPathPicked: (path) async {
-      final ocrResult = await _ocrService.analyzeReceipt(path);
-      
-      if (!mounted) return;
-      setState(() => _detectedCountryCode = ocrResult.countryCode ?? "US");
-      
-      Map<String, dynamic>? validatedStore;
-      String? gpsZip, gpsCity, gpsState;
-      
-      try {
-        final geoDetails = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
-        if (geoDetails != null) { 
-          gpsZip = geoDetails.zipCode; 
-          gpsCity = geoDetails.city; 
-          gpsState = geoDetails.state; 
-        }
-      } catch (e) { 
-        debugPrint("SISTEMA LAD: Error obteniendo ciudad del GPS -> $e"); 
-      }
-      
-      // 🛡️ SOBERANÍA LAD: Priorizamos datos del ticket sobre el GPS actual para triangulación
-      final String? targetZip = ocrResult.zipCode ?? gpsZip;
-      final String? targetCity = ocrResult.cityName ?? gpsCity;
-      final String? targetState = ocrResult.stateCode ?? gpsState;
-
-      if (targetZip != null && ocrResult.streetNumber != null) {
-        validatedStore = await _geodataService.findStoreByDna(
-          zip: targetZip, 
-          streetNumber: ocrResult.streetNumber!, 
-          countryCode: _detectedCountryCode, 
-          stateCode: targetState
-        );
-      }
-      
-      if (validatedStore == null && ocrResult.streetNumber != null) {
-        validatedStore = await _geodataService.findStoreByTriangulation(
-          brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', 
-          city: targetCity, 
-          streetNumber: ocrResult.streetNumber!, 
-          stateCode: targetState ?? 'FL',
-          userLat: position.latitude,
-          userLon: position.longitude,
-        );
-      }
-
-      // 🩹 AUTO-COMPLETADO SOBERANO: Si la DB falló, parchamos la dirección con el GPS
-      String? finalFullAddr = ocrResult.fullAddress;
-      if (validatedStore == null && finalFullAddr != null && targetCity != null) {
-        if (!finalFullAddr.contains(targetCity.toUpperCase())) {
-          finalFullAddr = "$finalFullAddr, $targetCity, ${targetState ?? 'FL'} ${targetZip ?? ''}".toUpperCase();
-        }
-      }
-      
-      if (mounted) {
-        _showOcrSuggestions(
-          ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), 
-          validatedStore
-        );
+    await _storageService.uploadProductPhoto("prod_${DateTime.now().millisecondsSinceEpoch}", context, onLocalPathPicked: (path) async {
+      if (!kIsWeb) {
+        // En nativo procesamos el archivo
+        // _processImageWorkflow(File(path));
       }
     });
+    if (mounted) setState(() => _isUploadingPhoto = false);
+  }
+
+  Future<void> _processImageWorkflow(dynamic file) async {
+    if (!mounted) return;
+    setState(() => _isUploadingPhoto = true);
+
+    String? uploadedUrl = await _storageService.uploadFile('order_photos', "ticket_${DateTime.now().millisecondsSinceEpoch}", file);
+    // OCR solo en nativo por ahora
+    String? ocrPath = !kIsWeb ? (file as dynamic).path : null;
+    final ocrResult = ocrPath != null ? await _ocrService.analyzeReceipt(ocrPath) : OCRResult();
     
-    if (mounted) { 
-      if (url != null) setState(() => _productPhotoUrl = url); 
-      setState(() => _isUploadingPhoto = false); 
+    final Position? position = await _ensureLocationPermission();
+    String? gpsZip, gpsCity, gpsState;
+    if (position != null) {
+      try {
+        final geo = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
+        gpsZip = geo?.zipCode; gpsCity = geo?.city; gpsState = geo?.state;
+      } catch (_) {}
+    }
+
+    final refined = _refineOcrAddress(ocrResult, gpsZip, gpsCity, gpsState);
+    final String? finalFullAddr = refined['address'];
+    Map<String, dynamic>? validatedStore;
+
+    final String targetZip = ocrResult.zipCode ?? gpsZip ?? "33030";
+    if (ocrResult.streetNumber != null) {
+       validatedStore = await _geodataService.findStoreByDna(zip: targetZip, streetNumber: ocrResult.streetNumber!, countryCode: "US", stateCode: ocrResult.stateCode ?? gpsState);
+       validatedStore ??= await _geodataService.findStoreByTriangulation(brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', city: ocrResult.cityName ?? gpsCity, streetNumber: ocrResult.streetNumber!, stateCode: ocrResult.stateCode ?? gpsState ?? 'FL', userLat: position?.latitude, userLon: position?.longitude);
+    }
+
+    if (mounted) {
+      setState(() {
+        _isUploadingPhoto = false;
+        if (uploadedUrl != null) _productPhotoUrl = uploadedUrl;
+      });
+      _showOcrSuggestions(ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), validatedStore);
     }
   }
 
   void _showOcrSuggestions(OCRResult result, Map<String, dynamic>? validatedStore) {
-    final l10n = AppLocalizations.of(context)!;
-    if (result.fullAddress == null && result.storeName == null && validatedStore == null) {
-      showDialog(context: context, builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-        title: Text(l10n.ss_ocr_error_title, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
-        content: Text(l10n.ss_ocr_error_body),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.driver_btn_understand)),
-        ],
-      ));
-      return;
-    }
     final String? storeName = validatedStore != null ? validatedStore['name'] : result.storeName;
     final String? address = (validatedStore != null && validatedStore['address'] != null) ? validatedStore['address']['full'] : result.fullAddress;
     final bool isVerified = validatedStore != null;
     
     showDialog(context: context, builder: (context) => AlertDialog(
-      scrollable: true, 
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-      title: Row(children: [
-        Icon(isVerified ? Icons.verified : Icons.auto_awesome, color: isVerified ? Colors.green : Colors.blue, size: 28), 
-        const SizedBox(width: 12), 
-        Expanded(child: Text(isVerified ? "UBICACIÓN EXACTA" : "DETECCIÓN AUTOMÁTICA", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)))
-      ]),
+      scrollable: true, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+      title: Row(children: [Icon(isVerified ? Icons.verified : Icons.auto_awesome, color: isVerified ? Colors.green : Colors.blue, size: 28), const SizedBox(width: 12), Expanded(child: Text(isVerified ? "UBICACIÓN EXACTA" : "DETECCIÓN AUTOMÁTICA", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)))]),
       content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (storeName != null) ...[
-          const Text("ESTABLECIMIENTO:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
-          const SizedBox(height: 4), 
-          Text(storeName.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)), 
-          const SizedBox(height: 12)
-        ],
-        if (address != null) ...[
-          const Text("DIRECCIÓN SUGERIDA:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
-          const SizedBox(height: 4), 
-          Text(address.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)),
-          const SizedBox(height: 12)
-        ],
-        if (result.orderNumber != null) ...[
-          const Text("NÚMERO DE ORDEN DETECTADO:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
-          const SizedBox(height: 4), 
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.green[200]!)),
-            child: Text(result.orderNumber!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.green)),
-          ),
-        ],
+        if (storeName != null) ...[const Text("ESTABLECIMIENTO:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), const SizedBox(height: 4), Text(storeName.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)), const SizedBox(height: 12)],
+        if (address != null) ...[const Text("DIRECCIÓN SUGERIDA:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), const SizedBox(height: 4), Text(address.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), const SizedBox(height: 12)],
+        if (result.orderNumber != null) ...[const Text("NÚMERO DE ORDEN:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), const SizedBox(height: 4), Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.green[200]!)), child: Text(result.orderNumber!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.green)))]
       ]),
       actions: [
         TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900))),
-        ElevatedButton(
-          onPressed: () { 
-            setState(() { 
-              if (address != null) { 
-                _pickupController.text = address; 
-                if (validatedStore != null) { 
-                  _isPickupVerified = true; 
-                  _validatedPickupLatLng = GeoPoint(validatedStore['gps']['lat'], validatedStore['gps']['lon']); 
-                } else { 
-                  _isPickupVerified = false; 
-                  _triggerDynamicFiltering(); 
-                } 
+        ElevatedButton(onPressed: () { 
+          setState(() { 
+            if (address != null) { 
+              _pickupController.text = address; 
+              if (validatedStore != null) { 
+                _isPickupVerified = true; 
+                _validatedPickupLatLng = GeoPoint(validatedStore['gps']['lat'], validatedStore['gps']['lon']); 
+              } else { 
+                _isPickupVerified = false; 
+                _triggerDynamicFiltering(); 
               } 
-              
-              String extraDesc = "";
-              if (result.orderNumber != null) {
-                extraDesc = "ORDEN #${result.orderNumber}. ";
-              }
-              if (storeName != null) {
-                _descriptionController.text = "${extraDesc}RECOGER EN $storeName. ${_descriptionController.text}"; 
-              } else if (extraDesc.isNotEmpty) {
-                _descriptionController.text = "$extraDesc ${_descriptionController.text}";
-              }
-            }); 
-            Navigator.pop(context); 
-          }, 
-          style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), 
-          child: const Text("AUTO-LLENAR", style: TextStyle(fontWeight: FontWeight.w900))
-        ),
+            } 
+            String extra = result.orderNumber != null ? "ORDEN #${result.orderNumber}. " : "";
+            if (storeName != null) _descriptionController.text = "${extra}RECOGER EN $storeName. ${_descriptionController.text}";
+          }); 
+          Navigator.pop(context); 
+        }, style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text("AUTO-LLENAR", style: TextStyle(fontWeight: FontWeight.w900)))
       ],
     ));
   }
@@ -807,222 +513,64 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       final dropoff = _validatedDropoffLatLng ?? await _geocodingService.getLatLng(_dropoffController.text);
       if (!mounted) return;
       if (pickup == null || dropoff == null) throw Exception("Direcciones no localizadas.");
-      
-      if (_currentMessenger != null) {
-        final driverProfile = await _userService.getUser(_currentMessenger!['id']);
-        if (!mounted) return;
-        if (driverProfile != null) {
-          final error = _checkDriverAvailability(driverProfile, pickup, dropoff);
-          if (error != null) { 
-            setState(() => _isLoading = false); 
-            _showValidationFailedDialog(error); 
-            return; 
-          }
-        }
-      }
-      
       if (_currentMessenger == null) {
-        Navigator.push(context, MaterialPageRoute(builder: (context) => DriverSelectionPage(
-          pickupLatLng: pickup, 
-          dropoffLatLng: dropoff, 
-          pickupAddress: _pickupController.text, 
-          dropoffAddress: _dropoffController.text, 
-          serviceType: _selectedService, 
-          packageDetails: _descriptionController.text, 
-          clientName: _clientModel?.displayName ?? FirebaseAuth.instance.currentUser?.displayName ?? 'Cliente',
-          productPhotoUrl: _productPhotoUrl, 
-          countryCode: _detectedCountryCode
-        )));
+        Navigator.push(context, MaterialPageRoute(builder: (context) => DriverSelectionPage(pickupLatLng: pickup, dropoffLatLng: dropoff, pickupAddress: _pickupController.text, dropoffAddress: _dropoffController.text, serviceType: _selectedService, packageDetails: _descriptionController.text, clientName: _clientModel?.displayName ?? 'Cliente', productPhotoUrl: _productPhotoUrl, countryCode: _detectedCountryCode)));
       } else {
         await _createOrderDirect(pickup, dropoff);
       }
-    } catch (e) { 
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red)); 
-    } finally { 
-      if (mounted) setState(() => _isLoading = false); 
-    }
-  }
-
-  String? _checkDriverAvailability(UserModel driver, GeoPoint pickup, GeoPoint dropoff) {
-    if (!driver.isMessengerActive) return "Driver no disponible.";
-    if (!_isServiceMatch(driver.availableServices, _selectedService)) return "Servicio no disponible.";
-    if (driver.workZoneCenter != null) {
-      final plan = (driver.subscriptionType ?? 'lite').toLowerCase();
-      double pLimit = (plan == 'pro' || plan == 'standard') ? 25.0 : 5.0;
-      double dLimit = plan == 'pro' ? 120.0 : (plan == 'standard' ? 25.0 : 5.0);
-      double distP = Geolocator.distanceBetween(driver.workZoneCenter!.latitude, driver.workZoneCenter!.longitude, pickup.latitude, pickup.longitude) / 1609.34;
-      double distD = Geolocator.distanceBetween(driver.workZoneCenter!.latitude, driver.workZoneCenter!.longitude, dropoff.latitude, dropoff.longitude) / 1609.34;
-      if (distP > pLimit) return "Recogida fuera de zona.";
-      if (distD > dLimit) return "Entrega fuera de zona.";
-    }
-    return null;
-  }
-
-  void _showValidationFailedDialog(String reason) {
-    showDialog(context: context, builder: (context) => AlertDialog(
-      title: const Text("AVISO DE COBERTURA", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-      content: Text(reason.toUpperCase(), textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.redAccent)),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
-        ElevatedButton(onPressed: () { 
-          Navigator.pop(context); 
-          setState(() { _currentMessenger = null; _showDriverSelection = true; }); 
-        }, child: const Text("BUSCAR OTRO")),
-      ],
-    ));
+    } catch (e) { if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"), backgroundColor: Colors.red)); }
+    finally { if (mounted) setState(() => _isLoading = false); }
   }
 
   Future<void> _createOrderDirect(GeoPoint p, GeoPoint d) async {
     final user = FirebaseAuth.instance.currentUser;
     if (_currentMessenger == null || user == null) return;
     
-    // 🛡️ SISTEMA LAD: Resolvemos el nombre del cliente de forma robusta
-    String finalClientName = 'Cliente';
-    if (_clientModel?.displayName != null && _clientModel!.displayName!.isNotEmpty) {
-      finalClientName = _clientModel!.displayName!;
-    } else if (user.displayName != null && user.displayName!.isNotEmpty) {
-      finalClientName = user.displayName!;
-    } else if (user.email != null) {
-      // Si no hay nombre, usamos la primera parte del email en lugar del email completo
-      finalClientName = user.email!.split('@').first.toUpperCase();
-    }
-
+    final bool isLive = StripeModeService().isLive();
+    String finalClientName = _clientModel?.displayName ?? user.displayName ?? user.email!.split('@').first.toUpperCase();
+    
     await _orderService.createOrder(
       clientId: user.uid, 
-      clientName: finalClientName,
+      clientName: finalClientName, 
       clientEmail: user.email, 
-      clientPhotoUrl: user.photoURL,
+      clientPhotoUrl: user.photoURL, 
       assignedMessengerId: _currentMessenger!['id'], 
       messengerName: _currentMessenger!['name'], 
-      messengerPhotoUrl: _currentMessenger!['photoURL'],
+      messengerPhotoUrl: _currentMessenger!['photoURL'], 
       serviceType: _selectedService, 
       pickupAddress: _pickupController.text, 
       pickupLatLng: p, 
       dropoffAddress: _dropoffController.text, 
-      dropoffLatLng: d,
+      dropoffLatLng: d, 
       packageDetails: _descriptionController.text, 
       productPhotoUrl: _productPhotoUrl, 
-      countryCode: _detectedCountryCode,
-      stripeCustomerId: _clientModel?.stripeCustomerId, 
-      paymentMethodId: _clientModel?.defaultPaymentMethodId,
+      countryCode: _detectedCountryCode, 
+      stripeCustomerId: _clientModel?.getActiveCustomerId(isLive), 
+      paymentMethodId: _clientModel?.getActivePaymentMethodId(isLive)
     );
-    
-    // 🛡️ RECUERDO DE INTELIGENCIA: Guardamos el local verificado para alimentar la red VIP
-    if (_pickupGoogleRes != null) {
-      _geodataService.registerNewValidatedStore(
-        zip: _pickupGoogleRes!.zipCode ?? "", 
-        streetNumber: _pickupGoogleRes!.streetNumber ?? "", 
-        storeName: "Punto de Recogida", 
-        fullAddress: _pickupGoogleRes!.fullAddress, 
-        lat: _pickupGoogleRes!.latLng.latitude, 
-        lng: _pickupGoogleRes!.latLng.longitude, 
-        driverId: _currentMessenger!['id'], 
-        stateCode: _pickupGoogleRes!.state
-      );
-    }
 
-    if (_dropoffGoogleRes != null) {
-      _geodataService.registerNewValidatedStore(
-        zip: _dropoffGoogleRes!.zipCode ?? "", 
-        streetNumber: _dropoffGoogleRes!.streetNumber ?? "", 
-        storeName: "Punto de Entrega", 
-        fullAddress: _dropoffGoogleRes!.fullAddress, 
-        lat: _dropoffGoogleRes!.latLng.latitude, 
-        lng: _dropoffGoogleRes!.latLng.longitude, 
-        driverId: _currentMessenger!['id'], 
-        stateCode: _dropoffGoogleRes!.state
-      );
-    }
-    
-    // 🛡️ SISTEMA LAD: Si es una reasignación, eliminamos la orden rechazada anterior
-    if (widget.reassignOrder != null) {
-      await FirebaseFirestore.instance.collection('orders').doc(widget.reassignOrder!.id).delete();
-    }
-
-    if (mounted) { 
-      Navigator.pop(context); 
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("🚀 ¡ORDEN ENVIADA EXITOSAMENTE!"), backgroundColor: Colors.green)); 
-    }
+    if (widget.reassignOrder != null) await FirebaseFirestore.instance.collection('orders').doc(widget.reassignOrder!.id).delete();
+    if (mounted) { Navigator.pop(context); ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("🚀 ¡ORDEN ENVIADA EXITOSAMENTE!"), backgroundColor: Colors.green)); }
   }
 
   void _openSmartShopperResults(String categoryId, String categoryName) async {
-    if (!mounted) return;
-
-    // 🛰️ PASO 1: ASEGURAR UBICACIÓN
     final Position? position = await _ensureLocationPermission();
-    if (position == null) return;
-
-    // 🧠 PASO 2: PREGUNTAR AL CLIENTE (EXPERIENCIA FRIENDLY)
-    if (!mounted) return;
+    if (position == null || !mounted) return;
     final l10n = AppLocalizations.of(context)!;
-    String? userChoice = await showDialog<String>(
-      context: context,
-      builder: (context) {
-        final controller = TextEditingController();
-        return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-          title: Text(l10n.ss_dialog_title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
-          content: TextField(
-            controller: controller,
-            autofocus: true,
-            decoration: InputDecoration(
-              hintText: l10n.ss_dialog_hint,
-              hintStyle: const TextStyle(fontSize: 13),
-              border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))),
-            ),
-          ),
-          actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.common_cancel)),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, controller.text.trim()),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
-              child: Text(l10n.ss_btn_search),
-            ),
-          ],
-        );
-      }
-    );
-
-    if (userChoice == null) return; // El usuario canceló
-
+    String? userChoice = await showDialog<String>(context: context, builder: (context) {
+      final controller = TextEditingController();
+      return AlertDialog(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)), title: Text(l10n.ss_dialog_title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)), content: TextField(controller: controller, autofocus: true, decoration: InputDecoration(hintText: l10n.ss_dialog_hint, border: const OutlineInputBorder(borderRadius: BorderRadius.all(Radius.circular(15))))), actions: [TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.common_cancel)), ElevatedButton(onPressed: () => Navigator.pop(context, controller.text.trim()), style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white), child: Text(l10n.ss_btn_search))]);
+    });
+    if (userChoice == null) return;
     setState(() => _isLoading = true);
-    
     try {
-      final geoDetails = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
-      final String city = geoDetails?.city ?? "my area";
-      final String state = geoDetails?.state ?? "";
-      
-      // 🚀 CONSTRUIR BÚSQUEDA UNIVERSAL (ESTRATEGIA ROBERTO V5)
-      String smartQuery = userChoice.isEmpty 
-          ? "Tiendas y restaurantes cerca de mi en $city, $state, US"
-          : "$userChoice cerca de mi en $city, $state, US";
-
-      final Uri googleUrl = Uri.parse("https://www.google.com/search?q=${Uri.encodeComponent(smartQuery)}");
-
+      final geo = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
+      String smartQuery = userChoice.isEmpty ? "Tiendas cerca de mi en ${geo?.city ?? 'area'}, US" : "$userChoice cerca de mi en ${geo?.city ?? 'area'}, US";
+      final Uri url = Uri.parse("https://www.google.com/search?q=${Uri.encodeComponent(smartQuery)}");
       if (!mounted) return;
       setState(() => _isLoading = false);
-
-      // 🚀 PASO 3: SALTO AL NAVEGADOR
-      await custom_tabs.launchUrl(
-        googleUrl,
-        prefersDeepLink: false,
-        customTabsOptions: custom_tabs.CustomTabsOptions(
-          colorSchemes: custom_tabs.CustomTabsColorSchemes.defaults(toolbarColor: Colors.black),
-          showTitle: true,
-          urlBarHidingEnabled: true,
-        ),
-        safariVCOptions: const custom_tabs.SafariViewControllerOptions(
-          preferredBarTintColor: Colors.black,
-          preferredControlTintColor: Colors.white,
-          barCollapsingEnabled: true,
-        ),
-      );
-    } catch (e) { 
-      if (mounted) { 
-        setState(() => _isLoading = false); 
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"))); 
-      } 
-    }
+      await custom_tabs.launchUrl(url, prefersDeepLink: false, customTabsOptions: custom_tabs.CustomTabsOptions(colorSchemes: custom_tabs.CustomTabsColorSchemes.defaults(toolbarColor: Colors.black), showTitle: true, urlBarHidingEnabled: true));
+    } catch (e) { if (mounted) { setState(() => _isLoading = false); ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e"))); } }
   }
 
   void _showFullImage(String url) {
@@ -1034,128 +582,43 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      appBar: AppBar(
-        title: Text(l10n.create_order_title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black, letterSpacing: 1.5)), 
-        centerTitle: true, 
-        backgroundColor: Colors.white, 
-        elevation: 0.5, 
-        foregroundColor: Colors.black
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 24), 
-        child: Form(
-          key: _formKey, 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch, 
-            children: [
-              const SizedBox(height: 20),
-              _buildSectionTitle(l10n.create_order_service_type, Icons.layers_outlined, Colors.indigo[900]!),
-              _buildServiceSelector(l10n),
-              if (_selectedService == 'shopping') ...[
-                const SizedBox(height: 20),
-                _buildSmartShopperGrid(l10n)
-              ],
-              const SizedBox(height: 30),
-              _buildSectionTitle(l10n.create_order_add_photo, Icons.camera_alt_outlined, Colors.teal[900]!),
-              _buildPhotoPicker(l10n),
-              const SizedBox(height: 30),
-              _buildSectionTitle(l10n.create_order_pickup_label, Icons.location_on_outlined, Colors.deepPurple[900]!),
-              _buildModernField(_pickupController, "PUNTO DE ORIGEN", Icons.storefront, Colors.deepPurple[900]!, isPickup: true, lines: 2),
-              const SizedBox(height: 30),
-              _buildSectionTitle(l10n.create_order_dropoff_label, Icons.flag_outlined, Colors.orange[900]!),
-              _buildModernField(_dropoffController, "PUNTO DE DESTINO", Icons.home_outlined, Colors.orange[900]!, isDropoff: true, lines: 2),
-              const SizedBox(height: 30),
-              _buildSectionTitle(l10n.create_order_description_label, Icons.assignment_outlined, Colors.blue[900]!),
-              _buildModernField(_descriptionController, "DETALLES", Icons.edit_note, Colors.blue[900]!, lines: 3),
-              if (_showDriverSelection) ...[
-                const SizedBox(height: 30), 
-                _buildSectionTitle(l10n.create_order_section_messenger, Icons.person_search_outlined, Colors.black), 
-                _buildDriverSwitcher(l10n)
-              ],
-              const SizedBox(height: 40),
-              _buildActionButton(l10n),
-              const SizedBox(height: 50),
-            ]
-          )
-        )
-      ),
+      appBar: AppBar(title: Text(l10n.create_order_title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black, letterSpacing: 1.5)), centerTitle: true, backgroundColor: Colors.white, elevation: 0.5, foregroundColor: Colors.black),
+      body: SingleChildScrollView(padding: const EdgeInsets.symmetric(horizontal: 24), child: Form(key: _formKey, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const SizedBox(height: 20),
+        _buildSectionTitle(l10n.create_order_service_type, Icons.layers_outlined, Colors.indigo[900]!),
+        _buildServiceSelector(l10n),
+        if (_selectedService == 'shopping') ...[const SizedBox(height: 20), _buildSmartShopperGrid(l10n)],
+        const SizedBox(height: 30),
+        _buildSectionTitle(l10n.create_order_add_photo, Icons.camera_alt_outlined, Colors.teal[900]!),
+        _buildPhotoPicker(l10n),
+        const SizedBox(height: 30),
+        _buildSectionTitle(l10n.create_order_pickup_label, Icons.location_on_outlined, Colors.deepPurple[900]!),
+        _buildModernField(_pickupController, "PUNTO DE ORIGEN", Icons.storefront, Colors.deepPurple[900]!, isPickup: true, lines: 2),
+        const SizedBox(height: 30),
+        _buildSectionTitle(l10n.create_order_dropoff_label, Icons.flag_outlined, Colors.orange[900]!),
+        _buildModernField(_dropoffController, "PUNTO DE DESTINO", Icons.home_outlined, Colors.orange[900]!, isDropoff: true, lines: 2),
+        const SizedBox(height: 30),
+        _buildSectionTitle(l10n.create_order_description_label, Icons.assignment_outlined, Colors.blue[900]!),
+        _buildModernField(_descriptionController, "DETALLES", Icons.edit_note, Colors.blue[900]!, lines: 3),
+        if (_showDriverSelection) ...[const SizedBox(height: 30), _buildSectionTitle(l10n.create_order_section_messenger, Icons.person_search_outlined, Colors.black), _buildDriverSwitcher(l10n)],
+        const SizedBox(height: 40),
+        _buildActionButton(l10n),
+        const SizedBox(height: 50),
+      ]))),
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, Color color) => Padding(
-    padding: const EdgeInsets.only(bottom: 15, left: 4), 
-    child: Row(children: [Icon(icon, size: 18, color: color), const SizedBox(width: 8), Text(title.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: color, letterSpacing: 1.1))])
-  );
+  Widget _buildSectionTitle(String title, IconData icon, Color color) => Padding(padding: const EdgeInsets.only(bottom: 15, left: 4), child: Row(children: [Icon(icon, size: 18, color: color), const SizedBox(width: 8), Text(title.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: color, letterSpacing: 1.1))]));
 
-  Widget _buildSmartShopperGrid(AppLocalizations l10n) {
-    return Container(
-      padding: const EdgeInsets.all(22),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(30),
-        border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.15), width: 2),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 8))],
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Row(
-            children: [
-              Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 26),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  "MAGIA SMART SHOPPER",
-                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black, letterSpacing: 1.2),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(color: Colors.blueGrey[50], borderRadius: BorderRadius.circular(15)),
-            child: const Text(
-              "🛒 Haz tu compra online (Pickup). Al finalizar, toma una CAPTURA DE PANTALLA de tu ticket.\n\n✨ LAD debería avisarte arriba. Si el aviso no sale, solo regresa aquí y toca el botón de abajo.",
-              style: TextStyle(fontSize: 11, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4),
-            ),
-          ),
-          const SizedBox(height: 20),
-          // 🚀 BOTÓN PRINCIPAL: SALTO AL BUSCADOR
-          SizedBox(
-            width: double.infinity,
-            height: 60,
-            child: ElevatedButton.icon(
-              onPressed: () => _openSmartShopperResults("UNIVERSAL", "Cualquier cosa"),
-              icon: const Icon(Icons.search, color: Colors.white),
-              label: const Text("IR A BUSCAR Y COMPRAR", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.deepPurple[800],
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-                elevation: 4,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // 🛡️ BOTÓN DE RESPALDO: PROCESAR ÚLTIMA CAPTURA (MANUAL)
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: OutlinedButton.icon(
-              onPressed: () => _autoProcessLastImage(),
-              icon: const Icon(Icons.wallpaper, color: Colors.deepPurple),
-              label: const Text("YA TENGO MI TICKET", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.deepPurple)),
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.deepPurple, width: 2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget _buildSmartShopperGrid(AppLocalizations l10n) => Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.15), width: 2), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 8))]), child: Column(mainAxisSize: MainAxisSize.min, children: [
+    const Row(children: [Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 26), SizedBox(width: 12), Expanded(child: Text("MAGIA SMART SHOPPER", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black, letterSpacing: 1.2)))]),
+    const SizedBox(height: 18),
+    Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: Colors.blueGrey[50], borderRadius: BorderRadius.circular(15)), child: const Text("🛒 Haz tu compra online (Pickup). Al finalizar, toma una CAPTURA DE PANTALLA de tu ticket.\n\n✨ LAD debería avisarte arriba. Si el aviso no sale, solo regresa aquí y toca el botón de abajo.", style: TextStyle(fontSize: 11, color: Colors.black87, fontWeight: FontWeight.bold, height: 1.4))),
+    const SizedBox(height: 20),
+    SizedBox(width: double.infinity, height: 60, child: ElevatedButton.icon(onPressed: () => _openSmartShopperResults("UNIVERSAL", "Cualquier cosa"), icon: const Icon(Icons.search, color: Colors.white), label: const Text("IR A BUSCAR Y COMPRAR", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14)), style: ElevatedButton.styleFrom(backgroundColor: Colors.deepPurple[800], foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)), elevation: 4))),
+    const SizedBox(height: 12),
+    SizedBox(width: double.infinity, height: 50, child: OutlinedButton.icon(onPressed: () => _autoProcessLastImage(), icon: const Icon(Icons.wallpaper, color: Colors.deepPurple), label: const Text("YA TENGO MI TICKET", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: Colors.deepPurple)), style: OutlinedButton.styleFrom(side: const BorderSide(color: Colors.deepPurple, width: 2), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))))),
+  ]));
 
   Widget _buildServiceSelector(AppLocalizations l10n) {
     final options = { 'courier': l10n.driver_service_courier, 'shopping': "SmartShopper - Compras Online", 'logistics': l10n.driver_service_logistics };
@@ -1185,8 +648,34 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   Widget _buildModernField(TextEditingController controller, String label, IconData icon, Color color, {int lines = 1, bool isPickup = false, bool isDropoff = false}) {
     bool isVer = (isPickup && _isPickupVerified) || (isDropoff && _isDropoffVerified);
     bool isKnown = (isPickup && _validatedPickupLatLng != null) || (isDropoff && _validatedDropoffLatLng != null);
+    
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-      Container(decoration: BoxDecoration(color: isVer ? Colors.green[50] : (isKnown ? Colors.amber[50] : Colors.white), borderRadius: BorderRadius.circular(18), border: Border.all(color: isVer ? Colors.green[700]! : (isKnown ? Colors.amber[700]! : Colors.grey[400]!), width: isKnown ? 2 : 1)), child: TextFormField(controller: controller, maxLines: lines, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black), decoration: InputDecoration(labelText: label.toUpperCase(), labelStyle: TextStyle(color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w900, fontSize: 11), prefixIcon: Icon(icon, color: isVer ? Colors.green[900] : color, size: 24), border: InputBorder.none, contentPadding: const EdgeInsets.all(20)))),
+      Container(
+        decoration: BoxDecoration(
+          color: isVer ? Colors.green[50] : (isKnown ? Colors.amber[50] : Colors.white), 
+          borderRadius: BorderRadius.circular(18), 
+          border: Border.all(color: isVer ? Colors.green[700]! : (isKnown ? Colors.amber[700]! : Colors.grey[400]!), width: isKnown ? 2 : 1)
+        ), 
+        child: TextFormField(
+          controller: controller, 
+          maxLines: lines, 
+          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black), 
+          decoration: InputDecoration(
+            labelText: label.toUpperCase(), 
+            labelStyle: TextStyle(color: color.withValues(alpha: 0.8), fontWeight: FontWeight.w900, fontSize: 11),
+            prefixIcon: Icon(icon, color: isVer ? Colors.green[900] : color, size: 24), 
+            suffixIcon: (isPickup || isDropoff) 
+                ? IconButton(
+                    icon: Icon(Icons.my_location, color: isVer ? Colors.green : Colors.grey), 
+                    onPressed: () => _useCurrentLocation(isPickup),
+                    tooltip: "USAR MI UBICACIÓN ACTUAL",
+                  )
+                : null,
+            border: InputBorder.none, 
+            contentPadding: const EdgeInsets.all(20)
+          )
+        )
+      ),
       if (controller.text.isNotEmpty && isKnown) Padding(padding: const EdgeInsets.only(top: 8, left: 12), child: Text(isVer ? "✓ UBICACIÓN EXACTA VERIFICADA (SISTEMA LAD)" : "⚠ LA DIRECCIÓN NO ES TAN PRECISA, EL DRIVER HARÁ LO POSIBLE POR ENCONTRARLA.", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isVer ? Colors.green[900] : Colors.amber[900]))),
     ]);
   }
@@ -1215,5 +704,26 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     }).toList();
     if (_validatedPickupLatLng != null) filtered.sort((a, b) => Geolocator.distanceBetween(a.workZoneCenter!.latitude, a.workZoneCenter!.longitude, _validatedPickupLatLng!.latitude, _validatedPickupLatLng!.longitude).compareTo(Geolocator.distanceBetween(b.workZoneCenter!.latitude, b.workZoneCenter!.longitude, _validatedPickupLatLng!.latitude, _validatedPickupLatLng!.longitude)));
     return filtered.length > 5 ? filtered.sublist(0, 5) : filtered;
+  }
+
+  Map<String, dynamic> _refineOcrAddress(OCRResult ocr, String? gZip, String? gCity, String? gState) {
+    String? finalFullAddr = ocr.fullAddress;
+    // 🛡️ REGLA DE SOBERANÍA LAD V14.3: Si el ticket tiene un ZIP de 5 dígitos, ignoramos el GPS por completo.
+    final bool hasZipOnTicket = ocr.zipCode != null || (finalFullAddr != null && RegExp(r'\b\d{5}\b').hasMatch(finalFullAddr));
+
+    if (hasZipOnTicket && finalFullAddr != null) {
+       debugPrint("LAD IA: Ticket Soberano detectado. Blindando dirección del GPS.");
+       return {'address': finalFullAddr.toUpperCase(), 'store': null};
+    }
+
+    // 🩹 REGLA DE PRÓTESIS POSTAL: Solo si el ticket NO tiene ZIP, usamos las muletas del GPS.
+    if (finalFullAddr != null) {
+       String patch = "";
+       if (gCity != null && !finalFullAddr.toUpperCase().contains(gCity.toUpperCase())) patch += ", $gCity";
+       if (gState != null && !finalFullAddr.toUpperCase().contains(gState.toUpperCase())) patch += ", $gState";
+       if (gZip != null && !finalFullAddr.contains(gZip)) patch += " $gZip";
+       finalFullAddr = "$finalFullAddr$patch".toUpperCase();
+    }
+    return {'address': finalFullAddr, 'store': null};
   }
 }

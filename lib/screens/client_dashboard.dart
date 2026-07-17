@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA kIsWeb
 import 'package:lad_courier/models/order_model.dart';
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/pages/client/client_negotiation_page.dart';
@@ -9,6 +10,7 @@ import 'package:lad_courier/pages/client/completed_orders_page.dart';
 import 'package:lad_courier/screens/client_profile_page.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
+import 'package:lad_courier/services/chat_service.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
@@ -25,20 +27,25 @@ class _ClientDashboardState extends State<ClientDashboard> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final UserService _userService = UserService();
   final OrderService _orderService = OrderService();
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  final ChatService _chatService = ChatService();
+  
+  // 🛡️ REFUERZO V18.7: Instanciación bajo demanda para evitar crash en Web
+  FlutterLocalNotificationsPlugin? _localNotifications;
   
   UserModel? _clientProfile;
   
-
   StreamSubscription? _negotiationSubscription;
   StreamSubscription? _rejectionSubscription; 
   Map<String, int> _lastKnownOffersState = {};
-  Map<String, String> _lastKnownRejectedState = {}; // 🔄 NUEVO: Para no repetir avisos
+  Map<String, String> _lastKnownRejectedState = {};
 
   @override
   void initState() {
     super.initState();
-    _initializeNotifications();
+    if (!kIsWeb) {
+      _localNotifications = FlutterLocalNotificationsPlugin();
+      _initializeNotifications();
+    }
     _loadProfile();
     _startNegotiationListener();
     _startRejectionListener(); 
@@ -62,11 +69,12 @@ class _ClientDashboardState extends State<ClientDashboard> {
   }
 
   Future<void> _initializeNotifications() async {
+    if (_localNotifications == null) return;
     const AndroidInitializationSettings initializationSettingsAndroid =
     AndroidInitializationSettings('@mipmap/ic_launcher');
     const InitializationSettings initializationSettings =
     InitializationSettings(android: initializationSettingsAndroid);
-    await _localNotifications.initialize(initializationSettings);
+    await _localNotifications!.initialize(initializationSettings);
   }
 
   void _startNegotiationListener() {
@@ -93,12 +101,14 @@ class _ClientDashboardState extends State<ClientDashboard> {
 
   void _triggerAlert(String title, String body) async {
     HapticFeedback.vibrate();
+    if (kIsWeb || _localNotifications == null) return;
+    
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'high_importance_channel', 'Alertas de Pedidos Urgentes',
       importance: Importance.max, priority: Priority.high, playSound: true,
     );
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-    await _localNotifications.show(DateTime.now().millisecond, title, body, platformChannelSpecifics);
+    await _localNotifications!.show(DateTime.now().millisecond, title, body, platformChannelSpecifics);
   }
 
   @override
@@ -120,8 +130,6 @@ class _ClientDashboardState extends State<ClientDashboard> {
     }
   }
 
-
-  /// 🛡️ SISTEMA LAD: Verificación de Método de Pago antes de ordenar
   bool _checkPaymentMethodStatus(AppLocalizations l10n) {
     if (_clientProfile?.defaultPaymentMethodId == null) {
       showDialog(
@@ -167,7 +175,6 @@ class _ClientDashboardState extends State<ClientDashboard> {
           return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
         }
         
-        // Actualizamos el perfil local cada vez que el stream emite
         if (profileSnapshot.hasData) {
           _clientProfile = profileSnapshot.data;
         }
@@ -199,32 +206,80 @@ class _ClientDashboardState extends State<ClientDashboard> {
             icon: const Icon(Icons.add_circle_outline, color: Colors.greenAccent),
             label: Text(l10n.client_dash_order_here.toUpperCase(), style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
           ),
-          body: RefreshIndicator(
-            onRefresh: _loadProfile,
-            color: Colors.black,
-            child: SingleChildScrollView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _buildWelcomeSection(l10n),
-                  const SizedBox(height: 25),
-                  _buildSectionTitle(l10n.client_dash_active_missions.toUpperCase(), Icons.radar, Colors.indigo[900]!),
-                  _buildActiveOrdersList(l10n),
-                  const SizedBox(height: 25),
-                  _buildSectionTitle(l10n.client_dash_negotiations_title.toUpperCase(), Icons.handshake_outlined, Colors.orange[900]!),
-                  _buildNegotiationList(l10n),
-                  const SizedBox(height: 25),
-                  _buildSectionTitle("SOLICITUDES RECHAZADAS", Icons.warning_amber_rounded, Colors.red[900]!),
-                  _buildRejectedOrdersList(l10n),
-                  const SizedBox(height: 25),
-                  _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black),
-                  _buildMessengerDetailedList(l10n),
-                  const SizedBox(height: 80),
-                ],
+          body: Stack(
+            children: [
+              RefreshIndicator(
+                onRefresh: _loadProfile,
+                color: Colors.black,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildWelcomeSection(l10n),
+                      const SizedBox(height: 25),
+                      _buildSectionTitle(l10n.client_dash_active_missions.toUpperCase(), Icons.radar, Colors.indigo[900]!),
+                      _buildActiveOrdersList(l10n),
+                      const SizedBox(height: 25),
+                      _buildSectionTitle(l10n.client_dash_negotiations_title.toUpperCase(), Icons.handshake_outlined, Colors.orange[900]!),
+                      _buildNegotiationList(l10n),
+                      const SizedBox(height: 25),
+                      _buildSectionTitle("SOLICITUDES RECHAZADAS", Icons.warning_amber_rounded, Colors.red[900]!),
+                      _buildRejectedOrdersList(l10n),
+                      const SizedBox(height: 25),
+                      _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black),
+                      _buildMessengerDetailedList(l10n),
+                      const SizedBox(height: 80),
+                    ],
+                  ),
+                ),
               ),
-            ),
+              
+              // 💬 NOTIFICACIÓN DE CHAT FLOTANTE PARA EL CLIENTE
+              if (_clientProfile?.lastIncomingChatId != null)
+                Positioned(
+                  right: 20,
+                  bottom: 100, // Encima del FAB
+                  child: Column(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(10)),
+                        child: Text(
+                          "CHAT: ${_clientProfile!.lastIncomingChatTitle ?? 'DRIVER'}",
+                          style: const TextStyle(color: Colors.greenAccent, fontSize: 8, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      const SizedBox(height: 5),
+                      CircleAvatar(
+                        backgroundColor: Colors.greenAccent,
+                        radius: 28,
+                        child: IconButton(
+                          icon: const Icon(Icons.chat, color: Colors.black),
+                          onPressed: () async {
+                            final chatId = _clientProfile!.lastIncomingChatId;
+                            final chatTitle = _clientProfile!.lastIncomingChatTitle;
+                            final navigator = Navigator.of(context);
+
+                            // 🧹 LIMPIEZA INMEDIATA
+                            if (chatId != null) {
+                              await _chatService.clearChatNotification(user.uid);
+                              
+                              if (mounted) {
+                                navigator.push(MaterialPageRoute(builder: (_) => ChatScreen(
+                                  chatId: chatId,
+                                  title: chatTitle ?? 'Driver',
+                                )));
+                              }
+                            }
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
         );
       },
@@ -263,7 +318,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
             Stack(
               children: [
                 CircleAvatar(
-                  radius: 32, // Tamaño aumentado
+                  radius: 32,
                   backgroundColor: Colors.grey[900],
                   backgroundImage: _clientProfile?.photoURL != null ? NetworkImage(_clientProfile!.photoURL!) : null,
                   child: _clientProfile?.photoURL == null ? const Icon(Icons.person, size: 35, color: Colors.white) : null,
@@ -314,24 +369,36 @@ class _ClientDashboardState extends State<ClientDashboard> {
           children: orders.map((order) {
             double progress = order.status == 'picked_up' ? 0.7 : 0.3;
             String statusText = order.statusMessage?.toUpperCase() ?? l10n.client_dash_order_active;
+            bool isDelayed = order.statusMessage == "DELIVERY_DELAYED";
             
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
               padding: const EdgeInsets.all(15),
               decoration: BoxDecoration(
-                color: Colors.indigo[50],
+                color: isDelayed ? Colors.red[50] : Colors.indigo[50],
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: Colors.indigo[100]!, width: 1),
+                border: Border.all(color: isDelayed ? Colors.red[200]! : Colors.indigo[100]!, width: 1),
               ),
               child: Column(
                 children: [
+                  if (isDelayed)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 16),
+                          const SizedBox(width: 8),
+                          Expanded(child: Text(l10n.order_status_delivery_delayed_msg, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold, fontSize: 9))),
+                        ],
+                      ),
+                    ),
                   Row(
                     children: [
                       CircleAvatar(radius: 18, backgroundImage: order.messengerPhotoUrl != null ? NetworkImage(order.messengerPhotoUrl!) : null),
                       const SizedBox(width: 10),
-                      Expanded(child: Text(order.messengerName ?? 'Driver', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.indigo))),
+                      Expanded(child: Text(order.messengerName ?? 'Driver', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: isDelayed ? Colors.red[900] : Colors.indigo))),
                       IconButton(
-                        icon: const Icon(Icons.chat_bubble_outline, color: Colors.indigo),
+                        icon: Icon(Icons.chat_bubble_outline, color: isDelayed ? Colors.red[900] : Colors.indigo),
                         onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
                           chatId: order.id, 
                           title: order.messengerName ?? 'Driver',
@@ -340,17 +407,43 @@ class _ClientDashboardState extends State<ClientDashboard> {
                         ))),
                       ),
                       const SizedBox(width: 10),
-                      Text("\$${order.price?.toStringAsFixed(2)}", style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.indigo)),
+                      Text("\$${order.price?.toStringAsFixed(2)}", style: TextStyle(fontWeight: FontWeight.w900, color: isDelayed ? Colors.red[900] : Colors.indigo)),
                     ],
                   ),
                   const SizedBox(height: 15),
-                  LinearProgressIndicator(value: progress, backgroundColor: Colors.white, color: Colors.indigo, minHeight: 6, borderRadius: BorderRadius.circular(10)),
+                  LinearProgressIndicator(value: progress, backgroundColor: Colors.white, color: isDelayed ? Colors.red : Colors.indigo, minHeight: 6, borderRadius: BorderRadius.circular(10)),
                   const SizedBox(height: 8),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(statusText, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.indigo)),
-                      const Icon(Icons.local_shipping_outlined, size: 14, color: Colors.indigo),
+                      Text(isDelayed ? l10n.order_status_delivery_delayed : statusText, style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: isDelayed ? Colors.red : Colors.indigo)),
+                      Row(
+                        children: [
+                          if (order.status == OrderStatus.active)
+                            Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  boxShadow: [BoxShadow(color: Colors.red.withValues(alpha: 0.2), blurRadius: 8, offset: const Offset(0, 2))],
+                                ),
+                                child: ElevatedButton.icon(
+                                  onPressed: () => _confirmCancelOrder(order.id, l10n),
+                                  icon: const Icon(Icons.cancel, size: 12, color: Colors.white),
+                                  label: Text(l10n.common_cancel.toUpperCase(), style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w900)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.redAccent,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
+                                    minimumSize: const Size(0, 30),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                    elevation: 0,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          Icon(Icons.local_shipping_outlined, size: 14, color: isDelayed ? Colors.red : Colors.indigo),
+                        ],
+                      ),
                     ],
                   )
                 ],
@@ -381,36 +474,75 @@ class _ClientDashboardState extends State<ClientDashboard> {
             
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 12),
               decoration: BoxDecoration(
                 color: isWaitingForMessenger ? Colors.grey[100] : Colors.orange[50],
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: isWaitingForMessenger ? Colors.grey[300]! : Colors.orange[100]!),
               ),
-              child: ListTile(
-                leading: CircleAvatar(backgroundImage: order.messengerPhotoUrl != null ? NetworkImage(order.messengerPhotoUrl!) : null),
-                title: Row(
+              child: InkWell(
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ClientNegotiationPage(orderId: order.id))),
+                child: Row(
                   children: [
-                    Expanded(child: Text(
-                      isWaitingForMessenger ? "ORDEN ENVIADA" : "\$${order.negotiationHistory.last['price']}", 
-                      style: TextStyle(fontWeight: FontWeight.w900, color: isWaitingForMessenger ? Colors.black54 : Colors.orange)
-                    )),
-                    IconButton(
-                      icon: const Icon(Icons.chat_outlined, color: Colors.orange),
-                      onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
-                        chatId: order.id, 
-                        title: order.messengerName ?? 'Driver',
-                        targetUserId: order.assignedMessengerId,
-                        senderName: _clientProfile?.displayName ?? "Cliente",
-                      ))),
+                    CircleAvatar(radius: 22, backgroundImage: order.messengerPhotoUrl != null ? NetworkImage(order.messengerPhotoUrl!) : null),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  isWaitingForMessenger ? "ORDEN ENVIADA" : "\$${order.negotiationHistory.last['price']}", 
+                                  style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: isWaitingForMessenger ? Colors.black54 : Colors.orange),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.chat_outlined, color: Colors.orange, size: 22),
+                                padding: EdgeInsets.zero,
+                                constraints: const BoxConstraints(),
+                                onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
+                                  chatId: order.id, 
+                                  title: order.messengerName ?? 'Driver',
+                                  targetUserId: order.assignedMessengerId,
+                                  senderName: _clientProfile?.displayName ?? "Cliente",
+                                ))),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  isWaitingForMessenger ? "ESPERANDO RESPUESTA" : "OFERTA RECIBIDA", 
+                                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: isWaitingForMessenger ? Colors.black45 : Colors.orange),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              OutlinedButton(
+                                onPressed: () => _confirmCancelOrder(order.id, l10n),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: Colors.red,
+                                  side: const BorderSide(color: Colors.red, width: 1),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  minimumSize: const Size(0, 24),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                ),
+                                child: Text(l10n.common_cancel.toUpperCase(), style: const TextStyle(fontSize: 8, fontWeight: FontWeight.w900)),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
-                subtitle: Text(
-                  isWaitingForMessenger ? "ESPERANDO RESPUESTA DE ${order.messengerName?.toUpperCase()}" : "OFERTA DE ${order.messengerName?.toUpperCase()}", 
-                  style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: isWaitingForMessenger ? Colors.black45 : Colors.orange)
-                ),
-                trailing: const Icon(Icons.chevron_right, color: Colors.orange),
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ClientNegotiationPage(orderId: order.id))),
               ),
             );
           }).toList(),
@@ -429,53 +561,81 @@ class _ClientDashboardState extends State<ClientDashboard> {
 
         return Column(
           children: orders.map((order) {
+            String msg = "MISIÓN RECHAZADA";
+            if (order.statusMessage == "TIMEOUT_CLIENT") msg = l10n.order_status_timeout_client;
+            if (order.statusMessage == "TIMEOUT_DRIVER" || order.statusMessage == "DRIVER_BUSY") msg = l10n.order_status_driver_busy;
+            if (order.statusMessage == "ROUTE_PROBLEMS") msg = l10n.order_status_route_problems;
+
             return Container(
               margin: const EdgeInsets.only(bottom: 12),
-              padding: const EdgeInsets.all(15),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: Colors.red[50],
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.red[100]!),
               ),
-              child: Row(
+              child: Column(
                 children: [
-                  const Icon(Icons.cancel_outlined, color: Colors.red),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          order.statusMessage == "TIMEOUT_CLIENT" 
-                            ? l10n.order_status_timeout_client 
-                            : "MISIÓN RECHAZADA", 
-                          style: TextStyle(
-                            fontWeight: FontWeight.w900, 
-                            fontSize: 13, 
-                            color: order.statusMessage == "TIMEOUT_CLIENT" ? Colors.orange[900] : Colors.red
-                          )
+                  Row(
+                    children: [
+                      const Icon(Icons.cancel_outlined, color: Colors.red, size: 20),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              msg, 
+                              style: TextStyle(
+                                fontWeight: FontWeight.w900, 
+                                fontSize: 11, 
+                                color: (order.statusMessage?.contains("TIMEOUT") == true || order.statusMessage?.contains("BUSY") == true) ? Colors.orange[900] : Colors.red
+                              )
+                            ),
+                            Text(order.messengerName ?? 'Driver', style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54)),
+                          ],
                         ),
-                        Text("Por: ${order.messengerName ?? 'Driver'}", style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54)),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                  ElevatedButton(
-                    onPressed: () {
-                      // 🚀 REASIGNACIÓN INTELIGENTE
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CreateOrderPage(reassignOrder: order),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _confirmCancelOrder(order.id, l10n),
+                          icon: const Icon(Icons.delete_sweep_outlined, size: 14),
+                          label: Text(l10n.common_cancel.toUpperCase(), style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: EdgeInsets.zero,
+                          ),
                         ),
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red[900],
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                    ),
-                    child: const Text("REASIGNAR", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 11)),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => CreateOrderPage(reassignOrder: order),
+                              ),
+                            );
+                          },
+                          icon: const Icon(Icons.sync, size: 14),
+                          label: const Text("REASIGNAR", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFFD1DC), // Rosado claro
+                            foregroundColor: Colors.red[900],
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                            padding: EdgeInsets.zero,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -573,7 +733,6 @@ class _ClientDashboardState extends State<ClientDashboard> {
                 ],
               ),
             ),
-            // 💬 CHAT PRIVADO (SIN TELÉFONO)
             IconButton(
               icon: const Icon(Icons.chat_bubble_outline, color: Colors.deepPurple, size: 28),
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
@@ -647,14 +806,52 @@ class _ClientDashboardState extends State<ClientDashboard> {
           TextButton(
             onPressed: () async {
               final navigator = Navigator.of(context);
-              final messenger = ScaffoldMessenger.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               await _userService.unlinkMessenger(_auth.currentUser!.uid, m.uid);
-              if (!mounted) return;
-              navigator.pop();
-              messenger.showSnackBar(SnackBar(content: Text(l10n.client_dash_unlink_success)));
+              
+              scaffoldMessenger.showSnackBar(SnackBar(content: Text(l10n.client_dash_unlink_success)));
               _loadProfile();
+              navigator.pop();
             },
             child: Text(l10n.client_dash_unlink_button, style: const TextStyle(color: Colors.red)),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _confirmCancelOrder(String orderId, AppLocalizations l10n) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.order_cancel_dialog_title, style: const TextStyle(fontWeight: FontWeight.w900)),
+        content: Text(l10n.order_cancel_dialog_body),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: Text(l10n.common_cancel)),
+          ElevatedButton(
+            onPressed: () async {
+              // 🛡️ REFUERZO V16.8: Capturamos el messenger antes del await
+              final messenger = ScaffoldMessenger.of(context);
+              Navigator.pop(context);
+              try {
+                await _orderService.cancelOrder(orderId);
+              } catch (e) {
+                String errorMsg = e.toString();
+                if (e == 'PICKUP_STARTED') {
+                  errorMsg = "No se puede cancelar la orden. El conductor ya inició la recogida y los fondos han sido reservados.";
+                }
+                
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text(errorMsg),
+                    backgroundColor: Colors.redAccent,
+                  ),
+                );
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(l10n.order_cancel_btn_confirm, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),

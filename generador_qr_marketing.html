@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Generador QR Maestro - LAD COURIER USA</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; background-color: #000; color: white; margin: 0; }
+        .card { background: white; padding: 40px; border-radius: 30px; box-shadow: 0 20px 50px rgba(75, 57, 168, 0.3); text-align: center; border: 5px solid #4B39A8; max-width: 500px; color: #000; }
+        h1 { margin: 0; font-size: 2.5em; font-weight: 900; letter-spacing: 2px; color: #000; }
+        h2 { margin: 5px 0 30px 0; font-size: 0.8em; font-weight: 900; color: #4B39A8; letter-spacing: 4px; text-transform: uppercase; }
+        .qr-container { background: #f8f9fa; padding: 20px; border-radius: 20px; border: 1px solid #ddd; margin-bottom: 20px; }
+        img { display: block; margin: 0 auto; max-width: 100%; height: auto; }
+        .url { font-weight: 900; color: #000; font-size: 1.4em; margin-bottom: 10px; }
+        .instruction { background: #e8f5e9; color: #2e7d32; padding: 15px; border-radius: 12px; font-size: 0.9em; font-weight: bold; margin-top: 20px; }
+        .footer { margin-top: 30px; font-size: 0.7em; color: #666; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>LAD COURIER</h1>
+    <h2>Digital Systems LLC</h2>
+
+    <div class="qr-container">
+        <!-- Motor de Respaldo: QRServer (Más robusto para archivos locales) -->
+        <img id="qrImage" src="https://api.qrserver.com/v1/create-qr-code/?size=500x500&data=https://ladcourier.com" alt="QR LAD COURIER MAESTRO">
+    </div>
+
+    <div class="url">ladcourier.com</div>
+
+    <div style="margin-top: 20px;">
+        <button onclick="window.open('https://api.qrserver.com/v1/create-qr-code/?size=800x800&data=https://ladcourier.com', '_blank')" style="background: #4B39A8; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; cursor: pointer;">
+            🚀 ABRIR QR EN TAMAÑO GIGANTE
+        </button>
+    </div>
+
+    <div class="instruction">
+        🎯 <strong>PASO PARA TUS TARJETAS:</strong><br>
+        Haz clic derecho sobre el QR y elige "Guardar imagen como...".<br>
+        Úsala para imprimir tus flyers y tarjetas de presentación.
+    </div>
+
+    <div class="footer">CÓDIGO QR SOBERANO - SIN MENSUALIDADES - PROPIEDAD DE LAD DIGITAL SYSTEMS LLC</div>
+</div>
+
+</body>
+</html>

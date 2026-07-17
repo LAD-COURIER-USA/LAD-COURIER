@@ -23,49 +23,45 @@ class UserModel {
   final Timestamp? trialEndDate;
   final double maxRadiusMiles;
   final double maxDropoffRadiusMiles;
-  final int referralCountLite;
-  final int referralCountPro;
   final GeoPoint? lastKnownLocation; 
-  final Timestamp? lastActiveAt; // 🛡️ SISTEMA LAD: Para control de inactividad
+  final Timestamp? lastActiveAt; 
   
-  // 🛡️ BLINDAJE LEGAL LAD DIGITAL SYSTEMS LLC
   final bool acceptedTerms;
   final Timestamp? acceptedTermsDate;
   final String? acceptedTermsIP;
   final String? acceptedTermsVersion; 
-  final String verificationStatus; // ACEPTACIÓN_PENDIENTE, IDENTIDAD_PENDIENTE, RECORDS_PENDIENTE, BAJO_REVISIÓN, APROBADO
+  final String verificationStatus;
   final bool isEligibleForTrial;
 
-  // 🛡️ PROTECCIÓN DE IDENTIDAD (Stripe Identity)
   final bool isIdentityVerified;
   final Timestamp? lastIdentityVerification;
   final Timestamp? lastBiometricVerification;
-  final String? lastSessionSelfieUrl; // 🤳 NUEVO: Selfie de la jornada actual
+  final String? lastSessionSelfieUrl;
+  final String? totpSecret; // 🛡️ SEGURO V19.3: Llave maestra para Google Authenticator
 
-  // 💳 PAGOS DIRECTOS (Stripe Connect / Customer)
+  // 💳 PAGOS DIRECTOS (Stripe Connect / Customer) - DOBLE ADN (TEST/LIVE)
   final String? stripeAccountId;
-  final String? stripeCustomerId; // ID de Cliente para pagos
-  final String? defaultPaymentMethodId; // ID del método de pago predeterminado
+  final String? stripeCustomerId;
+  final String? defaultPaymentMethodId;
+  
+  final String? stripeAccountIdLive;
+  final String? stripeCustomerIdLive;
+  final String? defaultPaymentMethodIdLive;
+  final String? stripeStatusLive; 
+
   final bool isStripeConnected;
   final bool isStripeVerified;
   final String? stripeStatus;
 
-  // ✨ ESTRATEGIA LAD DIGITAL SYSTEMS LLC - BONOS Y RED
   final String? driverCategory; 
   final String? recruitedBy;    
 
-  // 🛡️ REGLAS ANTI-FRAUDE (Bonos de Reclutamiento)
-  final bool hasBeenCountedForBonus; 
-  final String? lastBonusMonthEarned; 
-  final String? currentReferralMonth; 
-
-  final int monthlyDirectNetworkCount;
-  final int monthlyBagReferralCount;
-  final int monthlyClientReferralCount;
-
-  // 🎙️ COMUNICACIÓN DE CHAT
   final String? lastIncomingChatId;
   final String? lastIncomingChatTitle;
+
+  String? getActiveCustomerId(bool isLive) => isLive ? stripeCustomerIdLive : stripeCustomerId;
+  String? getActivePaymentMethodId(bool isLive) => isLive ? defaultPaymentMethodIdLive : defaultPaymentMethodId;
+  String? getActiveAccountId(bool isLive) => isLive ? stripeAccountIdLive : stripeAccountId;
 
   UserModel({
     required this.uid,
@@ -90,8 +86,6 @@ class UserModel {
     this.trialEndDate,
     this.maxRadiusMiles = 5.0,
     this.maxDropoffRadiusMiles = 5.0,
-    this.referralCountLite = 0,
-    this.referralCountPro = 0,
     this.lastKnownLocation,
     this.lastActiveAt,
     this.acceptedTerms = false,
@@ -104,20 +98,19 @@ class UserModel {
     this.lastIdentityVerification,
     this.lastBiometricVerification,
     this.lastSessionSelfieUrl,
+    this.totpSecret,
     this.stripeAccountId,
     this.stripeCustomerId,
     this.defaultPaymentMethodId,
+    this.stripeAccountIdLive,
+    this.stripeCustomerIdLive,
+    this.defaultPaymentMethodIdLive,
+    this.stripeStatusLive,
     this.isStripeConnected = false,
     this.isStripeVerified = false,
     this.stripeStatus,
     this.recruitedBy,
     this.driverCategory,
-    this.hasBeenCountedForBonus = false,
-    this.lastBonusMonthEarned,
-    this.currentReferralMonth,
-    this.monthlyDirectNetworkCount = 0,
-    this.monthlyBagReferralCount = 0,
-    this.monthlyClientReferralCount = 0,
     this.lastIncomingChatId,
     this.lastIncomingChatTitle,
   });
@@ -147,10 +140,8 @@ class UserModel {
       trialEndDate: data['trialEndDate'],
       maxRadiusMiles: (data['maxRadiusMiles'] as num?)?.toDouble() ?? 5.0,
       maxDropoffRadiusMiles: (data['maxDropoffRadiusMiles'] as num?)?.toDouble() ?? 5.0,
-      referralCountLite: data['referralCountLite'] ?? 0,
-      referralCountPro: data['referralCountPro'] ?? 0,
       lastKnownLocation: data['lastKnownLocation'],
-      lastActiveAt: data['lastActiveAt'], // 🛡️ SISTEMA LAD
+      lastActiveAt: data['lastActiveAt'],
       acceptedTerms: data['acceptedTerms'] ?? false,
       acceptedTermsDate: data['acceptedTermsDate'],
       acceptedTermsIP: data['acceptedTermsIP'],
@@ -161,20 +152,19 @@ class UserModel {
       lastIdentityVerification: data['lastIdentityVerification'],
       lastBiometricVerification: data['last_biometric_verification'],
       lastSessionSelfieUrl: data['lastSessionSelfieUrl'],
+      totpSecret: data['totpSecret'],
       stripeAccountId: data['stripeAccountId'],
       stripeCustomerId: data['stripeCustomerId'],
       defaultPaymentMethodId: data['defaultPaymentMethodId'],
+      stripeAccountIdLive: data['stripeAccountIdLive'],
+      stripeCustomerIdLive: data['stripeCustomerIdLive'],
+      defaultPaymentMethodIdLive: data['defaultPaymentMethodIdLive'],
+      stripeStatusLive: data['stripeStatusLive'],
       isStripeConnected: data['isStripeConnected'] ?? false,
       isStripeVerified: data['isStripeVerified'] ?? false,
       stripeStatus: data['stripeStatus'],
       recruitedBy: data['recruitedBy'],
       driverCategory: data['driverCategory'],
-      hasBeenCountedForBonus: data['hasBeenCountedForBonus'] ?? false,
-      lastBonusMonthEarned: data['lastBonusMonthEarned'],
-      currentReferralMonth: data['currentReferralMonth'],
-      monthlyDirectNetworkCount: data['monthlyDirectNetworkCount'] ?? 0,
-      monthlyBagReferralCount: data['monthlyBagReferralCount'] ?? 0,
-      monthlyClientReferralCount: data['monthlyClientReferralCount'] ?? 0,
       lastIncomingChatId: data['lastIncomingChatId'],
       lastIncomingChatTitle: data['lastIncomingChatTitle'],
     );
@@ -204,10 +194,8 @@ class UserModel {
       'trialEndDate': trialEndDate,
       'maxRadiusMiles': maxRadiusMiles,
       'maxDropoffRadiusMiles': maxDropoffRadiusMiles,
-      'referralCountLite': referralCountLite,
-      'referralCountPro': referralCountPro,
       'lastKnownLocation': lastKnownLocation,
-      'lastActiveAt': lastActiveAt, // 🛡️ SISTEMA LAD
+      'lastActiveAt': lastActiveAt,
       'acceptedTerms': acceptedTerms,
       'acceptedTermsDate': acceptedTermsDate,
       'acceptedTermsIP': acceptedTermsIP,
@@ -218,20 +206,19 @@ class UserModel {
       'lastIdentityVerification': lastIdentityVerification,
       'last_biometric_verification': lastBiometricVerification,
       'lastSessionSelfieUrl': lastSessionSelfieUrl,
+      'totpSecret': totpSecret,
       'stripeAccountId': stripeAccountId,
       'stripeCustomerId': stripeCustomerId,
       'defaultPaymentMethodId': defaultPaymentMethodId,
+      'stripeAccountIdLive': stripeAccountIdLive,
+      'stripeCustomerIdLive': stripeCustomerIdLive,
+      'defaultPaymentMethodIdLive': defaultPaymentMethodIdLive,
+      'stripeStatusLive': stripeStatusLive,
       'isStripeConnected': isStripeConnected,
       'isStripeVerified': isStripeVerified,
       'stripeStatus': stripeStatus,
       'recruitedBy': recruitedBy,
       'driverCategory': driverCategory,
-      'hasBeenCountedForBonus': hasBeenCountedForBonus,
-      'lastBonusMonthEarned': lastBonusMonthEarned,
-      'currentReferralMonth': currentReferralMonth,
-      'monthlyDirectNetworkCount': monthlyDirectNetworkCount,
-      'monthlyBagReferralCount': monthlyBagReferralCount,
-      'monthlyClientReferralCount': monthlyClientReferralCount,
       'lastIncomingChatId': lastIncomingChatId,
       'lastIncomingChatTitle': lastIncomingChatTitle,
     };
@@ -260,10 +247,8 @@ class UserModel {
     Timestamp? trialEndDate,
     double? maxRadiusMiles,
     double? maxDropoffRadiusMiles,
-    int? referralCountLite,
-    int? referralCountPro,
     GeoPoint? lastKnownLocation,
-    Timestamp? lastActiveAt, // 🛡️ SISTEMA LAD
+    Timestamp? lastActiveAt,
     bool? acceptedTerms,
     Timestamp? acceptedTermsDate,
     String? acceptedTermsIP,
@@ -274,20 +259,19 @@ class UserModel {
     Timestamp? lastIdentityVerification,
     Timestamp? lastBiometricVerification,
     String? lastSessionSelfieUrl,
+    String? totpSecret,
     String? stripeAccountId,
     String? stripeCustomerId,
     String? defaultPaymentMethodId,
+    String? stripeAccountIdLive,
+    String? stripeCustomerIdLive,
+    String? defaultPaymentMethodIdLive,
+    String? stripeStatusLive,
     bool? isStripeConnected,
     bool? isStripeVerified,
     String? stripeStatus,
     String? recruitedBy,
     String? driverCategory,
-    bool? hasBeenCountedForBonus,
-    String? lastBonusMonthEarned,
-    String? currentReferralMonth,
-    int? monthlyDirectNetworkCount,
-    int? monthlyBagReferralCount,
-    int? monthlyClientReferralCount,
     String? lastIncomingChatId,
     String? lastIncomingChatTitle,
   }) {
@@ -314,10 +298,8 @@ class UserModel {
       trialEndDate: trialEndDate ?? this.trialEndDate,
       maxRadiusMiles: maxRadiusMiles ?? this.maxRadiusMiles,
       maxDropoffRadiusMiles: maxDropoffRadiusMiles ?? this.maxDropoffRadiusMiles,
-      referralCountLite: referralCountLite ?? this.referralCountLite,
-      referralCountPro: referralCountPro ?? this.referralCountPro,
       lastKnownLocation: lastKnownLocation ?? this.lastKnownLocation,
-      lastActiveAt: lastActiveAt ?? this.lastActiveAt, // 🛡️ SISTEMA LAD
+      lastActiveAt: lastActiveAt ?? this.lastActiveAt,
       acceptedTerms: acceptedTerms ?? this.acceptedTerms,
       acceptedTermsDate: acceptedTermsDate ?? this.acceptedTermsDate,
       acceptedTermsIP: acceptedTermsIP ?? this.acceptedTermsIP,
@@ -328,20 +310,19 @@ class UserModel {
       lastIdentityVerification: lastIdentityVerification ?? this.lastIdentityVerification,
       lastBiometricVerification: lastBiometricVerification ?? this.lastBiometricVerification,
       lastSessionSelfieUrl: lastSessionSelfieUrl ?? this.lastSessionSelfieUrl,
+      totpSecret: totpSecret ?? this.totpSecret,
       stripeAccountId: stripeAccountId ?? this.stripeAccountId,
       stripeCustomerId: stripeCustomerId ?? this.stripeCustomerId,
       defaultPaymentMethodId: defaultPaymentMethodId ?? this.defaultPaymentMethodId,
+      stripeAccountIdLive: stripeAccountIdLive ?? this.stripeAccountIdLive,
+      stripeCustomerIdLive: stripeCustomerIdLive ?? this.stripeCustomerIdLive,
+      defaultPaymentMethodIdLive: defaultPaymentMethodIdLive ?? this.defaultPaymentMethodIdLive,
+      stripeStatusLive: stripeStatusLive ?? this.stripeStatusLive,
       isStripeConnected: isStripeConnected ?? this.isStripeConnected,
       isStripeVerified: isStripeVerified ?? this.isStripeVerified,
       stripeStatus: stripeStatus ?? this.stripeStatus,
       recruitedBy: recruitedBy ?? this.recruitedBy,
       driverCategory: driverCategory ?? this.driverCategory,
-      hasBeenCountedForBonus: hasBeenCountedForBonus ?? this.hasBeenCountedForBonus,
-      lastBonusMonthEarned: lastBonusMonthEarned ?? this.lastBonusMonthEarned,
-      currentReferralMonth: currentReferralMonth ?? this.currentReferralMonth,
-      monthlyDirectNetworkCount: monthlyDirectNetworkCount ?? this.monthlyDirectNetworkCount,
-      monthlyBagReferralCount: monthlyBagReferralCount ?? this.monthlyBagReferralCount,
-      monthlyClientReferralCount: monthlyClientReferralCount ?? this.monthlyClientReferralCount,
       lastIncomingChatId: lastIncomingChatId ?? this.lastIncomingChatId,
       lastIncomingChatTitle: lastIncomingChatTitle ?? this.lastIncomingChatTitle,
     );

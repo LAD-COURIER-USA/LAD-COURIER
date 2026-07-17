@@ -1,31 +1,39 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_functions/cloud_functions.dart'; 
-import 'package:local_auth/local_auth.dart'; // 🔐 NUEVA IMPORTACIÓN BIOMÉTRICA
+import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA kIsWeb
+import 'package:cloud_functions/cloud_functions.dart';
+import 'package:local_auth/local_auth.dart'; 
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/location_service.dart';
 import 'package:lad_courier/services/geocoding_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
-  final CollectionReference _usersRef =
-  FirebaseFirestore.instance.collection('users');
+  CollectionReference get _usersRef => FirebaseFirestore.instance.collection('users');
 
   final LocationService _locationService = LocationService();
-  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'us-central1'); 
-  final LocalAuthentication _auth = LocalAuthentication(); // 🔐 INSTANCIA BIOMÉTRICA
+  FirebaseFunctions get _functions => FirebaseFunctions.instanceFor(region: 'us-central1');
+  
+  // 🛡️ REFUERZO V19.0: LocalAuthentication NUNCA se instancia en Web
+  LocalAuthentication? _authInstance;
+  LocalAuthentication? get _auth => kIsWeb ? null : (_authInstance ??= LocalAuthentication());
 
   /// 🔐 VALIDACIÓN DE IDENTIDAD POR HUELLA DACTILAR
-  /// Se usa para cambios de foto y candado de 24 horas.
   Future<bool> authenticateBiometric({required String reason}) async {
+    // 🛡️ PROTOCOLO SOBERANO: En Web (iPad/PC) saltamos biometría local.
+    if (kIsWeb || _auth == null) {
+      debugPrint("SISTEMA LAD: Saltando biometría local en Web (Protocolo V19.0).");
+      return true; 
+    }
+
     try {
-      final bool canAuthenticateWithBiometrics = await _auth.canCheckBiometrics;
-      final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth.isDeviceSupported();
+      final bool canAuthenticateWithBiometrics = await _auth!.canCheckBiometrics;
+      final bool canAuthenticate = canAuthenticateWithBiometrics || await _auth!.isDeviceSupported();
 
-      if (!canAuthenticate) return true; // Si el tlf no tiene sensor, permitimos el paso (Modo Legacy)
+      if (!canAuthenticate) return true; 
 
-      return await _auth.authenticate(
+      return await _auth!.authenticate(
           localizedReason: reason,
           options: const AuthenticationOptions(
             stickyAuth: true,
@@ -70,9 +78,8 @@ class UserService {
   Future<void> savePrivateAddress(String uid, GeocodingResponse res) async {
     try {
       final normalized = res.fullAddress.toUpperCase().trim();
-      // Usamos un hash simple o el texto normalizado como ID para evitar duplicados
       final docId = normalized.hashCode.toString();
-      
+
       await _usersRef.doc(uid).collection('private_geodata').doc(docId).set({
         'fullAddress': normalized,
         'lat': res.latLng.latitude,
@@ -82,6 +89,7 @@ class UserService {
         'state': res.state?.toUpperCase(),
         'streetNumber': res.streetNumber,
         'lastUsed': FieldValue.serverTimestamp(),
+        'expiresAt': DateTime.now().add(const Duration(hours: 72)).millisecondsSinceEpoch, 
       });
       debugPrint("LAD BÚNKER: Dirección privada blindada.");
     } catch (e) {
@@ -93,14 +101,23 @@ class UserService {
   Future<GeocodingResponse?> findPrivateAddress(String uid, String inputAddress) async {
     try {
       final normalizedInput = inputAddress.toUpperCase().trim();
+      final now = DateTime.now().millisecondsSinceEpoch;
+
       final snapshot = await _usersRef.doc(uid)
           .collection('private_geodata')
           .where('fullAddress', isEqualTo: normalizedInput)
+          .where('expiresAt', isGreaterThan: now) 
           .limit(1).get();
 
       if (snapshot.docs.isNotEmpty) {
-        final data = snapshot.docs.first.data();
-        debugPrint("LAD BÚNKER: BINGO! Dirección recuperada del búnker privado (Costo \$0)");
+        final doc = snapshot.docs.first;
+        await doc.reference.update({
+          'lastUsed': FieldValue.serverTimestamp(),
+          'expiresAt': DateTime.now().add(const Duration(hours: 72)).millisecondsSinceEpoch,
+        });
+
+        final data = doc.data();
+        debugPrint("LAD BÚNKER: Dirección recuperada (Costo \$0)");
         return GeocodingResponse(
           latLng: GeoPoint(data['lat'], data['lng']),
           fullAddress: data['fullAddress'],
@@ -116,6 +133,40 @@ class UserService {
     return null;
   }
 
+  Future<GeocodingResponse?> findPrivateAddressByCoords(String uid, double lat, double lng) async {
+    try {
+      final now = DateTime.now().millisecondsSinceEpoch;
+      final snapshot = await _usersRef.doc(uid)
+          .collection('private_geodata')
+          .where('lat', isGreaterThan: lat - 0.0001)
+          .where('lat', isLessThan: lat + 0.0001)
+          .where('expiresAt', isGreaterThan: now)
+          .get();
+
+      for (var doc in snapshot.docs) {
+        final data = doc.data();
+        if ((data['lng'] - lng).abs() < 0.0001) {
+          await doc.reference.update({
+            'lastUsed': FieldValue.serverTimestamp(),
+            'expiresAt': DateTime.now().add(const Duration(hours: 72)).millisecondsSinceEpoch,
+          });
+
+          return GeocodingResponse(
+            latLng: GeoPoint(data['lat'], data['lng']),
+            fullAddress: data['fullAddress'],
+            zipCode: data['zipCode'],
+            city: data['city'],
+            state: data['state'],
+            streetNumber: data['streetNumber'],
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint("LAD ERROR Búnker GPS Search: $e");
+    }
+    return null;
+  }
+
   Future<UserModel?> getUser(String uid) async {
     try {
       final doc = await _usersRef.doc(uid).get();
@@ -123,9 +174,7 @@ class UserService {
         return UserModel.fromFirestore(doc);
       }
       return null;
-    } catch (e) {
-      rethrow;
-    }
+    } catch (e) { rethrow; }
   }
 
   Future<void> updateMessengerActiveStatus(String uid, bool isActive, BuildContext context) async {
@@ -137,15 +186,13 @@ class UserService {
       if (isActive) {
         final position = await _locationService.getCurrentLocation(context);
         dataToUpdate['workZoneCenter'] = GeoPoint(position.latitude, position.longitude);
-        dataToUpdate['lastActiveAt'] = FieldValue.serverTimestamp(); // 🛡️ SISTEMA LAD: Marca de inicio de turno
+        dataToUpdate['lastActiveAt'] = FieldValue.serverTimestamp();
       } else {
         dataToUpdate['workZoneCenter'] = null;
       }
 
       await _usersRef.doc(uid).set(dataToUpdate, SetOptions(merge: true));
-    } catch (e) {
-      rethrow;
-    }
+    } catch (e) { rethrow; }
   }
 
   Future<void> updateAvailableServices(String uid, List<String> services) async {
@@ -153,9 +200,7 @@ class UserService {
       await _usersRef.doc(uid).set({
         'availableServices': services,
       }, SetOptions(merge: true));
-    } catch (e) {
-      rethrow;
-    }
+    } catch (e) { rethrow; }
   }
 
   Stream<UserModel?> getUserStream(String uid) {
@@ -170,12 +215,9 @@ class UserService {
   Stream<List<UserModel>> getLinkedMessengersStream(String clientId) {
     return _usersRef.doc(clientId).snapshots().asyncExpand((clientDoc) {
       if (!clientDoc.exists) return Stream.value([]);
-
       final data = clientDoc.data() as Map<String, dynamic>;
       final List<String> messengerIds = List<String>.from(data['linkedMessengerIds'] ?? []);
-
       if (messengerIds.isEmpty) return Stream.value([]);
-
       return _usersRef
           .where(FieldPath.documentId, whereIn: messengerIds)
           .snapshots()
@@ -188,9 +230,7 @@ class UserService {
       await _usersRef.doc(clientId).set({
         'linkedMessengerIds': FieldValue.arrayUnion([messengerId])
       }, SetOptions(merge: true));
-    } catch (e) {
-      rethrow;
-    }
+    } catch (e) { rethrow; }
   }
 
   Future<void> unlinkMessenger(String clientId, String messengerId) async {
@@ -198,12 +238,9 @@ class UserService {
       await _usersRef.doc(clientId).set({
         'linkedMessengerIds': FieldValue.arrayRemove([messengerId])
       }, SetOptions(merge: true));
-    } catch (e) {
-      rethrow;
-    }
+    } catch (e) { rethrow; }
   }
 
-  /// 🎙️ ACTUALIZAR CANAL DE RADIO ACTIVO (Para respuesta del Driver)
   Future<void> updateActiveRadioChannel(String userId, String? channelId, String? senderName) async {
     try {
       await _usersRef.doc(userId).set({
@@ -215,13 +252,6 @@ class UserService {
     }
   }
 
-  Stream<int> getReferralsCountStream(String messengerId) {
-    return _usersRef
-        .where('invitingMessengerId', isEqualTo: messengerId)
-        .snapshots()
-        .map((snapshot) => snapshot.docs.length);
-  }
-
   Future<String?> getPendingInvitationId() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -230,73 +260,6 @@ class UserService {
         await prefs.remove('pending_messenger_invitation');
       }
       return pendingId;
-    } catch (e) {
-      debugPrint("Error al recuperar invitación pendiente: $e");
-      return null;
-    }
-  }
-
-  /// ✨ ESTRATEGIA LAD DIGITAL SYSTEMS LLC: Procesamiento de Bonos de Reclutamiento
-  /// Implementa la lógica de "10 nuevos referidos = Mes Gratis" con candados anti-fraude.
-  Future<void> processReferralBonus(String recruiterId, String recruitedId) async {
-    final recruiterRef = _usersRef.doc(recruiterId);
-    final recruitedRef = _usersRef.doc(recruitedId);
-    final now = DateTime.now();
-    final currentMonthStr = "${now.year}-${now.month.toString().padLeft(2, '0')}";
-
-    try {
-      await FirebaseFirestore.instance.runTransaction((transaction) async {
-        final recruiterDoc = await transaction.get(recruiterRef);
-        final recruitedDoc = await transaction.get(recruitedRef);
-        
-        if (!recruiterDoc.exists || !recruitedDoc.exists) return;
-
-        final recruiterData = recruiterDoc.data() as Map<String, dynamic>;
-        final recruitedData = recruitedDoc.data() as Map<String, dynamic>;
-
-        // 🛡️ REGLA DE ORO 1: Un driver solo cuenta UNA VEZ en la historia de LAD.
-        if (recruitedData['hasBeenCountedForBonus'] == true) {
-          debugPrint("SISTEMA LAD: Driver reclutado ya fue contado anteriormente. No aplica bono.");
-          return;
-        }
-
-        // 🛡️ REGLA DE ORO 2: Conteo por ventana mensual (1 al 30/31).
-        String? lastReferralMonth = recruiterData['currentReferralMonth'];
-        int currentCount = recruiterData['monthlyDirectNetworkCount'] ?? 0;
-        
-        if (lastReferralMonth != currentMonthStr) {
-          // Es un mes nuevo para este reclutador, reseteamos contadores
-          currentCount = 0;
-          debugPrint("SISTEMA LAD: Nuevo mes detectado ($currentMonthStr). Reseteando contadores de bono.");
-        }
-
-        int newCount = currentCount + 1;
-
-        // 1. Marcar al reclutado como "Sello de un solo uso"
-        transaction.update(recruitedRef, {
-          'hasBeenCountedForBonus': true,
-          'driverCategory': 'direct_network',
-        });
-
-        // 2. Actualizar al reclutador con el nuevo conteo y mes
-        Map<String, dynamic> updates = {
-          'monthlyDirectNetworkCount': newCount,
-          'currentReferralMonth': currentMonthStr,
-        };
-
-        // 3. REGLA DE ORO 3: El bono se activa solo con 10 o más (Cero tolerancia a 9).
-        if (newCount >= 10) {
-          final nextMonth = DateTime(now.year, now.month + 1);
-          final bonusMonthStr = "${nextMonth.year}-${nextMonth.month.toString().padLeft(2, '0')}";
-          
-          updates['lastBonusMonthEarned'] = bonusMonthStr;
-          debugPrint("SISTEMA LAD: ¡Meta alcanzada! Bono de mes gratis otorgado para $bonusMonthStr");
-        }
-
-        transaction.update(recruiterRef, updates);
-      });
-    } catch (e) {
-      debugPrint("Error en processReferralBonus: $e");
-    }
+    } catch (e) { return null; }
   }
 }

@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:flutter/foundation.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -62,14 +61,16 @@ class OCRService {
 
   // Determina si el hardware aguanta "IA Pesada"
   Future<bool> isHighEndDevice() async {
+    // 🛡️ REFUERZO V19.0: En Web no hay IA local pesada.
     if (kIsWeb) return false;
+    
     try {
       DeviceInfoPlugin deviceInfo = DeviceInfoPlugin();
-      if (Platform.isAndroid) {
+      // Usamos el enum de foundation para máxima seguridad
+      if (defaultTargetPlatform == TargetPlatform.android) {
         AndroidDeviceInfo androidInfo = await deviceInfo.androidInfo;
-        // S24 Ultra y similares (SDK 30+ y mucha RAM usualmente)
         return androidInfo.version.sdkInt >= 30;
-      } else if (Platform.isIOS) {
+      } else if (defaultTargetPlatform == TargetPlatform.iOS) {
         IosDeviceInfo iosInfo = await deviceInfo.iosInfo;
         return !iosInfo.utsname.machine.contains('iPhone10') &&
             !iosInfo.utsname.machine.contains('iPhone9');
@@ -200,24 +201,25 @@ class OCRService {
   String? _detectCity(String text, String? zip) {
     // 🛡️ Buscamos patrones comunes: "City, ST" o "City ST 12345" o "City FL"
     final cityMatch = RegExp(r'\b([A-Z\s]{3,20})(?:,|\s+)(FL|GA|NY|TX|CA|NC|NV|SC|WA|IL|MD)\b').firstMatch(text);
-    if (cityMatch != null) return cityMatch.group(1)!.trim();
+    if (cityMatch != null) {
+      String city = cityMatch.group(1)!.trim();
+      // Eliminar palabras de UI que puedan haberse colado
+      final uiJunk = ['ESTÁS EN', 'ESTAS EN', 'VOLVER', 'CERRAR'];
+      for (var junk in uiJunk) { city = city.replaceAll(junk, '').trim(); }
+      return city.length > 2 ? city : null;
+    }
     
-    // Fallback: Si tenemos ZIP, la ciudad suele estar justo antes en la misma línea o la anterior
+    // Fallback: Si tenemos ZIP, la ciudad suele estar justo antes en la misma línea
     if (zip != null) {
       final lines = text.split('\n');
       for (int i = 0; i < lines.length; i++) {
         if (lines[i].contains(zip)) {
-          // Intentar en la misma línea antes del ZIP
-          final parts = lines[i].split(zip)[0].split(',');
-          if (parts.isNotEmpty) {
-            String c = parts.last.trim();
-            if (c.length > 3 && !RegExp(r'\d').hasMatch(c)) return c;
-          }
+          String lineBeforeZip = lines[i].split(zip)[0].trim();
+          // Eliminar el estado si está presente (ej: "HOMESTEAD FL" -> "HOMESTEAD")
+          lineBeforeZip = lineBeforeZip.replaceAll(RegExp(r'\b(FL|GA|NY|TX|CA|NC|NV|SC|WA|IL|MD)\b'), '').trim();
           
-          // Intentar la línea anterior completa
-          if (i > 0) {
-            String prev = lines[i-1].trim();
-            if (prev.length > 3 && prev.length < 20 && !RegExp(r'\d').hasMatch(prev)) return prev;
+          if (lineBeforeZip.length > 3 && !RegExp(r'\d').hasMatch(lineBeforeZip)) {
+            return lineBeforeZip;
           }
         }
       }
@@ -372,7 +374,29 @@ class OCRService {
     return null;
   }
 
-  String _cleanExtraSpaces(String text) => text.replaceAll(RegExp(r'\s+'), ' ').trim();
+  String _cleanExtraSpaces(String text) {
+    String clean = text.replaceAll(RegExp(r'\s+'), ' ').trim();
+    
+    // 🛡️ ANTI-DUPLICADOS RADICAL LAD: Buscamos cualquier ZIP de 5 dígitos que aparezca más de una vez
+    // y dejamos solo la primera aparición.
+    final allZips = RegExp(r'\b\d{5}\b').allMatches(clean).map((m) => m.group(0)).toSet();
+    for (var zip in allZips) {
+      if (zip == null) continue;
+      // Si el ZIP aparece más de una vez (ej: "33177 ... 33177")
+      if (RegExp('\\b$zip\\b').allMatches(clean).length > 1) {
+        // Reemplazamos todas las apariciones por un marcador temporal, luego restauramos solo la primera
+        int count = 0;
+        clean = clean.split(' ').map((word) {
+          if (word.replaceAll(',', '') == zip) {
+            count++;
+            return count == 1 ? word : ''; // Borramos las siguientes
+          }
+          return word;
+        }).join(' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+      }
+    }
+    return clean;
+  }
 
   void dispose() {
     _textRecognizer.close();

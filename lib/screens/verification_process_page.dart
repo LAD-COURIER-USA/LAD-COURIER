@@ -1,13 +1,15 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // 🛡️ PARA kIsWeb
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart'; 
+import 'package:cloud_functions/cloud_functions.dart'; // ✅ AÑADIDO PARA AUDITORÍA CLOUD
 import 'package:lad_courier/services/stripe_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/storage_service.dart';
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/screens/messenger/liveness_selfie_page.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
+import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
 
 class VerificationProcessPage extends StatefulWidget {
   const VerificationProcessPage({super.key});
@@ -19,6 +21,7 @@ class VerificationProcessPage extends StatefulWidget {
 class _VerificationProcessPageState extends State<VerificationProcessPage> with WidgetsBindingObserver {
   final StripeService _stripeService = StripeService();
   final UserService _userService = UserService();
+  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'us-central1'); // ✅ INSTANCIA DE FUNCIONES
 
   bool _isOnboardingLoading = false;
   bool _isBiometricLoading = false;
@@ -64,35 +67,52 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
         return;
       }
 
-      // SUBIMOS EL SELFIE VALIDADO AL BÚNKER
+      // SUBIMOS EL SELFIE VALIDADO
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("🚀 SUBIENDO SELFIE AL BÚNKER..."), duration: Duration(seconds: 2))
+        );
+      }
+
       final String? sessionSelfieUrl = await storage.uploadFile(
         'order_photos', 
         "session_${user.uid}_${DateTime.now().millisecondsSinceEpoch}", 
-        File(localPath)
+        localPath
       );
 
       if (sessionSelfieUrl == null) {
-        setState(() => _isBiometricLoading = false);
-        return;
+        throw "Error crítico: No se pudo subir la foto al búnker.";
       }
 
-      // 2. VALIDACIÓN POR HUELLA DACTILAR (Dueño del dispositivo)
-      // ☝️ El sensor del teléfono confirma que el usuario es el autorizado.
-      final bool isAuthentic = await _userService.authenticateBiometric(
-        reason: "Confirma tu identidad con tu huella para validar la selfie de hoy."
-      );
-
-      if (!isAuthentic) {
+      // 3. AUDITORÍA FORENSE (SISTEMA LAD V18.5)
+      if (kIsWeb) {
         if (mounted) {
-          scaffoldMessenger.showSnackBar(
-            const SnackBar(content: Text("❌ FALLO DE IDENTIDAD: La huella no coincide."), backgroundColor: Colors.red),
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("👁️ AUDITANDO IDENTIDAD (IA GOOGLE)..."), duration: Duration(seconds: 2))
           );
         }
-        return;
+
+        final result = await _functions.httpsCallable('verifyLivenessCloud').call({
+          'imageUrl': sessionSelfieUrl,
+        });
+
+        if (result.data['success'] != true) {
+          throw result.data['error'] ?? "Fallo en la auditoría de identidad.";
+        }
+        debugPrint("✅ SISTEMA LAD: Auditoría Forense APROBADA.");
       }
 
-      // 3. ACTUALIZACIÓN FINAL (SISTEMA LAD 24H)
-      // Guardamos la evidencia y marcamos el éxito.
+      // 4. VALIDACIÓN POR HUELLA DACTILAR (Solo Nativo)
+      if (!kIsWeb) {
+        final bool isAuthentic = await _userService.authenticateBiometric(
+          reason: "Confirma tu identidad con tu huella para validar la selfie de hoy."
+        );
+        if (!isAuthentic) {
+          throw "La huella no coincide.";
+        }
+      }
+
+      // 5. ACTUALIZACIÓN FINAL
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
         'lastSessionSelfieUrl': sessionSelfieUrl,
         'last_biometric_verification': FieldValue.serverTimestamp(),
@@ -182,8 +202,17 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
           );
         }
 
-        final bool hasStripeAccount = userModel.stripeAccountId != null && userModel.stripeAccountId!.isNotEmpty;
-        final bool isBankActive = userModel.stripeStatus == 'active' || userModel.isStripeConnected == true;
+        final bool isLive = StripeModeService().isLive();
+        
+        // 🛡️ REGLA DOBLE ADN REFORZADA: Solo está activo si el status es 'active'
+        final bool isBankActive = isLive 
+            ? (userModel.stripeStatusLive == 'active')
+            : (userModel.stripeStatus == 'active' || userModel.isStripeConnected == true);
+
+        final bool hasStripeAccount = isLive 
+            ? (userModel.stripeAccountIdLive != null)
+            : (userModel.stripeAccountId != null && userModel.stripeAccountId!.isNotEmpty);
+
         final bool isIdentityVerified = userModel.isIdentityVerified || userModel.verificationStatus == 'APROBADO_DOC';
 
         return Scaffold(

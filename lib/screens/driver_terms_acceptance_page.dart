@@ -119,7 +119,7 @@ class _DriverTermsAcceptancePageState extends State<DriverTermsAcceptancePage> {
                     """ACUERDO DE LICENCIA DE SOFTWARE, TÉRMINOS DE USO Y DESCARGO DE RESPONSABILIDAD (DISCHARGE) – PLATAFORMA LAD COURIER
 Operado por: LAD DIGITAL SYSTEMS LLC
 Jurisdicción: Florida, USA
-Última Actualización: 17 de mayo de 2026
+Última Actualización: 6 de julio de 2026
 
 Este documento constituye un contrato legal y vinculante entre LAD DIGITAL SYSTEMS LLC (en adelante, "La Compañía") y el usuario que se registra para operar como conductor (en adelante, "El Driver"). Al completar el registro y presionar "Aceptar", El Driver declara conocer, entender y aceptar la totalidad de las cláusulas aquí expuestas.
 
@@ -139,20 +139,26 @@ El Driver es el único y exclusivo responsable de la operación legal y operativ
 
 ARTÍCULO 4: MODELO FINANCIERO Y TARIFA DE SERVICIO (SERVICE FEE)
 4.1 Costo por Orden Exitosa: LAD DIGITAL SYSTEMS LLC no cobra mensualidades dinámicas ni comisiones porcentuales sobre el valor total estipulado entre las partes. La Compañía cobrará una tarifa de servicio fija de \$0.70 USD (setenta centavos de dólar) por cada orden completada y marcada como exitosa en la plataforma.
-4.2 Independencia del Costo del Envío: Esta tarifa se mantendrá fija independientemente del costo total del servicio negociado entre el Cliente y el Driver.
-4.3 Modificación Discrecional: LAD DIGITAL SYSTEMS LLC se reserva el derecho explícito de modificar el monto de esta tarifa de servicio en el futuro a su sola discreción, notificando los cambios a través de la aplicación.
+4.2 Pagos y Liquidación (Payouts): Los pagos al Driver se procesarán de forma semanal con un retraso rodante de 7 días a partir de la finalización del servicio, con el fin de gestionar posibles reclamaciones de clientes o irregularidades en el proceso.
+4.3 Independencia del Costo del Envío: Esta tarifa se mantendrá fija independientemente del costo total del servicio negociado entre el Cliente y el Driver.
+4.4 Modificación Discrecional: LAD DIGITAL SYSTEMS LLC se reserva el derecho explícito de modificar el monto de esta tarifa de servicio en el futuro a su sola discreción, notificando los cambios a través de la aplicación.
 
 ARTÍCULO 5: PROCESAMIENTO DE PAGOS MEDIANTE STRIPE (KYC Y CONECTIVIDAD)
 5.1 Pasarela Externa de Pago: El ecosistema financiero de LAD COURIER utiliza la infraestructura de Stripe (mediante sus servicios de procesamiento y conectividad) para canalizar las transacciones. Stripe actúa como el procesador bancario externo tanto para Clientes como para Drivers.
 5.2 Cumplimiento Obligatorio (KYC): Para poder cobrar o procesar fondos, el Driver debe completar satisfactoriamente los requisitos de verificación de identidad, fiscales y bancarios exigidos directamente por Stripe (Know Your Customer / KYC). El Driver acepta someterse a las normativas de Stripe y reconoce que LAD DIGITAL SYSTEMS LLC no almacena ni gestiona datos de cuentas bancarias ni tarjetas de crédito en sus servidores Firebase.
 
-ARTÍCULO 6: POLÍTICA DE DATOS, FOTOS Y VENTANA DE SEGURIDAD (36 HORAS)
+ARTÍCULO 6: POLÍTICA DE DATOS, FOTOS Y VENTANA DE SEGURIDAD (10 DÍAS)
 6.1 Consentimiento de Uso de Datos: Tanto los Drivers como los Clientes consienten explícitamente el uso, captura y visualización de fotografías, datos de contacto, geolocalización e información de los puntos de recogida y entrega estrictamente para los fines operativos del proyecto logístico.
-6.2 Ventana de Resguardo por Seguridad (36 Horas): Por motivos de seguridad y resolución de disputas comerciales o técnicas, la información completa de cada orden exitosa (incluyendo imágenes de respaldo y coordenadas) se almacenará en la infraestructura de la plataforma y estará al alcance tanto del Driver como del Cliente por un periodo estricto de 36 horas.
-6.3 Eliminación Automatizada: Transcurrido el plazo de 36 horas, dichos datos operativos serán purgados o desvinculados de la interfaz activa para garantizar la privacidad total y optimización del sistema, siendo responsabilidad del Driver exportar o guardar sus reportes contables o respaldos privados en su propio dispositivo antes de cumplirse este tiempo.
+6.2 Ventana de Resguardo por Seguridad (10 Días): Por motivos de seguridad, liquidación de pagos y resolución de disputas comerciales o técnicas, la información completa de cada orden exitosa (incluyendo imágenes de respaldo y coordenadas) se almacenará en la infraestructura de la plataforma por un periodo de 10 días.
+6.3 Eliminación Automatizada: Transcurrido el plazo de 10 días, dichos datos operativos serán purgados o desvinculados de la interfaz activa, siendo responsabilidad del Driver exportar sus reportes contables si lo requiere.
 
 ARTÍCULO 7: CLÁUSULA DE INDEMNIZACIÓN Y DESCARGO DE RESPONSABILIDAD (DISCHARGE)
-El Driver acepta defender, indemnizar y mantener indemne a LAD DIGITAL SYSTEMS LLC, sus gerentes, propietarios y afiliados, frente a cualquier demanda, reclamación, pérdida, multa gubernamental, gasto legal o responsabilidad civil derivada de accidentes de tránsito, disputas comerciales con los clientes, daños a terceros, o violaciones legales cometidas por el Driver durante el uso de la aplicación.""",
+El Driver acepta defender, indemnizar y mantener indemne a LAD DIGITAL SYSTEMS LLC, sus gerentes, propietarios y afiliados, frente a cualquier demanda, reclamación, pérdida, multa gubernamental, gasto legal o responsabilidad civil derivada de accidentes de tránsito, disputas comerciales con los clientes, daños a terceros, o violaciones legales cometidas por el Driver durante el uso de la aplicación.
+
+ARTÍCULO 8: POLÍTICA DE CANCELACIÓN Y RESERVA DE FONDOS
+8.1 Reserva en Recogida: Una vez que el Driver ha iniciado formalmente la ruta hacia el punto de recogida (cambio de estado a "En ruta a recogida"), la plataforma realizará una reserva (hold) de los fondos en el método de pago del Cliente.
+8.2 Restricción de Cancelación: A partir del momento de la reserva de fondos mencionada en el punto anterior, el Cliente ya no podrá cancelar la orden de forma unilateral a través de la aplicación, quedando garantizado el pago del servicio para el Driver independiente.
+""",
                     textAlign: TextAlign.justify,
                     style: TextStyle(fontSize: 11, height: 1.2, color: Colors.black87, fontWeight: FontWeight.w500),
                   ),

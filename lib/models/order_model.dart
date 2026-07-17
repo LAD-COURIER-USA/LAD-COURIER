@@ -37,6 +37,8 @@ class OrderModel {
   final List<Map<String, dynamic>> negotiationHistory;
   final String? lastPriceOfferedBy;
   final Timestamp createdAt;
+  final Timestamp? pickupStartedAt; // ⏱️ NUEVO: Inicio de ruta a recogida
+  final Timestamp? pickedUpAt;      // ⏱️ NUEVO: Momento de recogida real
   final String? deliveryProofUrl;
   final String? productPhotoUrl;
   final String? driverAuditSelfieUrl; // 🤳 NUEVO: Selfie del driver del día del servicio
@@ -68,6 +70,8 @@ class OrderModel {
     required this.negotiationHistory,
     this.lastPriceOfferedBy,
     required this.createdAt,
+    this.pickupStartedAt,
+    this.pickedUpAt,
     this.pickupLatLng,
     this.dropoffLatLng,
     this.completionLatLng,
@@ -103,6 +107,8 @@ class OrderModel {
       negotiationHistory: List<Map<String, dynamic>>.from(data['negotiationHistory'] ?? []),
       lastPriceOfferedBy: data['lastPriceOfferedBy'],
       createdAt: data['createdAt'] ?? Timestamp.now(),
+      pickupStartedAt: data['pickupStartedAt'],
+      pickedUpAt: data['pickedUpAt'],
       pickupLatLng: data['pickupLatLng'],
       dropoffLatLng: data['dropoffLatLng'],
       completionLatLng: data['completionLatLng'],
@@ -137,6 +143,8 @@ class OrderModel {
       'negotiationHistory': negotiationHistory,
       'lastPriceOfferedBy': lastPriceOfferedBy,
       'createdAt': createdAt,
+      'pickupStartedAt': pickupStartedAt,
+      'pickedUpAt': pickedUpAt,
       'pickupLatLng': pickupLatLng,
       'dropoffLatLng': dropoffLatLng,
       'completionLatLng': completionLatLng,

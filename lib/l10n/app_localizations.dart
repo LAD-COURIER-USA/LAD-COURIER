@@ -1937,8 +1937,14 @@ abstract class AppLocalizations {
   /// No description provided for @driver_agreement_body.
   ///
   /// In es, this message translates to:
-  /// **'LAD DIGITAL SYSTEMS LLC le otorga una licencia de uso de software limitada, no exclusiva y revocable. Usted reconoce que LAD no es su empleador. Esta licencia puede ser cancelada en cualquier momento y por cualquier circunstancia a discreción de LAD. El Service Fee (\$0.70) y los términos pueden cambiar con previo aviso digital.'**
+  /// **'LAD DIGITAL SYSTEMS LLC le otorga una licencia de uso de software limitada, no exclusiva y revocable. Usted reconoce que LAD no es su empleador. Las reclamaciones se gestionan durante una ventana de seguridad de 10 días. Los pagos se procesan semanalmente con un retraso de 7 días. Las órdenes no pueden ser canceladas por el cliente una vez que el conductor ha iniciado el proceso de recogida, ya que los fondos se reservan en ese momento. El Service Fee (\$0.70) y los términos pueden cambiar con previo aviso digital.'**
   String get driver_agreement_body;
+
+  /// No description provided for @client_cancel_blocked_pickup.
+  ///
+  /// In es, this message translates to:
+  /// **'No se puede cancelar la orden. El conductor ya está en camino a recoger su paquete y los fondos han sido reservados.'**
+  String get client_cancel_blocked_pickup;
 
   /// No description provided for @common_payment_required_title.
   ///
@@ -2210,6 +2216,42 @@ abstract class AppLocalizations {
   /// **'Tus datos están encriptados y son procesados directamente por Stripe bajo estándares bancarios.'**
   String get verif_footer;
 
+  /// No description provided for @order_status_driver_busy.
+  ///
+  /// In es, this message translates to:
+  /// **'DRIVER OCUPADO'**
+  String get order_status_driver_busy;
+
+  /// No description provided for @order_status_route_problems.
+  ///
+  /// In es, this message translates to:
+  /// **'PROBLEMAS EN LA RUTA'**
+  String get order_status_route_problems;
+
+  /// No description provided for @order_status_driver_timeout.
+  ///
+  /// In es, this message translates to:
+  /// **'EL DRIVER NO LLEGÓ A TIEMPO. ASIGNE OTRO.'**
+  String get order_status_driver_timeout;
+
+  /// No description provided for @order_cancel_dialog_title.
+  ///
+  /// In es, this message translates to:
+  /// **'¿CANCELAR ORDEN?'**
+  String get order_cancel_dialog_title;
+
+  /// No description provided for @order_cancel_dialog_body.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta acción cancelará la solicitud definitivamente.'**
+  String get order_cancel_dialog_body;
+
+  /// No description provided for @order_cancel_btn_confirm.
+  ///
+  /// In es, this message translates to:
+  /// **'SÍ, CANCELAR'**
+  String get order_cancel_btn_confirm;
+
   /// No description provided for @ss_dialog_title.
   ///
   /// In es, this message translates to:
@@ -2251,6 +2293,30 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'No pudimos extraer una dirección clara de la imagen. Por favor, asegúrate de que el ticket sea legible o ingresa la dirección manualmente.'**
   String get ss_ocr_error_body;
+
+  /// No description provided for @order_status_delivery_delayed.
+  ///
+  /// In es, this message translates to:
+  /// **'ENTREGA RETRASADA'**
+  String get order_status_delivery_delayed;
+
+  /// No description provided for @order_status_delivery_delayed_msg.
+  ///
+  /// In es, this message translates to:
+  /// **'ESTA ENTREGA LLEVA MÁS DE 2 HORAS. HEMOS NOTIFICADO AL DRIVER.'**
+  String get order_status_delivery_delayed_msg;
+
+  /// No description provided for @driver_quarantine_title.
+  ///
+  /// In es, this message translates to:
+  /// **'MODO CUARENTENA ACTIVO'**
+  String get driver_quarantine_title;
+
+  /// No description provided for @driver_quarantine_body.
+  ///
+  /// In es, this message translates to:
+  /// **'Llevas más de 2 horas con una entrega pendiente. No podrás recibir nuevas misiones hasta completar tus entregas activas.'**
+  String get driver_quarantine_body;
 }
 
 class _AppLocalizationsDelegate

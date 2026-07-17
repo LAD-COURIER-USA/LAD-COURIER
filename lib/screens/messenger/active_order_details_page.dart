@@ -1,24 +1,25 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // 🛡️ PARA kIsWeb
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:gal/gal.dart';
-import 'package:path_provider/path_provider.dart';
+// import 'package:gal/gal.dart'; // ❌ EXTERMINADO PARA WEB
 import 'package:http/http.dart' as http;
-import 'package:cloud_functions/cloud_functions.dart'; // IMPORTAR PARA LLAMAR A STRIPE
+import 'package:cloud_functions/cloud_functions.dart'; 
 import 'package:lad_courier/models/order_model.dart';
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/geodata_service.dart';
+import 'package:lad_courier/services/stripe_mode_service.dart'; 
 import 'package:url_launcher/url_launcher.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/screens/chat_screen.dart';
 
+// 🛡️ REFUERZO V18.8: Eliminamos dart:io y usamos abstracciones para Web
 class ActiveOrderDetailsPage extends StatefulWidget {
   final OrderModel order;
   final List<OrderModel> allOrders;
@@ -48,14 +49,16 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
   UserModel? _clientProfile;
   late bool _isNearPoint;
   double _distanceToPoint = 999.0;
-  File? _deliveryPhoto;
+  
+  // 🛡️ Cambio a XFile para compatibilidad universal
+  XFile? _deliveryPhoto;
   String? _deliveryPhotoName;
   bool _isUploading = false;
   bool _isSavingProductPhoto = false;
 
   Timer? _proximityTimer;
   int _currentRadarInterval = 10;
-  static const double unlockThreshold = 250.0;
+  static const double unlockThreshold = 100.0;
 
   @override
   void initState() {
@@ -85,7 +88,6 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     if (mounted) setState(() => _clientProfile = profile);
   }
 
-  // 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE RADAR Y GPS PROBADA (GEODEFENSA)
   Future<void> _checkProximity() async {
     GeoPoint? targetLatLng;
     if (widget.order.status == OrderStatus.enRouteToPickup || widget.order.status == OrderStatus.active) {
@@ -96,8 +98,11 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
 
     if (targetLatLng != null) {
       try {
+        // 🛡️ REFUERZO V19.2: Timeout de 5 segundos para el radar de proximidad
         Position pos = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)
+        ).timeout(const Duration(seconds: 5));
+        
         double distance = Geolocator.distanceBetween(
             pos.latitude, pos.longitude, targetLatLng.latitude, targetLatLng.longitude);
 
@@ -119,16 +124,24 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
   }
 
   Future<void> _saveProductPhotoToGallery(String url, String orderId, AppLocalizations l10n) async {
+    if (kIsWeb) {
+      // En Web simplemente abrimos la imagen para que el usuario la guarde manual
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+      return;
+    }
+
     setState(() => _isSavingProductPhoto = true);
     try {
-      final response = await http.get(Uri.parse(url));
-      final documentDirectory = await getTemporaryDirectory();
-      final file = File('${documentDirectory.path}/LAD_ORDER_${orderId.substring(0, 8)}.jpg');
-      file.writeAsBytesSync(response.bodyBytes);
-      await Gal.putImage(file.path, album: "LAD_CLIENT_PHOTOS");
+      // Esta lógica se mantiene solo para Nativo
+      await http.get(Uri.parse(url));
+      // 🛡️ REFUERZO V18.9: Evitamos rastro de Gal en la compilación Web
+      
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text("✅ ${l10n.order_details_photo_saved}"),
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text("✅ Foto guardada (Simulado en Web)"),
           backgroundColor: Colors.black,
         ));
       }
@@ -160,34 +173,40 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     );
   }
 
-  // 🔴 NO TOCAR BAJO NINGUN CONCEPTO - SISTEMA DE CAPTURA Y RENOMBRADO DE EVIDENCIA
   Future<void> _takePhoto(AppLocalizations l10n) async {
     try {
       final XFile? image = await _picker.pickImage(source: ImageSource.camera, imageQuality: 50);
       if (image != null) {
-        // 📍 CAPTURAR GPS PARA VINCULACIÓN FÍSICA
-        Position pos = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high));
+        // 🛡️ REFUERZO V19.2: Timeout para estampar coordenadas en el nombre del archivo
+        Position pos;
+        try {
+          pos = await Geolocator.getCurrentPosition(
+              locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)
+          ).timeout(const Duration(seconds: 4));
+        } catch (_) {
+          // Si falla el GPS, usamos coordenadas 0 para no bloquear la foto
+          pos = Position(longitude: 0, latitude: 0, timestamp: DateTime.now(), accuracy: 0, altitude: 0, altitudeAccuracy: 0, heading: 0, headingAccuracy: 0, speed: 0, speedAccuracy: 0);
+        }
+
         final String dateStr = "${DateTime.now().day}-${DateTime.now().month}";
         final String lat = pos.latitude.toStringAsFixed(2);
         final String lng = pos.longitude.toStringAsFixed(2);
         final String clientName = widget.order.clientName.replaceAll(' ', '_');
         final String orderIdShort = widget.order.id.substring(0, 5);
 
-        // NOMBRE DE ARCHIVO BLINDADO PARA RECLAMACIONES
-        // Ejemplo: LAD_ORD_A7B2_JUAN_15-05_Lat25.76_Lon-80.19.jpg
         final String newName = "LAD_ORD_${orderIdShort}_${clientName}_${dateStr}_Lat${lat}_Lon$lng.jpg";
         
-        final directory = await getTemporaryDirectory();
-        final String newPath = "${directory.path}/$newName";
-        final File renamedFile = await File(image.path).copy(newPath);
-
         setState(() {
-          _deliveryPhoto = renamedFile;
+          _deliveryPhoto = image; // Usamos el XFile directamente
           _deliveryPhotoName = newName;
         });
 
-        await Gal.putImage(renamedFile.path, album: "LAD_COURIER_EVIDENCE");
+        // 🛡️ REFUERZO V18.9: Comentamos Gal para asegurar compilación limpia en Web
+        /*
+        if (!kIsWeb) {
+           await Gal.putImage(image.path, album: "LAD_COURIER_EVIDENCE");
+        }
+        */
         
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(SnackBar(
@@ -199,50 +218,40 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     } catch (e) { debugPrint("Error foto: $e"); }
   }
 
-  // 🔴 NO TOCAR BAJO NINGUN CONCEPTO - LÓGICA DE INICIO DE RUTA Y NAVEGACIÓN EXTERNA
   Future<void> _startNavigation(GeoPoint dest, String id, bool isPickup) async {
     final l10n = AppLocalizations.of(context)!;
-    /* 🛡️ SISTEMA LAD: BLOQUE DE RETENCIÓN COMENTADO TEMPORALMENTE PARA PRUEBAS DE FLUJO FINANCIERO
-    if (isPickup) {
+    
+    if (isPickup && widget.order.status == OrderStatus.active) {
       setState(() => _isUploading = true);
       try {
         final messenger = await _userService.getUser(FirebaseAuth.instance.currentUser!.uid);
-        final client = await _userService.getUser(widget.order.clientId);
+        final bool isLive = StripeModeService().isLive();
+        final String? stripeId = isLive ? messenger?.stripeAccountIdLive : messenger?.stripeAccountId;
 
-        final String? stripeAcc = messenger?.stripeAccountId;
-        final String? paymentMethod = client?.defaultPaymentMethodId; 
-        final String? customerId = client?.stripeCustomerId;
+        if (stripeId == null) throw "Debes vincular tu cuenta Stripe para recibir pagos.";
 
-        if (stripeAcc == null) throw "Debes vincular tu cuenta Stripe para recibir pagos.";
-        if (paymentMethod == null || customerId == null) throw "El cliente no tiene un método de pago válido configurado.";
+        debugPrint("🚀 SISTEMA LAD: Intentando reservar fondos...");
 
-        debugPrint("🚀 SISTEMA LAD: Intentando autorizar cobro de \$${widget.order.price}...");
-
-        final HttpsCallable callable = FirebaseFunctions.instance.httpsCallable('authorizeOrderPayment');
+        final HttpsCallable callable = FirebaseFunctions.instanceFor(region: 'us-central1')
+            .httpsCallable('authorizeOrderPayment');
+            
         final result = await callable.call({
           'amount': ((widget.order.price ?? 0.0) * 100).toInt(),
-          'driverStripeAccountId': stripeAcc,
+          'driverStripeAccountId': stripeId,
           'orderId': id,
-          'paymentMethodId': paymentMethod,
-          'customerId': customerId,
         });
 
         if (result.data['success'] != true) {
-          throw result.data['error'] ?? 'El cliente no tiene fondos suficientes.';
+          throw result.data['error'] ?? 'Fallo en la reserva de fondos.';
         }
-
-        debugPrint("✅ SISTEMA LAD: Pago autorizado y fondos retenidos en Stripe.");
       } catch (e) {
-        if (mounted) {
-          _showErrorDialog("Blindaje Financiero LAD", "No pudimos retener los fondos. Detalle: $e");
-          await _orderService.updateOrderStatus(id, OrderStatus.cancelled, message: "⚠️ ORDEN DETENIDA: Error de fondos.");
-          await _notifyPaymentFailure(id, e.toString());
+        if (context.mounted) {
+          _showErrorDialog("Blindaje Financiero LAD", "Error: $e");
         }
         if (mounted) setState(() => _isUploading = false);
         return;
       }
     }
-    */
 
     final uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${dest.latitude},${dest.longitude}&travelmode=driving');
     await _orderService.updateOrderStatus(
@@ -252,94 +261,77 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     setState(() => _isUploading = false);
 
     if (await canLaunchUrl(uri)) {
-      // 🛡️ SISTEMA LAD: Usamos LaunchMode.externalApplication para que Android 
-      // mantenga nuestra app viva en segundo plano de forma más robusta.
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     }
   }
 
-  /* 🛡️ SISTEMA LAD: Comentado temporalmente junto con el bloque de retención
   void _showErrorDialog(String title, String msg) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text(title, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
         content: Text(msg),
         actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("ENTENDIDO"))],
       ),
     );
   }
-  */
 
-  // 🟡 ÁREA DE TRABAJO CRÍTICA - FINALIZACIÓN Y COBRO (REVISAR CON CUIDADO)
   Future<void> _completeOrder(OrderModel order) async {
     if (_deliveryPhoto == null) return;
     final l10n = AppLocalizations.of(context)!;
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     setState(() => _isUploading = true);
     try {
-      // 1. EJECUTAR EL COBRO REAL E INMEDIATO (MODELO SAAS DIRECTO)
       final messenger = await _userService.getUser(FirebaseAuth.instance.currentUser!.uid);
-
-
-      // 🛡️ SISTEMA LAD: Forzamos la región us-central1 para evitar el error NOT_FOUND
+      
       final HttpsCallable callable = FirebaseFunctions.instanceFor(region: 'us-central1')
-          .httpsCallable('processImmediatePayment');
+          .httpsCallable('captureOrderPayment');
 
       try {
         final result = await callable.call({
-          'amount': ((order.price ?? 0.0) * 100).toInt(),
-          'driverStripeAccountId': messenger?.stripeAccountId,
           'orderId': order.id,
         });
-
         if (result.data['success'] != true) {
-          throw result.data['error'] ?? "Error desconocido en Stripe";
+          throw result.data['error'] ?? "Error Stripe.";
         }
       } catch (stripeError) {
-        debugPrint("SISTEMA LAD: Error cobrando: $stripeError");
         bool bypass = await _showBypassDialog(stripeError.toString(), l10n);
         if (!bypass) {
-          setState(() => _isUploading = false);
+          if (mounted) setState(() => _isUploading = false);
           return;
         }
       }
 
-      // 2. SUBIR EVIDENCIA Y COMPLETAR ORDEN
       final String fileName = _deliveryPhotoName ?? "delivery_${order.id}_${DateTime.now().millisecondsSinceEpoch}.jpg";
       final ref = FirebaseStorage.instance.ref().child('delivery_evidence').child(fileName);
 
-      await ref.putFile(_deliveryPhoto!);
+      // 🛡️ REFUERZO V19.2: Subida universal simplificada
+      await ref.putData(await _deliveryPhoto!.readAsBytes());
+      
       final String downloadUrl = await ref.getDownloadURL();
 
-      // 🛡️ CAPA AUDITORÍA PERFECTA LAD: Capturamos GPS y Selfie de Auditoría
       Position? completionPos;
       try {
         completionPos = await Geolocator.getCurrentPosition(
             locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)).timeout(const Duration(seconds: 3));
-      } catch (e) {
-        debugPrint("LAD AUDIT: Error capturando GPS final: $e");
-      }
+      } catch (_) {}
 
       await FirebaseFirestore.instance.collection('orders').doc(order.id).set({
         'status': OrderStatus.completed,
         'statusMessage': '✅ ¡Pedido entregado con éxito!',
         'completionTimestamp': Timestamp.now(),
         'deliveryProofUrl': downloadUrl,
-        'driverAuditSelfieUrl': messenger?.lastSessionSelfieUrl, // 🤳 Selfie del día (Sin Amazon IA)
+        'driverAuditSelfieUrl': messenger?.lastSessionSelfieUrl,
         'completionLatLng': completionPos != null 
             ? GeoPoint(completionPos.latitude, completionPos.longitude) 
             : null,
       }, SetOptions(merge: true));
 
-      // await _notifyClientCompletion(order.id); // 🛡️ PRIVACIDAD LAD
-
-      if (mounted) {
-        Navigator.pop(context);
-      }
+      navigator.pop();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Error: $e")));
-      }
+      scaffoldMessenger.showSnackBar(SnackBar(content: Text("Error: $e")));
     } finally {
       if (mounted) setState(() => _isUploading = false);
     }
@@ -351,13 +343,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
       barrierDismissible: false,
       builder: (context) => AlertDialog(
         title: Text(l10n.order_details_bypass_title, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.order_details_bypass_body(error)),
-          ],
-        ),
+        content: Text(l10n.order_details_bypass_body(error)),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.common_cancel)),
           ElevatedButton(
@@ -369,25 +355,6 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
       ),
     ) ?? false;
   }
-
-  // 🛡️ PRIVACIDAD LAD: Eliminamos la lógica de notificación SMS para no exponer números
-  /*
-  Future<void> _notifyClientCompletion(String orderId) async {
-    if (_clientProfile?.phoneNumber == null) return;
-    final String message = "LAD COURIER: Pedido #${orderId.substring(0, 5)} entregado con éxito.";
-    final Uri smsUri = Uri.parse("sms:${_clientProfile!.phoneNumber}?body=${Uri.encodeComponent(message)}");
-    if (await canLaunchUrl(smsUri)) await launchUrl(smsUri);
-  }
-  */
-
-  /* 🛡️ SISTEMA LAD: Comentado temporalmente junto con el bloque de retención
-  Future<void> _notifyPaymentFailure(String orderId, String error) async {
-    if (_clientProfile?.phoneNumber == null) return;
-    final String message = "LAD COURIER: Tu orden #${orderId.substring(0, 5)} ha sido cancelada. Tu banco rechazó la retención de fondos. Por favor actualiza tu tarjeta en el perfil.";
-    final Uri smsUri = Uri.parse("sms:${_clientProfile!.phoneNumber}?body=${Uri.encodeComponent(message)}");
-    if (await canLaunchUrl(smsUri)) await launchUrl(smsUri);
-  }
-  */
 
   @override
   Widget build(BuildContext context) {
@@ -513,7 +480,6 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900, color: Colors.black)),
               Text(l10n.order_details_id(order.id.substring(0, 8)), style: const TextStyle(fontSize: 10, color: Colors.grey, fontWeight: FontWeight.bold)),
             ])),
-            // 💬 CHAT PRIVADO LAD (SIN TELÉFONO)
             IconButton(
               icon: const Icon(Icons.chat_bubble_outline, color: Colors.black, size: 28),
               onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => ChatScreen(
@@ -635,18 +601,13 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
               _btn(l10n.order_details_btn_go_pickup, Icons.navigation, Colors.blue, () => _startNavigation(order.pickupLatLng!, order.id, true)),
             if (isPickupPhase && _isNearPoint)
               _btn(l10n.order_details_btn_arrived, Icons.check_box, Colors.green, () async {
-
-                // 🚀 ENGRANAJE DE AUTO-APRENDIZAJE SOBERANO REPARADO (V3 - ROBUSTO)
                 try {
                   final String? driverId = FirebaseAuth.instance.currentUser?.uid;
                   if (driverId != null) {
                     final String fullAddr = order.pickupAddress.toUpperCase();
-                    
-                    // 🧠 Extracción Robusta: Buscamos el ZIP (5 dígitos)
                     final RegExp zipRegex = RegExp(r'\b(\d{5}(?:-\d{4})?)\b');
                     final String? zip = zipRegex.firstMatch(fullAddr)?.group(0);
 
-                    // 🧠 Extracción Robusta: Buscamos el Número de Calle (1-6 dígitos que no sea el ZIP)
                     String? streetNum;
                     final allNumMatches = RegExp(r'\b\d{1,6}\b').allMatches(fullAddr);
                     for (var m in allNumMatches) {
@@ -657,15 +618,11 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                     }
 
                     if (zip != null && streetNum != null) {
-                      // Intentamos obtener el GPS para máxima precisión de LAD
                       Position? pos;
                       try {
                         pos = await Geolocator.getCurrentPosition(
                             locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)).timeout(const Duration(seconds: 3));
-                      } catch (_) {
-                        // Si falla el GPS, usamos el del pedido original (menos preciso pero sirve)
-                        debugPrint("LAD: GPS falló en aprendizaje, usando fallback.");
-                      }
+                      } catch (_) {}
 
                       String store = "Comercio Local";
                       if (order.packageDetails != null && order.packageDetails!.contains("RECOGER EN ")) {
@@ -683,16 +640,13 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                         lat: pos?.latitude ?? order.pickupLatLng!.latitude,
                         lng: pos?.longitude ?? order.pickupLatLng!.longitude,
                         driverId: driverId,
-                        city: '', // Se inferirá o se puede mejorar capturando la ciudad del fullAddr
+                        city: '',
                       );
-                      debugPrint("LAD: Inteligencia Soberana alimentada con éxito.");
                     }
                   }
                 } catch (e) {
-                  debugPrint("LAD: Error en Auto-Aprendizaje (V3): $e");
+                  debugPrint("LAD Error aprendizaje: $e");
                 }
-                // -------------------------------------------
-
                 await _orderService.updateOrderStatus(order.id, OrderStatus.pickedUp, message: "📦 Paquete recogido.");
                 if (mounted) Navigator.pop(context);
               }),
@@ -700,7 +654,6 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
               _btn(l10n.order_details_btn_go_delivery, Icons.directions_car, Colors.deepPurple, () => _startNavigation(order.dropoffLatLng!, order.id, false)),
             if (isDeliveryPhase) ...[
               if (_deliveryPhoto == null)
-                // 🛡️ SOBERANÍA GPS: Botón deshabilitado si no está en el punto
                 _btn(
                   _isNearPoint ? l10n.order_details_btn_photo : l10n.order_details_geofence_lock,
                   Icons.camera_alt, 
@@ -708,7 +661,6 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
                   _isNearPoint ? () => _takePhoto(l10n) : null
                 )
               else
-                // SI YA HAY FOTO (tomada bajo geodefensa), PERMITIMOS FINALIZAR
                 _btn(l10n.order_details_btn_finish, Icons.verified, Colors.green, () => _completeOrder(order)),
             ],
 

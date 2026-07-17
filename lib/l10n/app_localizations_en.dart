@@ -1003,7 +1003,11 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get driver_agreement_body =>
-      'LAD DIGITAL SYSTEMS LLC grants you a limited, non-exclusive and revocable software use license. You acknowledge that LAD is not your employer. This license can be canceled at any time and for any circumstance at LAD\'s discretion. The Service Fee (\$0.70) and terms may change with prior digital notice.';
+      'LAD DIGITAL SYSTEMS LLC grants you a limited, non-exclusive and revocable software use license. You acknowledge that LAD is not your employer. Potential claims are managed during a 10-day security window. Payouts are processed weekly with a 7-day rolling delay. Orders cannot be canceled by the client once the driver has initiated the pickup process, as funds are reserved at that moment. The Service Fee (\$0.70) and terms may change with prior digital notice.';
+
+  @override
+  String get client_cancel_blocked_pickup =>
+      'Cannot cancel order. The driver is already on the way to pick up your package and funds have been reserved.';
 
   @override
   String get common_payment_required_title => 'PAYMENT LINK REQUIRED';
@@ -1155,6 +1159,26 @@ class AppLocalizationsEn extends AppLocalizations {
       'Your data is encrypted and processed directly by Stripe under banking standards.';
 
   @override
+  String get order_status_driver_busy => 'DRIVER BUSY';
+
+  @override
+  String get order_status_route_problems => 'ROUTE PROBLEMS';
+
+  @override
+  String get order_status_driver_timeout =>
+      'DRIVER DID NOT ARRIVE ON TIME. ASSIGN ANOTHER.';
+
+  @override
+  String get order_cancel_dialog_title => 'CANCEL ORDER?';
+
+  @override
+  String get order_cancel_dialog_body =>
+      'This action will permanently cancel the request.';
+
+  @override
+  String get order_cancel_btn_confirm => 'YES, CANCEL';
+
+  @override
   String get ss_dialog_title => 'WHAT ARE WE LOOKING FOR TODAY?';
 
   @override
@@ -1176,4 +1200,18 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get ss_ocr_error_body =>
       'We couldn\'t extract a clear address from the image. Please make sure the ticket is legible or enter the address manually.';
+
+  @override
+  String get order_status_delivery_delayed => 'DELIVERY DELAYED';
+
+  @override
+  String get order_status_delivery_delayed_msg =>
+      'THIS DELIVERY HAS TAKEN MORE THAN 2 HOURS. WE HAVE NOTIFIED THE DRIVER.';
+
+  @override
+  String get driver_quarantine_title => 'QUARANTINE MODE ACTIVE';
+
+  @override
+  String get driver_quarantine_body =>
+      'You have a pending delivery for more than 2 hours. You won\'t be able to receive new missions until you complete your active deliveries.';
 }

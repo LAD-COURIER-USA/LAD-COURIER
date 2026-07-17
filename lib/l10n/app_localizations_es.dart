@@ -1009,7 +1009,11 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get driver_agreement_body =>
-      'LAD DIGITAL SYSTEMS LLC le otorga una licencia de uso de software limitada, no exclusiva y revocable. Usted reconoce que LAD no es su empleador. Esta licencia puede ser cancelada en cualquier momento y por cualquier circunstancia a discreción de LAD. El Service Fee (\$0.70) y los términos pueden cambiar con previo aviso digital.';
+      'LAD DIGITAL SYSTEMS LLC le otorga una licencia de uso de software limitada, no exclusiva y revocable. Usted reconoce que LAD no es su empleador. Las reclamaciones se gestionan durante una ventana de seguridad de 10 días. Los pagos se procesan semanalmente con un retraso de 7 días. Las órdenes no pueden ser canceladas por el cliente una vez que el conductor ha iniciado el proceso de recogida, ya que los fondos se reservan en ese momento. El Service Fee (\$0.70) y los términos pueden cambiar con previo aviso digital.';
+
+  @override
+  String get client_cancel_blocked_pickup =>
+      'No se puede cancelar la orden. El conductor ya está en camino a recoger su paquete y los fondos han sido reservados.';
 
   @override
   String get common_payment_required_title => 'VINCULACIÓN DE PAGO';
@@ -1161,6 +1165,26 @@ class AppLocalizationsEs extends AppLocalizations {
       'Tus datos están encriptados y son procesados directamente por Stripe bajo estándares bancarios.';
 
   @override
+  String get order_status_driver_busy => 'DRIVER OCUPADO';
+
+  @override
+  String get order_status_route_problems => 'PROBLEMAS EN LA RUTA';
+
+  @override
+  String get order_status_driver_timeout =>
+      'EL DRIVER NO LLEGÓ A TIEMPO. ASIGNE OTRO.';
+
+  @override
+  String get order_cancel_dialog_title => '¿CANCELAR ORDEN?';
+
+  @override
+  String get order_cancel_dialog_body =>
+      'Esta acción cancelará la solicitud definitivamente.';
+
+  @override
+  String get order_cancel_btn_confirm => 'SÍ, CANCELAR';
+
+  @override
   String get ss_dialog_title => '¿QUÉ BUSCAMOS HOY?';
 
   @override
@@ -1182,4 +1206,18 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get ss_ocr_error_body =>
       'No pudimos extraer una dirección clara de la imagen. Por favor, asegúrate de que el ticket sea legible o ingresa la dirección manualmente.';
+
+  @override
+  String get order_status_delivery_delayed => 'ENTREGA RETRASADA';
+
+  @override
+  String get order_status_delivery_delayed_msg =>
+      'ESTA ENTREGA LLEVA MÁS DE 2 HORAS. HEMOS NOTIFICADO AL DRIVER.';
+
+  @override
+  String get driver_quarantine_title => 'MODO CUARENTENA ACTIVO';
+
+  @override
+  String get driver_quarantine_body =>
+      'Llevas más de 2 horas con una entrega pendiente. No podrás recibir nuevas misiones hasta completar tus entregas activas.';
 }

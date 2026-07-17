@@ -1,6 +1,6 @@
-import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA defaultTargetPlatform
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
@@ -23,22 +23,27 @@ class _LivenessSelfiePageState extends State<LivenessSelfiePage> {
   void initState() {
     super.initState();
     _initializeCamera();
-    _faceDetector = FaceDetector(
-      options: FaceDetectorOptions(
-        enableClassification: true, // Para detectar ojos abiertos/cerrados
-        enableTracking: true,
-        performanceMode: FaceDetectorMode.accurate,
-      ),
-    );
+    if (!kIsWeb) {
+      _faceDetector = FaceDetector(
+        options: FaceDetectorOptions(
+          enableClassification: true, // Para detectar ojos abiertos/cerrados
+          enableTracking: true,
+          performanceMode: FaceDetectorMode.accurate,
+        ),
+      );
+    }
   }
 
   Future<void> _initializeCamera() async {
-    // 🛡️ PERMISOS CRÍTICOS LAD
-    final status = await Permission.camera.request();
-    if (status.isDenied) {
-      if (mounted) Navigator.pop(context);
-      return;
+    // 🛡️ REFUERZO V18.6: Gestión de permisos inteligente
+    if (!kIsWeb) {
+      final status = await Permission.camera.request();
+      if (status.isDenied) {
+        if (mounted) Navigator.pop(context);
+        return;
+      }
     }
+    // En Web (iPad/PC), el permiso se pide automáticamente al inicializar el controlador.
 
     final cameras = await availableCameras();
     final frontCamera = cameras.firstWhere(
@@ -50,17 +55,27 @@ class _LivenessSelfiePageState extends State<LivenessSelfiePage> {
       frontCamera,
       ResolutionPreset.high,
       enableAudio: false,
-      imageFormatGroup: Platform.isAndroid ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888,
+      imageFormatGroup: kIsWeb ? null : ((defaultTargetPlatform == TargetPlatform.android) ? ImageFormatGroup.nv21 : ImageFormatGroup.bgra8888),
     );
 
     try {
       await _cameraController?.initialize();
       if (!mounted) return;
 
-      _cameraController?.startImageStream(_processCameraImage);
+      // 🛡️ REFUERZO V18.2: Evitamos crash en Web
+      if (!kIsWeb) {
+        _cameraController?.startImageStream(_processCameraImage);
+      }
+      
       setState(() {});
     } catch (e) {
       debugPrint("Error cámara: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error al iniciar cámara: $e")),
+        );
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -119,9 +134,9 @@ class _LivenessSelfiePageState extends State<LivenessSelfiePage> {
 
     final sensorOrientation = _cameraController!.description.sensorOrientation;
     InputImageRotation? rotation;
-    if (Platform.isIOS) {
+    if (defaultTargetPlatform == TargetPlatform.iOS) {
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
-    } else if (Platform.isAndroid) {
+    } else if (defaultTargetPlatform == TargetPlatform.android) {
       // 🛡️ LÓGICA ROBUSTA LAD: Compensación de rotación nativa
       rotation = InputImageRotationValue.fromRawValue(sensorOrientation);
     }
@@ -146,7 +161,10 @@ class _LivenessSelfiePageState extends State<LivenessSelfiePage> {
   }
 
   Future<void> _captureSelfie() async {
-    if (_cameraController == null || !_canCapture || _isBusy) return;
+    // 🛡️ REFUERZO V17.19: En Web permitimos captura manual para auditoría en nube
+    if (_cameraController == null || _isBusy) return;
+    if (!kIsWeb && !_canCapture) return; // En Android sigue bloqueado si no hay parpadeo
+
     _isBusy = true; // 🛡️ Bloqueamos para evitar múltiples clics
 
     try {
@@ -195,12 +213,12 @@ class _LivenessSelfiePageState extends State<LivenessSelfiePage> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
               decoration: BoxDecoration(
-                color: _canCapture ? Colors.green.withValues(alpha: 0.8) : Colors.black54,
+                color: (kIsWeb || _canCapture) ? Colors.green.withValues(alpha: 0.8) : Colors.black54,
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: _canCapture ? Colors.green : Colors.white24, width: 2),
+                border: Border.all(color: (kIsWeb || _canCapture) ? Colors.green : Colors.white24, width: 2),
               ),
               child: Text(
-                currentStatus,
+                kIsWeb ? "MODO iPAD: CAPTURA TU SELFIE PARA AUDITORÍA EN LA NUBE" : currentStatus,
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 13),
               ),
@@ -214,22 +232,27 @@ class _LivenessSelfiePageState extends State<LivenessSelfiePage> {
             right: 0,
             child: Center(
               child: GestureDetector(
-                onTap: _canCapture ? _captureSelfie : null,
+                // 🛡️ REFUERZO V17.18: En Web permitimos el clic para enviar al servidor. 
+                // En Android, sigue bloqueado hasta que parpadees.
+                onTap: (kIsWeb || _canCapture) ? _captureSelfie : null,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 200),
                   height: 80,
                   width: 80,
                   decoration: BoxDecoration(
-                    color: _canCapture ? Colors.white : Colors.white24,
+                    color: Colors.white, // El interior siempre blanco para que resalte el icono
                     shape: BoxShape.circle,
-                    border: Border.all(color: _canCapture ? Colors.greenAccent : Colors.grey, width: 6),
+                    border: Border.all(
+                      color: (kIsWeb || _canCapture) ? Colors.greenAccent : Colors.grey, 
+                      width: 6
+                    ),
                     boxShadow: [
-                      if (_canCapture) BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.5), blurRadius: 20)
+                      if (kIsWeb || _canCapture) BoxShadow(color: Colors.greenAccent.withValues(alpha: 0.5), blurRadius: 20)
                     ],
                   ),
                   child: Icon(
                     Icons.camera_alt, 
-                    color: _canCapture ? Colors.black : Colors.white30, 
+                    color: (kIsWeb || _canCapture) ? Colors.black : Colors.white30,
                     size: 35
                   ),
                 ),

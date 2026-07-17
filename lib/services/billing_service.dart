@@ -19,7 +19,7 @@ class BillingService {
     if (uid == null) return;
 
     try {
-      // Aquí iría la lógica para cargar los $0.50 al balance del driver o cobrarlo vía Stripe
+      // Aquí iría la lógica para cargar los $0.70 al balance del driver o cobrarlo vía Stripe
       await FirebaseFirestore.instance.collection('orders').doc(orderId).update({
         'serviceFeeCharged': serviceFee,
         'feeStatus': 'pending_collection', // O 'paid' si se descuenta de una wallet interna

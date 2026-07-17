@@ -5,6 +5,7 @@ import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/route_service.dart';
+import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/screens/chat_screen.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -33,6 +34,7 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
 
   bool _isLoading = false;
   UserModel? _clientProfile;
+  UserModel? _driverProfile; // 🛡️ PERFIL DEL DRIVER PARA VALIDACIÓN
 
   // Variables para la guía de ruta
   double? _impactMiles;
@@ -47,9 +49,18 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
   void initState() {
     super.initState();
     _loadClientData();
+    _loadDriverData(); // 🛡️ CARGAR DATOS DEL DRIVER
     _calculateRouteImpact();
     // Escuchar cambios en el precio para actualizar el Neto
     _priceController.addListener(_updateNetCalculations);
+  }
+
+  void _loadDriverData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      final profile = await _userService.getUser(user.uid);
+      if (mounted) setState(() => _driverProfile = profile);
+    }
   }
 
   void _updateNetCalculations() {
@@ -120,7 +131,14 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
         child: Stack(
           children: [
             InteractiveViewer(child: Center(child: Image.network(url))),
-            Positioned(top: 40, right: 20, child: IconButton(icon: const Icon(Icons.close, color: Colors.white, size: 30), onPressed: () => Navigator.pop(context))),
+            Positioned(
+              top: 40, 
+              right: 20, 
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30), 
+                onPressed: () => Navigator.pop(context)
+              )
+            ),
           ],
         ),
       ),
@@ -202,7 +220,7 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
         children: [
           Row(
             children: [
-              Icon(Icons.inventory_2_outlined, color: Colors.orange[900], size: 20),
+              const Icon(Icons.inventory_2_outlined, color: Color(0xFFE65100), size: 20),
               const SizedBox(width: 8),
               Text("REQUERIMIENTOS",
                   style: TextStyle(fontWeight: FontWeight.w900, color: Colors.orange[900], fontSize: 11)),
@@ -354,7 +372,7 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)], border: Border.all(color: Colors.grey[200]!)),
+      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20), boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 10)], border: Border.all(color: const Color(0xFFEEEEEE))),
       child: Column(
         children: [
           Text(label, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.grey, fontSize: 11)),
@@ -366,6 +384,20 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             textAlign: TextAlign.center,
             style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: Colors.deepPurple),
+            onChanged: (value) {
+              final double? price = double.tryParse(value);
+              if (price != null && price > 200) {
+                 ScaffoldMessenger.of(context).showSnackBar(
+                   const SnackBar(
+                     content: Text("LÍMITE DE SEGURIDAD: Máximo \$200 por orden."),
+                     backgroundColor: Colors.redAccent,
+                     duration: Duration(seconds: 2),
+                   )
+                 );
+                 _priceController.text = "200.00";
+                 _priceController.selection = TextSelection.fromPosition(const TextPosition(offset: 6));
+              }
+            },
             decoration: InputDecoration(
               hintText: "0.00",
               labelText: l10n.neg_input_label,
@@ -384,7 +416,7 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
               decoration: BoxDecoration(
                 color: Colors.blueGrey[50],
                 borderRadius: BorderRadius.circular(15),
-                border: Border.all(color: Colors.blueGrey[100]!),
+                border: Border.all(color: const Color(0xFFCFD8DC)),
               ),
               child: Column(
                 children: [
@@ -475,9 +507,36 @@ class _OrderNegotiationPageState extends State<OrderNegotiationPage> {
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(backgroundColor: isNextFinal ? Colors.orange[800] : Colors.deepPurple, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)), elevation: 5),
               onPressed: () async {
+                // 🛡️ REFUERZO V16.4: Bloqueo de Identidad Real
+                final stripeService = StripeModeService();
+                final bool isLive = stripeService.isLive();
+                final bool isVerified = _driverProfile?.isIdentityVerified ?? false;
+                
+                if (isLive && !isVerified) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("SEGURIDAD: Debes verificar tu identidad en el perfil antes de aceptar órdenes."),
+                      backgroundColor: Colors.redAccent,
+                    )
+                  );
+                  return;
+                }
+
                 if (_priceController.text.isEmpty) return;
+                final double proposedPrice = double.tryParse(_priceController.text) ?? 0.0;
+                
+                if (proposedPrice < 3.5) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text("PRECIO NO VÁLIDO: El mínimo es \$3.50 para asegurar rentabilidad."),
+                      backgroundColor: Colors.orange,
+                    )
+                  );
+                  return;
+                }
+
                 setState(() => _isLoading = true);
-                await _orderService.proposePrice(orderId: order.id, price: double.parse(_priceController.text));
+                await _orderService.proposePrice(orderId: order.id, price: proposedPrice);
                 if (mounted) Navigator.pop(context);
               },
               child: Text(isNextFinal ? l10n.neg_btn_final : (isNewOrder ? l10n.neg_btn_first : l10n.neg_btn_counter), style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.white, fontSize: 16)),

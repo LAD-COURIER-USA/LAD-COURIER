@@ -6,6 +6,7 @@ import 'package:lad_courier/auth/user_data_validator.dart';
 import 'package:lad_courier/screens/client_dashboard.dart';
 import 'package:lad_courier/screens/driver_dashboard.dart';
 import 'package:lad_courier/screens/driver_work_zone_page.dart';
+import 'package:lad_courier/screens/admin/control_tower_page.dart'; // ✅ AÑADIDO PARA ADMIN
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/models/order_model.dart';
 import 'package:lad_courier/auth_service.dart';
@@ -45,6 +46,7 @@ class AuthGate extends StatelessWidget {
 
               final role = (userDataMap['role'] as String? ?? '').toUpperCase();
               if (role == 'CLIENT') return const ClientDashboard();
+              if (role == 'ADMIN') return const ControlTowerPage(); // 🛡️ REDIRECCIÓN A TORRE DE CONTROL
 
               return StreamBuilder<List<OrderModel>>(
                 stream: OrderService().getActiveOrdersStream(user.uid),

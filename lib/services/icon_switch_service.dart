@@ -17,6 +17,12 @@ class IconSwitchService {
   ///
   /// [targetRole] debe ser 'CLIENT' o 'MESSENGER'.
   static Future<void> switchLauncherIcon({required String targetRole}) async {
+    // 🛡️ REFUERZO V18.8: No intentamos cambiar iconos en la Web (Browser)
+    if (kIsWeb) {
+      debugPrint("IconSwitchService: Cambio de icono omitido en Web.");
+      return;
+    }
+
     try {
       debugPrint("IconSwitchService: Orden recibida. Cambiando icono a '$targetRole'.");
       

@@ -109,6 +109,9 @@ class OrderService {
       'status': status,
       if (message != null) 'statusMessage': message,
       if (eta != null) 'eta': eta,
+      'updatedAt': Timestamp.now(),
+      if (status == OrderStatus.enRouteToPickup) 'pickupStartedAt': Timestamp.now(),
+      if (status == OrderStatus.pickedUp) 'pickedUpAt': Timestamp.now(),
     });
   }
 
@@ -117,6 +120,30 @@ class OrderService {
       'status': OrderStatus.active,
       'price': price,
       'statusMessage': 'ORDEN ACTIVA'
+    });
+  }
+
+  Future<void> cancelOrder(String orderId) async {
+    final doc = await _ordersRef.doc(orderId).get();
+    if (!doc.exists) return;
+    
+    final status = doc.data()?.status;
+    
+    // 🛡️ REGLA 2: Bloqueo de cancelación tras inicio de recogida
+    final blockedStatuses = [
+      OrderStatus.enRouteToPickup,
+      OrderStatus.pickedUp,
+      OrderStatus.enRouteToDelivery,
+      OrderStatus.completed
+    ];
+
+    if (blockedStatuses.contains(status)) {
+      throw 'PICKUP_STARTED';
+    }
+
+    await _ordersRef.doc(orderId).update({
+      'status': OrderStatus.cancelled,
+      'statusMessage': 'ORDEN CANCELADA POR EL CLIENTE',
     });
   }
 
@@ -176,7 +203,18 @@ class OrderService {
   Stream<List<OrderModel>> getOrdersForClientResponseStream(String clientId) {
     return _ordersRef.where('clientId', isEqualTo: clientId)
         .where('status', whereIn: [OrderStatus.negotiating, OrderStatus.priceProposed])
-        .snapshots().map((s) => s.docs.map((d) => d.data()).toList());
+        .snapshots().map((s) {
+          final now = DateTime.now();
+          return s.docs.map((d) => d.data()).where((order) {
+            // 🛡️ Filtro Soberano: Si es una orden huérfana de más de 10 min, 
+            // la quitamos de aquí porque aparecerá en la sección de "Rechazadas/Reasignar"
+            if (order.status == OrderStatus.negotiating && order.lastPriceOfferedBy == 'client') {
+              final diff = now.difference(order.createdAt.toDate()).inMinutes;
+              return diff < 10;
+            }
+            return true;
+          }).toList();
+        });
   }
 
   Stream<List<OrderModel>> getActiveOrdersForClientStream(String clientId) {

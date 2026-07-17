@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:ui' as ui;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA kIsWeb
 import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
@@ -33,7 +34,10 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
   final LocationService _locationService = LocationService();
   final InvitationService _invitationService = InvitationService();
   final DraggableScrollableController _panelController = DraggableScrollableController();
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  
+  // 🛡️ REFUERZO V18.7: Instanciación bajo demanda para evitar crash en Web
+  FlutterLocalNotificationsPlugin? _localNotifications;
+
   GoogleMapController? _mapController;
 
   Position? _driverPosition;
@@ -63,7 +67,10 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
     super.initState();
     Future.microtask(() {
       if (mounted) {
-        _initializeNotifications();
+        if (!kIsWeb) {
+          _localNotifications = FlutterLocalNotificationsPlugin();
+          _initializeNotifications();
+        }
         _fetchLocationAndSetupStreams();
         _loadMapStyle();
       }
@@ -71,15 +78,15 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
   }
 
   Future<void> _initializeNotifications() async {
+    if (kIsWeb || _localNotifications == null) return;
     try {
-      // ESTANDARIZACIÓN LAD: Usamos ic_launcher_main (icono de franquicia) para todo el sistema
       const AndroidInitializationSettings initializationSettingsAndroid =
           AndroidInitializationSettings('ic_launcher_main');
       const InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
-      await _localNotifications.initialize(initializationSettings);
+      await _localNotifications!.initialize(initializationSettings);
 
       final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
-        _localNotifications.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+        _localNotifications!.resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
       if (androidImplementation != null) {
         await androidImplementation.requestNotificationsPermission();
       }
@@ -274,7 +281,7 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
       allOrders: _activeOrders,
       missionIndex: sequenceNumber,
       missionType: missionType,
-      isInRange: distanceToPoint <= 250,
+      isInRange: distanceToPoint <= 100,
     )));
   }
 
@@ -282,8 +289,24 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
     _filteredNegotiatingOrdersStream = _orderService.getNegotiatingOrdersStream(uid).map((orders) {
       if (_fixedWorkZoneCenter == null) return [];
       
-      // 🛡️ FILTRO DE SEGURIDAD LAD: Solo mostrar órdenes de los últimos 30 minutos
+      // 🛡️ REGLA SOBERANA V13.3: Bloqueo de nuevas órdenes si tiene entregas muy retrasadas (> 2 horas)
       final now = DateTime.now();
+      bool isBlockedByDelay = _activeOrders.any((o) {
+        if (o.status == OrderStatus.pickedUp) {
+          // Usamos pickedUpAt (si existe) o createdAt como fallback
+          final startTime = o.pickedUpAt?.toDate() ?? o.createdAt.toDate();
+          final diff = now.difference(startTime).inHours;
+          return diff >= 2;
+        }
+        return false;
+      });
+
+      if (isBlockedByDelay) {
+        debugPrint("LAD: Driver bloqueado por retraso en entrega.");
+        return []; // No le mostramos nada nuevo hasta que entregue
+      }
+
+      // 🛡️ FILTRO DE SEGURIDAD LAD: Solo mostrar órdenes de los últimos 30 minutos
       var filtered = orders.where((o) {
         bool inRange = o.pickupLatLng != null && Geolocator.distanceBetween(_fixedWorkZoneCenter!.latitude, _fixedWorkZoneCenter!.longitude, o.pickupLatLng!.latitude, o.pickupLatLng!.longitude) <= (_userMaxRadius * 1609.34);
         
@@ -304,13 +327,14 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
     try {
       HapticFeedback.vibrate();
       HapticFeedback.heavyImpact();
+      if (_localNotifications == null) return;
       const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
         'high_importance_channel', 'Alertas de Pedidos Urgentes',
         importance: Importance.max, priority: Priority.high, playSound: true, enableVibration: true,
         icon: 'ic_launcher_main',
       );
       const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
-      await _localNotifications.show(999, title, body, platformChannelSpecifics);
+      await _localNotifications!.show(999, title, body, platformChannelSpecifics);
     } catch (e) {
       debugPrint("Error al disparar alerta visual: $e");
     }
@@ -396,15 +420,20 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
                       child: IconButton(
                         icon: const Icon(Icons.chat, color: Colors.black),
                         onPressed: () async {
-                          // 🧹 LIMPIEZA INMEDIATA ANTES DE ENTRAR
+                          final chatId = user.lastIncomingChatId;
+                          final chatTitle = user.lastIncomingChatTitle;
                           final navigator = Navigator.of(context);
-                          await _chatService.clearChatNotification(FirebaseAuth.instance.currentUser?.uid ?? '');
                           
-                          if (mounted) {
-                            navigator.push(MaterialPageRoute(builder: (context) => ChatScreen(
-                              chatId: user.lastIncomingChatId!,
-                              title: user.lastIncomingChatTitle ?? 'Cliente',
-                            )));
+                          // 🧹 LIMPIEZA INMEDIATA: Borramos notificación ANTES de navegar
+                          if (chatId != null) {
+                            await _chatService.clearChatNotification(FirebaseAuth.instance.currentUser?.uid ?? '');
+                            
+                            if (mounted) {
+                              navigator.push(MaterialPageRoute(builder: (_) => ChatScreen(
+                                chatId: chatId,
+                                title: chatTitle ?? 'Cliente',
+                              )));
+                            }
                           }
                         },
                       ),
@@ -440,6 +469,39 @@ class _DriverWorkZonePageState extends State<DriverWorkZonePage> {
                   stream: _filteredNegotiatingOrdersStream,
                   builder: (context, snap) {
                     final orders = snap.data ?? [];
+                    
+                    // 🛡️ REGLA SOBERANA V13.3: Bloqueo de nuevas órdenes si tiene entregas muy retrasadas (> 2 horas)
+                    final now = DateTime.now();
+                    bool isQuarantined = _activeOrders.any((o) {
+                      if (o.status == OrderStatus.pickedUp) {
+                        final startTime = o.pickedUpAt?.toDate() ?? o.createdAt.toDate();
+                        final diff = now.difference(startTime).inHours;
+                        return diff >= 2;
+                      }
+                      return false;
+                    });
+
+                    if (isQuarantined) {
+                      return Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(20.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(Icons.timer_off_outlined, color: Colors.red, size: 48),
+                              const SizedBox(height: 15),
+                              Text(l10n.driver_quarantine_title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.red)),
+                              const SizedBox(height: 8),
+                              Text(
+                                l10n.driver_quarantine_body,
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 12, color: Colors.black54, fontWeight: FontWeight.bold),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
 
                     if (orders.isNotEmpty && _lastKnownOrdersState.isNotEmpty) {
                       for (var o in orders) {

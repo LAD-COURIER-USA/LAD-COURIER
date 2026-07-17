@@ -1002,7 +1002,11 @@ class AppLocalizationsHt extends AppLocalizations {
 
   @override
   String get driver_agreement_body =>
-      'LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Lisans sa a ka anile nenpòt lè ak pou nenpòt sikonstans dapre diskresyon LAD. Frè Sèvis (\$0.70) ak kondisyon yo ka chanje avèk yon avi dijital davans.';
+      'LAD DIGITAL SYSTEMS LLC ba ou yon lisans itilizasyon lojisyèl limite, ki pa eksklizif epi ki ka anile. Ou rekonèt ke LAD pa patwon ou. Reklamasyon posib yo jere pandan yon fenèt sekirite 10 jou. Pèman yo trete chak semèn avèk yon reta 7 jou. Kliyan an pa ka anile kòmand yo yon fwa chofè a kòmanse pwosesis ranmase a, paske fon yo rezève nan moman sa a. Frè Sèvis (\$0.70) ak kondisyon yo ka chanje avèk yon avi dijital davans.';
+
+  @override
+  String get client_cancel_blocked_pickup =>
+      'Pa ka anile kòmand lan. Chofè a deja nan wout pou li vin chache pake w la epi fon yo rezève.';
 
   @override
   String get common_payment_required_title => 'PÈMAN OBLIGATWA';
@@ -1152,6 +1156,26 @@ class AppLocalizationsHt extends AppLocalizations {
       'Done ou yo chiffres epi trete dirèkteman pa Stripe selon nòm bankè yo.';
 
   @override
+  String get order_status_driver_busy => 'CHOFÈ A OKIPE';
+
+  @override
+  String get order_status_route_problems => 'PWOBLEM SOU WOUT LA';
+
+  @override
+  String get order_status_driver_timeout =>
+      'CHOFÈ A PA RIVE A LÈ. CHWAZI YON LÒT.';
+
+  @override
+  String get order_cancel_dialog_title => 'ANILE KÒMAND LAN?';
+
+  @override
+  String get order_cancel_dialog_body =>
+      'Aksyon sa a ap anile demann lan nèt ale.';
+
+  @override
+  String get order_cancel_btn_confirm => 'WI, ANILE';
+
+  @override
   String get ss_dialog_title => 'KISA N AP CHÈCHE JODI A?';
 
   @override
@@ -1173,4 +1197,18 @@ class AppLocalizationsHt extends AppLocalizations {
   @override
   String get ss_ocr_error_body =>
       'Nou pa t ka jwenn yon adrès klè nan imaj la. Tanpri asire w resi a lizib oswa antre adrès la manyèlman.';
+
+  @override
+  String get order_status_delivery_delayed => 'LIVREZON RETA';
+
+  @override
+  String get order_status_delivery_delayed_msg =>
+      'LIVREZON SA A PRAN PLIS PASE 2 ÈDTAN. NOU TE NOTIFIE CHOFÈ A.';
+
+  @override
+  String get driver_quarantine_title => 'MÒD KARANTÈN AKTIF';
+
+  @override
+  String get driver_quarantine_body =>
+      'Ou gen yon livrezon ki annatant pou plis pase 2 èdtan. Ou pap ka resevwa nouvo misyon jiskaske ou fin livrezon aktif ou yo.';
 }

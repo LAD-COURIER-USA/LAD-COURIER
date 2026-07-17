@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA kIsWeb
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/screens/driver_profile_page.dart';
@@ -30,7 +31,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
   final UserService _userService = UserService();
   final OrderService _orderService = OrderService();
   final InvitationService _invitationService = InvitationService();
-  final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  
+  // 🛡️ REFUERZO V18.7: Instanciación bajo demanda para evitar crash en Web
+  FlutterLocalNotificationsPlugin? _localNotifications;
 
   UserModel? _driverProfile;
   bool _isLoadingProfile = true;
@@ -42,11 +45,15 @@ class _DriverDashboardState extends State<DriverDashboard> {
   @override
   void initState() {
     super.initState();
-    _initializeNotifications();
+    if (!kIsWeb) {
+      _localNotifications = FlutterLocalNotificationsPlugin();
+      _initializeNotifications();
+    }
     _fetchDriverProfile();
   }
 
   Future<void> _initializeNotifications() async {
+    if (_localNotifications == null) return;
     try {
       // ESTANDARIZACIÓN LAD: Usamos el icono por defecto para evitar PlatformException en Release
       const AndroidInitializationSettings initializationSettingsAndroid =
@@ -55,7 +62,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
       const InitializationSettings initializationSettings =
       InitializationSettings(android: initializationSettingsAndroid);
 
-      await _localNotifications.initialize(initializationSettings);
+      await _localNotifications!.initialize(initializationSettings);
       debugPrint("✅ SISTEMA LAD: Notificaciones inicializadas.");
     } catch (e) {
       debugPrint("⚠️ SISTEMA LAD: Error silencioso en inicialización de notificaciones: $e");
@@ -141,6 +148,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
   void _triggerNotification(String title, String body) async {
     HapticFeedback.vibrate();
+    if (kIsWeb || _localNotifications == null) return;
 
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'global_orders_channel', 'Notificaciones Globales de Órdenes',
@@ -150,7 +158,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
     const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
 
     try {
-      await _localNotifications.show(DateTime.now().millisecond, title, body, platformChannelSpecifics);
+      await _localNotifications!.show(DateTime.now().millisecond, title, body, platformChannelSpecifics);
     } catch (e) {
       debugPrint("⚠️ SISTEMA LAD: Error al mostrar notificación: $e");
     }
@@ -383,12 +391,12 @@ class _DriverDashboardState extends State<DriverDashboard> {
               _buildStatusCard(isActive, l10n),
               const SizedBox(height: 30),
               GridView.count(
-                crossAxisCount: 2,
+                crossAxisCount: kIsWeb ? (MediaQuery.of(context).size.width > 900 ? 4 : 2) : 2,
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 mainAxisSpacing: 15,
                 crossAxisSpacing: 15,
-                childAspectRatio: 1.1,
+                childAspectRatio: kIsWeb ? 1.3 : 1.1,
                 children: [
                   _buildActionCard(l10n.driver_menu_services, Icons.inventory_2, Colors.orange[800]!, Colors.orange[50]!, () => _showServicesDialog(context)),
                   _buildActionCard(l10n.driver_menu_profile, Icons.admin_panel_settings, Colors.blue[800]!, Colors.blue[50]!, () async {
@@ -476,6 +484,9 @@ class _DriverDashboardState extends State<DriverDashboard> {
   }
 
   Widget _buildActionCard(String title, IconData icon, Color color, Color bgColor, VoidCallback onTap) {
+    // 🛡️ REFUERZO V19.2: Tamaño de iconos inteligente (Web vs Nativo)
+    const double iconSize = kIsWeb ? 65 : 40;
+    
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -487,9 +498,17 @@ class _DriverDashboardState extends State<DriverDashboard> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: color, size: 40),
-            const SizedBox(height: 8),
-            Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.black)),
+            Icon(icon, color: color, size: iconSize),
+            const SizedBox(height: 12), // Más espacio en Web
+            Text(
+              title, 
+              textAlign: TextAlign.center,
+              style: const TextStyle(
+                fontWeight: FontWeight.w900, 
+                fontSize: kIsWeb ? 14 : 12, 
+                color: Colors.black
+              )
+            ),
           ],
         ),
       ),

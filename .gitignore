@@ -58,7 +58,10 @@ local.properties
 scripts/data/
 *.csv
 
-# Web / Public
+# Web / Public / Binaries
+*.apk
+*.aab
+public/*.apk
 public/assets/*.apk
 
 # ✨ SISTEMA LAD: Seguridad

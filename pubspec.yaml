@@ -2,7 +2,7 @@ name: lad_courier
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 1.0.0+12
+version: 10.0.0+15
 
 environment:
   sdk: '>=3.10.4 <4.0.0'
@@ -10,6 +10,9 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+    
+  otp: ^3.1.2
+  fl_chart: ^0.70.2 # ✅ AÑADIDO PARA GRÁFICOS DE TORRE DE CONTROL
 
   # --- PIEZA CLAVE PARA INTERNACIONALIZACIÓN ---
   flutter_localizations:
@@ -86,6 +89,11 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/images/ic_launcher.png"
   min_sdk_android: 21
+  web:
+    generate: true
+    image_path: "assets/images/ic_launcher.png"
+    background_color: "#000000"
+    theme_color: "#000000"
 
 flutter:
   uses-material-design: true

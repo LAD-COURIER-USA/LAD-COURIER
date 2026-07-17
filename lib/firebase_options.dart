@@ -45,7 +45,7 @@ class DefaultFirebaseOptions {
     appId: '1:666821658855:web:c46676c50925027bfffa42',
     messagingSenderId: '666821658855',
     projectId: 'dev-access-472419-f1',
-    authDomain: 'dev-access-472419-f1.firebaseapp.com',
+    authDomain: 'app-lad-courier.firebaseapp.com', // ✅ ALINEADO CON EL SUBDOMINIO
     storageBucket: 'dev-access-472419-f1.firebasestorage.app',
     measurementId: 'G-SCEJ83TTJ5',
   );
