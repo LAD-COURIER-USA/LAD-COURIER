@@ -167,6 +167,35 @@ class UserService {
     return null;
   }
 
+  /// 🛡️ VIGILANTE LAD: Comprueba si una identidad está en la lista negra
+  Future<bool> isBlacklisted({String? stripeId, String? phone}) async {
+    try {
+      // Comprobar por Stripe ID
+      if (stripeId != null) {
+        final queryStripe = await FirebaseFirestore.instance.collection('blacklist_identities')
+            .where('stripeId', isEqualTo: stripeId).limit(1).get();
+        if (queryStripe.docs.isNotEmpty) return true;
+
+        final queryStripeLive = await FirebaseFirestore.instance.collection('blacklist_identities')
+            .where('stripeIdLive', isEqualTo: stripeId).limit(1).get();
+        if (queryStripeLive.docs.isNotEmpty) return true;
+      }
+
+      // Comprobar por Hash de Teléfono
+      if (phone != null) {
+        final phoneHash = phone.hashCode.toString();
+        final queryPhone = await FirebaseFirestore.instance.collection('blacklist_identities')
+            .where('phoneHash', isEqualTo: phoneHash).limit(1).get();
+        if (queryPhone.docs.isNotEmpty) return true;
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint("SISTEMA LAD ERROR Vigilante: $e");
+      return false;
+    }
+  }
+
   Future<UserModel?> getUser(String uid) async {
     try {
       final doc = await _usersRef.doc(uid).get();

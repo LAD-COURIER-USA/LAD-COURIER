@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA debugPrint
 import '../models/user_model.dart';
 import '../models/order_model.dart';
 
@@ -44,6 +45,57 @@ class AdminService {
       'verificationStatus': 'APROBADO',
       'isIdentityVerified': true,
       'approvedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 🛡️ ACCIÓN: Suspender Microfranquicia (Temporal o Indefinida)
+  Future<void> suspendDriver({
+    required String uid, 
+    required String reason, 
+    DateTime? until,
+  }) async {
+    await _db.collection('users').doc(uid).update({
+      'driverFranchiseStatus': 'SUSPENDED',
+      'suspensionMessage': reason,
+      'suspendedUntil': until != null ? Timestamp.fromDate(until) : null,
+      'role': 'CLIENT', // 🚀 Lo bajamos a Cliente de inmediato
+    });
+  }
+
+  // 🛡️ ACCIÓN: Revocación Permanente con Blindaje de Identidad (TRIDENTE)
+  Future<void> revokeDriverFranchise(UserModel driver, String reason) async {
+    // 1. Marcar al usuario como REVOCADO
+    await _db.collection('users').doc(driver.uid).update({
+      'driverFranchiseStatus': 'REVOKED',
+      'suspensionMessage': reason,
+      'role': 'CLIENT',
+      'verificationStatus': 'REVOCADO',
+    });
+
+    // 2. Registrar en la LISTA NEGRA (El Tridente)
+    final Map<String, dynamic> blacklistData = {
+      'revokedAt': FieldValue.serverTimestamp(),
+      'reason': reason,
+      'originalUid': driver.uid,
+    };
+
+    if (driver.stripeAccountId != null) blacklistData['stripeId'] = driver.stripeAccountId;
+    if (driver.stripeAccountIdLive != null) blacklistData['stripeIdLive'] = driver.stripeAccountIdLive;
+    if (driver.phoneNumber != null) blacklistData['phoneHash'] = driver.phoneNumber.hashCode.toString();
+    
+    // El deviceId se guarda si lo capturamos en el login
+    // blacklistData['deviceId'] = driver.deviceId; 
+
+    await _db.collection('blacklist_identities').doc(driver.uid).set(blacklistData);
+    debugPrint("SISTEMA LAD: Identidad del driver $driver.uid enviada al abismo de la lista negra.");
+  }
+
+  // 🛡️ ACCIÓN: Restaurar Privilegios
+  Future<void> restoreDriverFranchise(String uid) async {
+    await _db.collection('users').doc(uid).update({
+      'driverFranchiseStatus': 'ACTIVE',
+      'suspensionMessage': null,
+      'suspendedUntil': null,
     });
   }
 

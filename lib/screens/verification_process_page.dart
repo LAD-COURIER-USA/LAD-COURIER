@@ -55,6 +55,18 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
     try {
       setState(() => _isBiometricLoading = true);
 
+      // 🛡️ ESCANEO DE LISTA NEGRA (TRIDENTE V19.6)
+      final bool blacklisted = await _userService.isBlacklisted(
+        stripeId: user.stripeAccountId ?? user.stripeAccountIdLive,
+        phone: user.phoneNumber
+      );
+
+      if (blacklisted) {
+        throw "Esta identidad ha sido revocada permanentemente de LAD Courier.";
+      }
+
+      if (!mounted) return;
+
       // 1. CAPTURAR SELFIE DE LA JORNADA (MODO LIVENESS ACTIVADO)
       // 🤳 Usamos detección de vida para evitar fraudes con fotos estáticas.
       final String? localPath = await Navigator.push(
@@ -69,7 +81,7 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
 
       // SUBIMOS EL SELFIE VALIDADO
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           const SnackBar(content: Text("🚀 SUBIENDO SELFIE AL BÚNKER..."), duration: Duration(seconds: 2))
         );
       }
@@ -87,7 +99,7 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
       // 3. AUDITORÍA FORENSE (SISTEMA LAD V18.5)
       if (kIsWeb) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             const SnackBar(content: Text("👁️ AUDITANDO IDENTIDAD (IA GOOGLE)..."), duration: Duration(seconds: 2))
           );
         }
@@ -138,14 +150,13 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
 
   Future<void> _startStripeOnboarding() async {
     setState(() => _isOnboardingLoading = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       await _stripeService.startOnboarding();
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error de Onboarding: $e")),
-        );
-      }
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text("Error de Onboarding: $e")),
+      );
     } finally {
       if (mounted) setState(() => _isOnboardingLoading = false);
     }
@@ -153,6 +164,7 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
 
   Future<void> _syncStripeStatus({bool silent = false}) async {
     if (!silent) setState(() => _isOnboardingLoading = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) return;
@@ -160,8 +172,8 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
       // Llamamos a la Cloud Function de sincronización
       final result = await _userService.syncStripeStatus(user.uid);
       
-      if (mounted && !silent) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (!silent) {
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(result == "active" 
               ? "✅ ¡Cuenta activada con éxito!" 
@@ -171,13 +183,13 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
         );
       }
     } catch (e) {
-      if (mounted && !silent) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (!silent) {
+        scaffoldMessenger.showSnackBar(
           SnackBar(content: Text("Error al sincronizar: $e"), backgroundColor: Colors.red),
         );
       }
     } finally {
-      if (mounted && !silent) setState(() => _isOnboardingLoading = false);
+      if (mounted) setState(() => _isOnboardingLoading = false);
     }
   }
 

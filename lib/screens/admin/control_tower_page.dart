@@ -298,6 +298,33 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
               ),
               const SizedBox(height: 20),
               const Text("¿Las fotos coinciden con el driver?", style: TextStyle(color: Colors.white70)),
+              const SizedBox(height: 30),
+              const Divider(color: Colors.white24),
+              const Text("ACCIONES DE FRANQUICIA", style: TextStyle(color: Colors.redAccent, fontSize: 10, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 10),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _FranchiseActionBtn(
+                    label: "SUSPENDER", 
+                    icon: Icons.timer_off, 
+                    color: Colors.orange, 
+                    onTap: () => _handleSuspension(driver.uid)
+                  ),
+                  _FranchiseActionBtn(
+                    label: "REVOCAR", 
+                    icon: Icons.gavel, 
+                    color: Colors.red, 
+                    onTap: () => _handleRevocation(driver)
+                  ),
+                  _FranchiseActionBtn(
+                    label: "RESTAURAR", 
+                    icon: Icons.restore, 
+                    color: Colors.blue, 
+                    onTap: () => _handleRestoration(driver.uid)
+                  ),
+                ],
+              )
             ],
           ),
         ),
@@ -652,31 +679,48 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
   Widget _buildQuickStats() {
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('users').snapshots(),
-      builder: (context, snapshot) {
-        int totalDrivers = 0;
-        int pendingVerif = 0;
+      builder: (context, snapshotUsers) {
+        return StreamBuilder<List<OrderModel>>(
+          stream: _adminService.getActiveMissions(),
+          builder: (context, snapshotOrders) {
+            int totalDrivers = 0;
+            int pendingVerif = 0;
+            int redAlerts = 0;
 
-        if (snapshot.hasData) {
-          final docs = snapshot.data!.docs;
-          totalDrivers = docs.where((d) => (d.data() as Map)['role'] == 'DRIVER' || (d.data() as Map)['role'] == 'MESSENGER').length;
-          pendingVerif = docs.where((d) => (d.data() as Map)['verificationStatus'] == 'APROBADO_DOC').length;
-        }
+            if (snapshotUsers.hasData) {
+              final docs = snapshotUsers.data!.docs;
+              totalDrivers = docs.where((d) => (d.data() as Map)['role'] == 'DRIVER' || (d.data() as Map)['role'] == 'MESSENGER').length;
+              pendingVerif = docs.where((d) => (d.data() as Map)['verificationStatus'] == 'APROBADO_DOC').length;
+            }
 
-        return Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.grey[900],
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(color: Colors.white10),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _StatItem(label: "DRIVERS", value: totalDrivers.toString(), color: Colors.greenAccent),
-              _StatItem(label: "PENDIENTES", value: pendingVerif.toString(), color: Colors.orangeAccent),
-              const _StatItem(label: "SISTEMA", value: "V19.2", color: Colors.blueAccent),
-            ],
-          ),
+            if (snapshotOrders.hasData) {
+              final now = DateTime.now();
+              redAlerts = snapshotOrders.data!.where((o) {
+                if (o.status == OrderStatus.pickedUp) {
+                  final startTime = o.pickedUpAt?.toDate() ?? o.createdAt.toDate();
+                  return now.difference(startTime).inHours >= 2;
+                }
+                return false;
+              }).length;
+            }
+
+            return Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.grey[900],
+                borderRadius: BorderRadius.circular(15),
+                border: Border.all(color: Colors.white10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  _StatItem(label: "DRIVERS", value: totalDrivers.toString(), color: Colors.greenAccent),
+                  _StatItem(label: "PENDIENTES", value: pendingVerif.toString(), color: Colors.orangeAccent),
+                  _StatItem(label: "ALERTAS", value: redAlerts.toString(), color: redAlerts > 0 ? Colors.redAccent : Colors.blueAccent),
+                ],
+              ),
+            );
+          },
         );
       },
     );
@@ -701,6 +745,101 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
             Text(subtitle, style: TextStyle(color: color, fontSize: 10, fontWeight: FontWeight.bold)),
           ],
         ),
+      ),
+    );
+  }
+  void _handleSuspension(String uid) {
+    final TextEditingController reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text("SUSPENDER DRIVER", style: TextStyle(color: Colors.white)),
+        content: TextField(
+          controller: reasonController,
+          style: const TextStyle(color: Colors.white),
+          decoration: const InputDecoration(hintText: "Motivo de la suspensión", hintStyle: TextStyle(color: Colors.white24)),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              await _adminService.suspendDriver(uid: uid, reason: reasonController.text);
+              if (!mounted) return;
+              navigator.pop(); // Cierra este diálogo
+              navigator.pop(); // Cierra el diálogo de auditoría
+            },
+            child: const Text("CONFIRMAR"),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _handleRevocation(UserModel driver) {
+    final TextEditingController reasonController = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text("REVOCACIÓN PERMANENTE", style: TextStyle(color: Colors.red, fontWeight: FontWeight.w900)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Esta acción es irreversible y meterá la identidad financiera en la lista negra.", style: TextStyle(color: Colors.white70, fontSize: 12)),
+            const SizedBox(height: 15),
+            TextField(
+              controller: reasonController,
+              style: const TextStyle(color: Colors.white),
+              decoration: const InputDecoration(hintText: "Motivo legal de la revocación", hintStyle: TextStyle(color: Colors.white24)),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () async {
+              final navigator = Navigator.of(context);
+              await _adminService.revokeDriverFranchise(driver, reasonController.text);
+              if (!mounted) return;
+              navigator.pop(); // Cierra este diálogo
+              navigator.pop(); // Cierra el de auditoría
+            },
+            child: const Text("REVOCAR PARA SIEMPRE"),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _handleRestoration(String uid) async {
+    final navigator = Navigator.of(context);
+    await _adminService.restoreDriverFranchise(uid);
+    if (!mounted) return;
+    navigator.pop();
+  }
+}
+
+class _FranchiseActionBtn extends StatelessWidget {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final VoidCallback onTap;
+
+  const _FranchiseActionBtn({required this.label, required this.icon, required this.color, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 5),
+          Text(label, style: TextStyle(color: color, fontSize: 9, fontWeight: FontWeight.bold)),
+        ],
       ),
     );
   }

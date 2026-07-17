@@ -37,7 +37,10 @@ class UserModel {
   final Timestamp? lastIdentityVerification;
   final Timestamp? lastBiometricVerification;
   final String? lastSessionSelfieUrl;
-  final String? totpSecret; // 🛡️ SEGURO V19.3: Llave maestra para Google Authenticator
+  final String? totpSecret; 
+  final String driverFranchiseStatus; // 🛡️ ACTIVE, SUSPENDED, REVOKED
+  final String? suspensionMessage;    // 🛡️ Motivo de la sanción
+  final Timestamp? suspendedUntil;    // 🛡️ Fecha de fin de sanción
 
   // 💳 PAGOS DIRECTOS (Stripe Connect / Customer) - DOBLE ADN (TEST/LIVE)
   final String? stripeAccountId;
@@ -99,6 +102,9 @@ class UserModel {
     this.lastBiometricVerification,
     this.lastSessionSelfieUrl,
     this.totpSecret,
+    this.driverFranchiseStatus = 'ACTIVE',
+    this.suspensionMessage,
+    this.suspendedUntil,
     this.stripeAccountId,
     this.stripeCustomerId,
     this.defaultPaymentMethodId,
@@ -153,6 +159,9 @@ class UserModel {
       lastBiometricVerification: data['last_biometric_verification'],
       lastSessionSelfieUrl: data['lastSessionSelfieUrl'],
       totpSecret: data['totpSecret'],
+      driverFranchiseStatus: data['driverFranchiseStatus'] ?? 'ACTIVE',
+      suspensionMessage: data['suspensionMessage'],
+      suspendedUntil: data['suspendedUntil'],
       stripeAccountId: data['stripeAccountId'],
       stripeCustomerId: data['stripeCustomerId'],
       defaultPaymentMethodId: data['defaultPaymentMethodId'],
@@ -207,6 +216,9 @@ class UserModel {
       'last_biometric_verification': lastBiometricVerification,
       'lastSessionSelfieUrl': lastSessionSelfieUrl,
       'totpSecret': totpSecret,
+      'driverFranchiseStatus': driverFranchiseStatus,
+      'suspensionMessage': suspensionMessage,
+      'suspendedUntil': suspendedUntil,
       'stripeAccountId': stripeAccountId,
       'stripeCustomerId': stripeCustomerId,
       'defaultPaymentMethodId': defaultPaymentMethodId,

@@ -10,6 +10,7 @@ import '../models/user_model.dart';
 import '../auth_service.dart';
 import '../services/storage_service.dart';
 import '../services/user_service.dart';
+import '../services/support_service.dart'; // ✅ AÑADIDO PARA SOPORTE
 import '../pages/client/completed_orders_page.dart';
 import 'driver_terms_acceptance_page.dart';
 import 'verification_process_page.dart';
@@ -487,6 +488,12 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                   _buildMarketingSection(l10n),
                   const SizedBox(height: 30),
                   _buildMenuTile(title: l10n.earnings_history_title, icon: Icons.history_rounded, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedOrdersPage(isDriver: true)))),
+                  const SizedBox(height: 10),
+                  _buildMenuTile(
+                    title: "RECLAMACIONES Y SUGERENCIAS", 
+                    icon: Icons.support_agent, 
+                    onTap: () => _showSupportDialog(),
+                  ),
                   const SizedBox(height: 20),
                   Text(l10n.prof_section_id, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black)),
                   const SizedBox(height: 15),
@@ -584,6 +591,48 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
         if (mounted) setState(() => _photoUrl = url);
       }
     } catch (e) { debugPrint(e.toString()); }
+  }
+
+  void _showSupportDialog() {
+    final TextEditingController subController = TextEditingController();
+    final TextEditingController msgController = TextEditingController();
+    final supportService = SupportService();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        title: const Text("CENTRO DE SOPORTE LAD", style: TextStyle(fontWeight: FontWeight.w900)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: subController, decoration: const InputDecoration(labelText: "Asunto / Motivo")),
+            const SizedBox(height: 10),
+            TextField(controller: msgController, maxLines: 4, decoration: const InputDecoration(labelText: "Escribe tu mensaje...", border: OutlineInputBorder())),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            onPressed: () async {
+              if (subController.text.isEmpty || msgController.text.isEmpty) return;
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              await supportService.sendTicket(
+                subject: subController.text, 
+                message: msgController.text, 
+                role: 'DRIVER'
+              );
+              if (!mounted) return;
+              navigator.pop();
+              scaffoldMessenger.showSnackBar(const SnackBar(content: Text("✅ Mensaje enviado al búnker."), backgroundColor: Colors.green));
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
+            child: const Text("ENVIAR"),
+          )
+        ],
+      ),
+    );
   }
 
   void _switchToClientRole() async {
