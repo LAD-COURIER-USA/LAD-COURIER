@@ -2210,6 +2210,30 @@ abstract class AppLocalizations {
   /// **'INICIAR ESCANEO ID'**
   String get verif_step2_btn_start;
 
+  /// No description provided for @verif_step3_title.
+  ///
+  /// In es, this message translates to:
+  /// **'Llave de Seguridad (2FA)'**
+  String get verif_step3_title;
+
+  /// No description provided for @verif_step3_desc.
+  ///
+  /// In es, this message translates to:
+  /// **'Blindaje de acceso con Google Authenticator.'**
+  String get verif_step3_desc;
+
+  /// No description provided for @verif_step4_title.
+  ///
+  /// In es, this message translates to:
+  /// **'Foto de Perfil Profesional'**
+  String get verif_step4_title;
+
+  /// No description provided for @verif_step4_desc.
+  ///
+  /// In es, this message translates to:
+  /// **'Sube una foto clara para que tus clientes te reconozcan.'**
+  String get verif_step4_desc;
+
   /// No description provided for @verif_footer.
   ///
   /// In es, this message translates to:

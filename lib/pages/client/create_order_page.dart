@@ -18,6 +18,7 @@ import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/models/order_model.dart';
 import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' as custom_tabs;
 import 'package:photo_manager/photo_manager.dart';
+import 'package:image_picker/image_picker.dart'; // ✅ AÑADIDO PARA XFile
 import 'package:permission_handler/permission_handler.dart';
 import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
 
@@ -26,6 +27,7 @@ class CreateOrderPage extends StatefulWidget {
   final bool autoStartOCR;
   final OrderModel? reassignOrder;
   final Map<String, dynamic>? bridgeData;
+  final XFile? initialImage; // 🛡️ NUEVO: Imagen inyectada desde el Dashboard
 
   const CreateOrderPage({
     super.key,
@@ -33,6 +35,7 @@ class CreateOrderPage extends StatefulWidget {
     this.autoStartOCR = false,
     this.reassignOrder,
     this.bridgeData,
+    this.initialImage,
   });
 
   @override
@@ -80,14 +83,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   void initState() {
     super.initState();
     
-    _screenshotChannel.setMethodCallHandler((call) async {
-      if (call.method == 'onScreenshotDetected') {
-        _autoProcessLastImage();
-      } else if (call.method == 'onImageShared') {
-        final String path = call.arguments;
-        _processSpecificImage(path);
-      }
-    });
+    // 🛡️ REFUERZO V19.12: La escucha de screenshots ahora es GLOBAL en main.dart
+    // para permitir el BINGO automático incluso con la App cerrada.
+    // Aquí solo mantenemos el vigilante si fuera necesario, pero la navegación
+    // la gestiona el búnker central.
 
     _prepareBingoVigilante();
 
@@ -97,6 +96,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     if (widget.autoStartOCR) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _autoProcessLastImage();
+      });
+    }
+
+    // 🛡️ REFUERZO V19.9: Si viene una imagen inyectada (Share o Notification), la procesamos ya
+    if (widget.initialImage != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _processImageWorkflow(widget.initialImage);
       });
     }
 
@@ -340,7 +346,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   Future<void> _loadGlobalMessengers() async {
     FirebaseFirestore.instance.collection('users')
-      .where('role', whereIn: ['MESSENGER', 'DRIVER'])
+      .where('role', whereIn: ['MESSENGER', 'DRIVER']) // 🛡️ UNIFICACIÓN DE ROLES LAD
       .where('isMessengerActive', isEqualTo: true)
       .limit(50)
       .snapshots().listen((snapshot) { 
@@ -412,24 +418,22 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     _processImageWorkflow(actualFile);
   }
 
-  Future<void> _processSpecificImage(String path) async {
-    if (kIsWeb) return; // 🛡️ REFUERZO WEB
-    // Nota: En web no procesamos archivos locales vía path de esta forma
-    // _processImageWorkflow(...)
-  }
-
   Future<void> _pickProductPhoto() async {
     final Position? position = await _ensureLocationPermission();
     if (position == null) return;
     if (!mounted) return;
-    setState(() => _isUploadingPhoto = true);
-    await _storageService.uploadProductPhoto("prod_${DateTime.now().millisecondsSinceEpoch}", context, onLocalPathPicked: (path) async {
-      if (!kIsWeb) {
-        // En nativo procesamos el archivo
-        // _processImageWorkflow(File(path));
+
+    // 🛡️ REFUERZO V19.12: Captura y Procesamiento BINGO
+    await _storageService.uploadProductPhoto(
+      "prod_${DateTime.now().millisecondsSinceEpoch}", 
+      context, 
+      onLocalPathPicked: (path) async {
+        if (mounted) {
+          debugPrint("SISTEMA LAD: Foto de cámara detectada. Iniciando OCR...");
+          _processImageWorkflow(XFile(path));
+        }
       }
-    });
-    if (mounted) setState(() => _isUploadingPhoto = false);
+    );
   }
 
   Future<void> _processImageWorkflow(dynamic file) async {
@@ -437,9 +441,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     setState(() => _isUploadingPhoto = true);
 
     String? uploadedUrl = await _storageService.uploadFile('order_photos', "ticket_${DateTime.now().millisecondsSinceEpoch}", file);
-    // OCR solo en nativo por ahora
-    String? ocrPath = !kIsWeb ? (file as dynamic).path : null;
-    final ocrResult = ocrPath != null ? await _ocrService.analyzeReceipt(ocrPath) : OCRResult();
+    
+    // 🛡️ REFUERZO V19.10: OCR Híbrido (Web + Nativo)
+    String? localPath = !kIsWeb ? (file as dynamic).path : null;
+    final ocrResult = await _ocrService.analyzeReceiptUniversal(
+      localPath: localPath,
+      remoteUrl: uploadedUrl
+    );
     
     final Position? position = await _ensureLocationPermission();
     String? gpsZip, gpsCity, gpsState;
@@ -608,7 +616,22 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, Color color) => Padding(padding: const EdgeInsets.only(bottom: 15, left: 4), child: Row(children: [Icon(icon, size: 18, color: color), const SizedBox(width: 8), Text(title.toUpperCase(), style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: color, letterSpacing: 1.1))]));
+  Widget _buildSectionTitle(String title, IconData icon, Color color) => Padding(
+    padding: const EdgeInsets.only(bottom: 15, left: 4), 
+    child: Row(
+      children: [
+        Icon(icon, size: 18, color: color), 
+        const SizedBox(width: 8), 
+        Expanded(
+          child: Text(
+            title.toUpperCase(), 
+            style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: color, letterSpacing: 1.1),
+            overflow: TextOverflow.ellipsis,
+          ),
+        )
+      ],
+    ),
+  );
 
   Widget _buildSmartShopperGrid(AppLocalizations l10n) => Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(30), border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.15), width: 2), boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 15, offset: const Offset(0, 8))]), child: Column(mainAxisSize: MainAxisSize.min, children: [
     const Row(children: [Icon(Icons.auto_awesome, color: Colors.deepPurple, size: 26), SizedBox(width: 12), Expanded(child: Text("MAGIA SMART SHOPPER", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black, letterSpacing: 1.2)))]),
@@ -681,7 +704,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   Widget _buildActionButton(AppLocalizations l10n) {
-    bool hasP = _clientModel?.defaultPaymentMethodId != null;
+    // 🛡️ PASE VIP: El inspector no necesita tarjeta vinculada
+    bool hasP = (_clientModel?.isVipTester ?? false) || _clientModel?.defaultPaymentMethodId != null;
     return Column(children: [
       if (!hasP) Padding(padding: const EdgeInsets.only(bottom: 20), child: Container(padding: const EdgeInsets.all(15), decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.red[200]!)), child: const Row(children: [Icon(Icons.warning_amber_rounded, color: Colors.red), SizedBox(width: 10), Expanded(child: Text("DEBES VINCULAR UN MÉTODO DE PAGO EN TU PERFIL PARA SOLICITAR SERVICIOS.", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)))]))),
       SizedBox(width: double.infinity, height: 65, child: ElevatedButton(onPressed: (_isLoading || !hasP) ? null : _handleOrderAction, style: ElevatedButton.styleFrom(backgroundColor: hasP ? Colors.black : Colors.grey[400], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22))), child: _isLoading ? const CircularProgressIndicator(color: Colors.greenAccent) : Text(l10n.create_order_btn_send.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white)))),
@@ -696,8 +720,10 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
       if (widget.reassignOrder != null && m.uid == widget.reassignOrder!.assignedMessengerId) return false;
       if (!m.isMessengerActive || !_isServiceMatch(m.availableServices, _selectedService) || m.workZoneCenter == null) return false;
       final plan = (m.subscriptionType ?? 'lite').toLowerCase();
-      double pLimit = (plan == 'pro' || plan == 'standard') ? 25.0 : 5.0;
-      double dLimit = plan == 'pro' ? 120.0 : (plan == 'standard' ? 25.0 : 5.0);
+      // 🛡️ BLINDAJE DE ORTOGRAFÍA LAD: Roberto Macías tiene 'standart' con T
+      final bool isPremium = plan == 'pro' || plan == 'standard' || plan == 'standart';
+      double pLimit = isPremium ? 25.0 : 5.0;
+      double dLimit = plan == 'pro' ? 120.0 : (isPremium ? 25.0 : 5.0);
       if (_validatedPickupLatLng != null) { if (Geolocator.distanceBetween(m.workZoneCenter!.latitude, m.workZoneCenter!.longitude, _validatedPickupLatLng!.latitude, _validatedPickupLatLng!.longitude) / 1609.34 > pLimit) return false; }
       if (_validatedDropoffLatLng != null) { if (Geolocator.distanceBetween(m.workZoneCenter!.latitude, m.workZoneCenter!.longitude, _validatedDropoffLatLng!.latitude, _validatedDropoffLatLng!.longitude) / 1609.34 > dLimit) return false; }
       return true;

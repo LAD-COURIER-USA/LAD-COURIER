@@ -19,7 +19,7 @@ class UserService {
   LocalAuthentication? _authInstance;
   LocalAuthentication? get _auth => kIsWeb ? null : (_authInstance ??= LocalAuthentication());
 
-  /// 🔐 VALIDACIÓN DE IDENTIDAD POR HUELLA DACTILAR
+  /// 🔐 VALIDACIÓN DE IDENTIDAD BIOMÉTRICA (ADAPTABLE)
   Future<bool> authenticateBiometric({required String reason}) async {
     // 🛡️ PROTOCOLO SOBERANO: En Web (iPad/PC) saltamos biometría local.
     if (kIsWeb || _auth == null) {
@@ -34,10 +34,11 @@ class UserService {
       if (!canAuthenticate) return true; 
 
       return await _auth!.authenticate(
-          localizedReason: reason,
+          localizedReason: reason.isEmpty ? "Acceso Seguro: Confirma tu identidad" : reason,
           options: const AuthenticationOptions(
             stickyAuth: true,
             biometricOnly: true,
+            useErrorDialogs: true,
           )
       );
     } catch (e) {
@@ -100,32 +101,38 @@ class UserService {
   /// 🛡️ BÚNKER PERSONAL: Busca si la dirección ya fue pagada a Google anteriormente
   Future<GeocodingResponse?> findPrivateAddress(String uid, String inputAddress) async {
     try {
-      final normalizedInput = inputAddress.toUpperCase().trim();
+      // 🧠 NORMALIZACIÓN AGRESIVA LAD: Eliminamos puntos, comas y espacios extra
+      String clean(String s) => s.toUpperCase().replaceAll(RegExp(r'[,.\s]'), '');
+      final normalizedInput = clean(inputAddress);
+      
       final now = DateTime.now().millisecondsSinceEpoch;
 
       final snapshot = await _usersRef.doc(uid)
           .collection('private_geodata')
-          .where('fullAddress', isEqualTo: normalizedInput)
           .where('expiresAt', isGreaterThan: now) 
-          .limit(1).get();
+          .get();
 
-      if (snapshot.docs.isNotEmpty) {
-        final doc = snapshot.docs.first;
-        await doc.reference.update({
-          'lastUsed': FieldValue.serverTimestamp(),
-          'expiresAt': DateTime.now().add(const Duration(hours: 72)).millisecondsSinceEpoch,
-        });
-
+      // Buscamos el match en memoria para ser más flexibles con los caracteres especiales
+      for (var doc in snapshot.docs) {
         final data = doc.data();
-        debugPrint("LAD BÚNKER: Dirección recuperada (Costo \$0)");
-        return GeocodingResponse(
-          latLng: GeoPoint(data['lat'], data['lng']),
-          fullAddress: data['fullAddress'],
-          zipCode: data['zipCode'],
-          city: data['city'],
-          state: data['state'],
-          streetNumber: data['streetNumber'],
-        );
+        final storedAddr = clean(data['fullAddress'] ?? '');
+        
+        if (storedAddr == normalizedInput) {
+          await doc.reference.update({
+            'lastUsed': FieldValue.serverTimestamp(),
+            'expiresAt': DateTime.now().add(const Duration(hours: 72)).millisecondsSinceEpoch,
+          });
+
+          debugPrint("LAD BÚNKER: Dirección recuperada (Costo \$0)");
+          return GeocodingResponse(
+            latLng: GeoPoint(data['lat'], data['lng']),
+            fullAddress: data['fullAddress'],
+            zipCode: data['zipCode'],
+            city: data['city'],
+            state: data['state'],
+            streetNumber: data['streetNumber'],
+          );
+        }
       }
     } catch (e) {
       debugPrint("LAD ERROR Búnker Search: $e");

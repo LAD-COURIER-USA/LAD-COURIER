@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_functions/cloud_functions.dart'; // 🟢 Importación vital
+import 'package:lad_courier/services/support_service.dart'; // ✅ AÑADIDO PARA SOPORTE
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/services/storage_service.dart';
@@ -105,9 +106,10 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
         }
 
         final bool isLive = StripeModeService().isLive();
-        final bool hasPayment = isLive 
+        final bool isVip = _userModel?.isVipTester ?? false;
+        final bool hasPayment = isVip || (isLive 
             ? (_userModel?.defaultPaymentMethodIdLive != null)
-            : (_userModel?.defaultPaymentMethodId != null);
+            : (_userModel?.defaultPaymentMethodId != null));
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -197,6 +199,14 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
                 title: l10n.client_prof_completed_orders,
                 icon: Icons.history_rounded,
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedOrdersPage())),
+              ),
+
+              const SizedBox(height: 10),
+
+              _buildMenuTile(
+                title: "RECLAMACIONES Y SUGERENCIAS",
+                icon: Icons.support_agent,
+                onTap: () => _showSupportDialog(),
               ),
 
               const SizedBox(height: 30),
@@ -375,7 +385,7 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
           ),
           const SizedBox(height: 10),
           const Text(
-            "Al guardar tu perfil, autorizas el uso de tus direcciones, datos de contacto y la captura de fotos de entrega para el funcionamiento de tus órdenes. Entiendo que esta evidencia estará disponible por 36 horas por motivos de seguridad y que los pagos se procesan de forma externa vía Stripe.",
+            "Al guardar tu perfil, autorizas el uso de tus direcciones, datos de contacto y la captura de fotos de entrega para el funcionamiento de tus órdenes. Entiendo que esta evidencia estará disponible para ambas partes por 36 horas, y se conservará en el sistema por 10 días para atender posibles reclamaciones. Los pagos se procesan de forma externa vía Stripe.",
             textAlign: TextAlign.justify,
             style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54),
           ),
@@ -391,6 +401,49 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
             activeColor: Colors.blue[700],
             contentPadding: EdgeInsets.zero,
           ),
+        ],
+      ),
+    );
+  }
+
+  void _showSupportDialog() {
+    final TextEditingController subController = TextEditingController();
+    final TextEditingController msgController = TextEditingController();
+    final supportService = SupportService();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("CENTRO DE SOPORTE LAD", style: TextStyle(fontWeight: FontWeight.w900)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(controller: subController, decoration: const InputDecoration(labelText: "Asunto / Motivo")),
+            const SizedBox(height: 10),
+            TextField(controller: msgController, maxLines: 4, decoration: const InputDecoration(labelText: "Escribe tu mensaje...", border: OutlineInputBorder())),
+          ],
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            onPressed: () async {
+              if (subController.text.isEmpty || msgController.text.isEmpty) return;
+              final navigator = Navigator.of(context);
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              await supportService.sendTicket(
+                subject: subController.text, 
+                message: msgController.text, 
+                role: 'CLIENT'
+              );
+              if (!mounted) return;
+              navigator.pop();
+              scaffoldMessenger.showSnackBar(const SnackBar(content: Text("✅ Mensaje enviado al búnker."), backgroundColor: Colors.green));
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
+            child: const Text("ENVIAR"),
+          )
         ],
       ),
     );

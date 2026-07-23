@@ -15,14 +15,24 @@ class InvitationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // 🛡️ LIMPIEZA SOBERANA: Forzamos el trim() del ID antes de la consulta
+    final String cleanId = messengerId.trim();
+
     return FutureBuilder<DocumentSnapshot>(
-      future: FirebaseFirestore.instance.collection('users').doc(messengerId).get(),
+      future: FirebaseFirestore.instance.collection('users').doc(cleanId).get(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
           return const Center(child: CircularProgressIndicator(color: Colors.white));
         }
-        if (snapshot.hasError || !snapshot.hasData || !snapshot.data!.exists) {
-          return _buildErrorCard();
+        
+        if (snapshot.hasError) {
+          debugPrint("SISTEMA LAD ERROR: Fallo al buscar driver [$cleanId]: ${snapshot.error}");
+          return _buildErrorCard("Error de conexión con el búnker.");
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          debugPrint("SISTEMA LAD: Driver no encontrado en Firestore -> ID: [$cleanId]");
+          return _buildErrorCard("No se pudo encontrar al mensajero.");
         }
 
         final data = snapshot.data!.data() as Map<String, dynamic>;
@@ -180,13 +190,27 @@ class InvitationCard extends StatelessWidget {
     ]);
   }
 
-  Widget _buildErrorCard() {
-    return const Center(
+  Widget _buildErrorCard(String message) {
+    return Center(
       child: Material(
         color: Colors.transparent,
-        child: Text(
-          "Error: No se pudo encontrar al mensajero.",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, color: Colors.red, size: 40),
+              const SizedBox(height: 15),
+              Text(
+                message,
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.black, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 15),
+              TextButton(onPressed: onReject, child: const Text("CERRAR"))
+            ],
+          ),
         ),
       ),
     );

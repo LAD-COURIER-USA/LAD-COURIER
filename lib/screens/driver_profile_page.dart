@@ -175,14 +175,17 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
     final bool acceptedTerms = _userModel?.acceptedTerms ?? false;
     final String status = _userModel?.verificationStatus ?? 'ACEPTACIÓN_PENDIENTE';
     
-    final bool isBankActive = isLive 
-        ? (_userModel?.stripeAccountIdLive != null)
-        : (_userModel?.stripeStatus == 'active' || _userModel?.isStripeConnected == true);
-
-    final bool isIdentityVerified = _userModel?.isIdentityVerified == true || status == 'APROBADO_DOC' || status == 'APROBADO';
-    final bool hasTotp = _userModel?.totpSecret != null && _userModel!.totpSecret!.isNotEmpty;
+    final bool isVip = _userModel?.isVipTester ?? false;
     
-    final bool isApproved = acceptedTerms && isBankActive && isIdentityVerified && hasTotp;
+    final bool isBankActive = isVip || (isLive 
+        ? (_userModel?.stripeAccountIdLive != null)
+        : (_userModel?.stripeStatus == 'active' || _userModel?.isStripeConnected == true));
+
+    final bool isIdentityVerified = isVip || _userModel?.isIdentityVerified == true || status == 'APROBADO_DOC' || status == 'APROBADO';
+    final bool hasPhoto = _userModel?.photoURL != null && _userModel!.photoURL!.isNotEmpty;
+    final bool hasTotp = isVip || (_userModel?.totpSecret != null && _userModel!.totpSecret!.isNotEmpty);
+    
+    final bool isApproved = (isVip || acceptedTerms) && isBankActive && isIdentityVerified && hasTotp && hasPhoto;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 25),
@@ -216,10 +219,11 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
             ],
           ),
           const SizedBox(height: 15),
-          _verificationStep("1. Acuerdo de Operador", acceptedTerms),
+          _verificationStep("1. Acuerdo de Operador", isVip || acceptedTerms),
           _verificationStep("2. Vinculación Bancaria", isBankActive),
           _verificationStep("3. Verificación de Identidad", isIdentityVerified),
           _verificationStep("4. Llave de Seguridad (2FA)", hasTotp),
+          _verificationStep("5. Foto de Perfil Profesional", hasPhoto),
 
           if (!isApproved) ...[
             const SizedBox(height: 15),
@@ -251,7 +255,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
               child: TextButton.icon(
                 onPressed: _isSaving ? null : _syncStripeStatus,
                 icon: const Icon(Icons.sync, size: 18, color: Colors.indigo),
-                label: const Text("YA COMPLETÉ MI REGISTRO (SINCRONIZAR)",
+                label: const Text("SINCRONIZAR ESTADO",
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 11, color: Colors.indigo)
                 ),
               ),
@@ -459,10 +463,13 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
         final bool isLive = StripeModeService().isLive();
         final bool acceptedTerms = _userModel?.acceptedTerms ?? false;
         final String status = _userModel?.verificationStatus ?? 'ACEPTACIÓN_PENDIENTE';
-        final bool isBankActive = isLive ? (_userModel?.stripeAccountIdLive != null) : (_userModel?.stripeStatus == 'active' || _userModel?.isStripeConnected == true);
-        final bool isIdentityVerified = _userModel?.isIdentityVerified == true || status == 'APROBADO_DOC' || status == 'APROBADO';
-        final bool hasTotp = _userModel?.totpSecret != null && _userModel!.totpSecret!.isNotEmpty;
-        final bool isApproved = acceptedTerms && isBankActive && isIdentityVerified && hasTotp;
+        final bool isVip = _userModel?.isVipTester ?? false;
+        final bool isBankActive = isVip || (isLive ? (_userModel?.stripeAccountIdLive != null) : (_userModel?.stripeStatus == 'active' || _userModel?.isStripeConnected == true));
+        final bool isIdentityVerified = isVip || _userModel?.isIdentityVerified == true || status == 'APROBADO_DOC' || status == 'APROBADO';
+        final bool hasPhoto = _userModel?.photoURL != null && _userModel!.photoURL!.isNotEmpty;
+        final bool hasTotp = isVip || (_userModel?.totpSecret != null && _userModel!.totpSecret!.isNotEmpty);
+        
+        final bool isApproved = (isVip || acceptedTerms) && isBankActive && isIdentityVerified && hasTotp && hasPhoto;
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -544,7 +551,7 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
 
   Widget _buildStripeConnectCard(AppLocalizations l10n) {
     final bool isLive = StripeModeService().isLive();
-    final bool isConnected = isLive ? (_userModel?.stripeAccountIdLive != null) : (_userModel?.isStripeConnected ?? false);
+    final bool isConnected = (_userModel?.isVipTester ?? false) || (isLive ? (_userModel?.stripeAccountIdLive != null) : (_userModel?.isStripeConnected ?? false));
     const Color themeColor = Colors.indigo;
     return Card(elevation: 0, margin: const EdgeInsets.only(bottom: 10), color: isConnected ? Colors.green.withValues(alpha: 0.1) : themeColor.withValues(alpha: 0.1), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: BorderSide(color: isConnected ? Colors.green.withValues(alpha: 0.5) : themeColor.withValues(alpha: 0.3), width: 2)), child: ListTile(leading: Icon(isConnected ? Icons.check_circle : Icons.account_balance, color: isConnected ? Colors.green : themeColor, size: 28), title: Text(isConnected ? "CUENTA DE COBROS VINCULADA" : l10n.prof_pay_stripe, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black)), subtitle: Text(isConnected ? "Listo para recibir pagos directos" : l10n.prof_pay_stripe_sub, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black87)), trailing: Icon(isConnected ? Icons.settings : Icons.add_circle_outline, color: Colors.black), onTap: () => _showStripeConnectModal(isConnected)));
   }

@@ -117,22 +117,24 @@ class StorageService {
       final Reference storageRef = _storage.ref().child(filePath);
       
       if (kIsWeb) {
-        // En web, fileSource debería ser Uint8List o similar
+        // 🛡️ REFUERZO V19.7: Manejo inteligente de tipos en Web (iPad/Tablet)
+        Uint8List bytes;
+        
         if (fileSource is Uint8List) {
-          final UploadTask uploadTask = storageRef.putData(fileSource);
-          final TaskSnapshot snapshot = await uploadTask;
-          return await snapshot.ref.getDownloadURL();
+          bytes = fileSource;
+        } else if (fileSource is String) {
+          // Si es una ruta (blob URL en Web), usamos XFile para leer los bytes
+          bytes = await XFile(fileSource).readAsBytes();
+        } else {
+          return null;
         }
-        return null;
+
+        final UploadTask uploadTask = storageRef.putData(bytes);
+        final TaskSnapshot snapshot = await uploadTask;
+        return await snapshot.ref.getDownloadURL();
       }
 
       // En nativo, fileSource puede ser un String (path) o un File
-      // IMPORTANTE: putFile requiere un objeto File. Usamos dynamic para evitar el import 'dart:io'
-      // pero solo lo ejecutamos en nativo.
-      // ignore: undefined_identifier
-      // final actualFile = fileSource is String ? File(fileSource) : fileSource;
-      // Para ser 100% seguros sin el import, usamos putData leyendo los bytes antes
-      
       final XFile xFile = fileSource is String ? XFile(fileSource) : fileSource as XFile;
       final bytes = await xFile.readAsBytes();
       final UploadTask uploadTask = storageRef.putData(bytes);

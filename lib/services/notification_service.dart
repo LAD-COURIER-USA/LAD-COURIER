@@ -47,12 +47,20 @@ class NotificationService {
           .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
           ?.createNotificationChannel(channel);
 
-      // 3. INICIALIZACIÓN
+      // 3. INICIALIZACIÓN UNIVERSAL (V19.11)
       const AndroidInitializationSettings initializationSettingsAndroid =
       AndroidInitializationSettings('@mipmap/ic_launcher');
 
+      const DarwinInitializationSettings initializationSettingsDarwin =
+      DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+
       const InitializationSettings initializationSettings = InitializationSettings(
         android: initializationSettingsAndroid,
+        iOS: initializationSettingsDarwin,
       );
 
       await _localNotifications!.initialize(initializationSettings);
@@ -60,22 +68,35 @@ class NotificationService {
       // 4. ESCUCHA DE PRIMER PLANO
       FirebaseMessaging.onMessage.listen((RemoteMessage message) {
         RemoteNotification? notification = message.notification;
-        AndroidNotification? android = message.notification?.android;
+        
+        if (notification != null && _localNotifications != null) {
+          // Detalles Android
+          AndroidNotificationDetails? androidDetails;
+          if (message.notification?.android != null) {
+            androidDetails = AndroidNotificationDetails(
+              channel.id,
+              channel.name,
+              channelDescription: channel.description,
+              importance: Importance.max,
+              priority: Priority.high,
+              icon: message.notification?.android?.smallIcon ?? '@mipmap/ic_launcher',
+            );
+          }
 
-        if (notification != null && android != null && _localNotifications != null) {
+          // Detalles iOS (Darwin)
+          const DarwinNotificationDetails darwinDetails = DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          );
+
           _localNotifications!.show(
             notification.hashCode,
             notification.title,
             notification.body,
             NotificationDetails(
-              android: AndroidNotificationDetails(
-                channel.id,
-                channel.name,
-                channelDescription: channel.description,
-                importance: Importance.max,
-                priority: Priority.high,
-                icon: android.smallIcon ?? '@mipmap/ic_launcher',
-              ),
+              android: androidDetails,
+              iOS: darwinDetails,
             ),
           );
         }

@@ -65,7 +65,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
 
-            <!-- 🛡️ IMÁN 1: APP LINKS (Enlaces HTTPS de Redes Sociales) -->
+            <!-- 🛡️ IMÁN 1: APP LINKS (HTTPS Oficial) -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -76,14 +76,12 @@
                 <data android:scheme="https" android:host="www.ladcourier.com" />
             </intent-filter>
 
-            <!-- 🛡️ IMÁN 2: DEEP LINKS (Protocolo LAD y QR) -->
+            <!-- 🛡️ IMÁN 2: DEEP LINKS (Protocolo ladcourier://) -->
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="ladcourier" android:host="invite" />
-                <data android:scheme="ladcourier" android:host="stripe-return" />
-                <data android:scheme="ladcourier" android:host="create_order" />
+                <data android:scheme="ladcourier" />
             </intent-filter>
 
             <!-- 📸 IMÁN 3: COMPARTIR TICKET (Privacidad Total) -->

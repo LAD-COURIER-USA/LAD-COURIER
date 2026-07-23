@@ -1152,6 +1152,19 @@ class AppLocalizationsHt extends AppLocalizations {
   String get verif_step2_btn_start => 'KÒMANSE ESKANE ID';
 
   @override
+  String get verif_step3_title => 'Kle Sekirite (2FA)';
+
+  @override
+  String get verif_step3_desc => 'Pwoteksyon aksè avèk Google Authenticator.';
+
+  @override
+  String get verif_step4_title => 'Foto Pwofesyonèl Pwofil';
+
+  @override
+  String get verif_step4_desc =>
+      'Monte yon foto klè pou kliyan ou yo rekonèt ou.';
+
+  @override
   String get verif_footer =>
       'Done ou yo chiffres epi trete dirèkteman pa Stripe selon nòm bankè yo.';
 

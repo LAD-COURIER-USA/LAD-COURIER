@@ -100,8 +100,12 @@ class StripeService {
           customerEphemeralKeySecret: data['ephemeralKeySecret'],
           merchantDisplayName: 'LAD Courier USA',
           googlePay: googlePayConfig,
+          applePay: const PaymentSheetApplePay(
+            merchantCountryCode: 'US',
+          ),
           style: ThemeMode.light,
           appearance: appearanceConfig,
+          returnURL: 'ladcourier://stripe-return', // 🛡️ REQUERIDO PARA iOS
         ),
       );
 

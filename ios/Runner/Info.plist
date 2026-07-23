@@ -46,6 +46,21 @@
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
 
+	<!-- 🛡️ REFUERZO V19.11: CONFIGURACIÓN DE URL SCHEME PARA STRIPE Y DEEP LINKS -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLName</key>
+			<string>ladcourier</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>ladcourier</string>
+			</array>
+		</dict>
+	</array>
+
 	<!-- PERMISOS DE CÁMARA Y GALERÍA PARA LAD COURIER -->
 	<key>NSCameraUsageDescription</key>
 	<string>LAD usa tu cámara para escanear tickets de compra y fotos de evidencia para proteger tu entrega.</string>
@@ -53,6 +68,14 @@
 	<string>LAD guarda copias de tus comprobantes de entrega en tu galería para tu respaldo legal.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>LAD detecta tus capturas de pantalla para auto-llenar tus órdenes de SmartShopper instantáneamente.</string>
+
+	<!-- 🛡️ REFUERZO V19.11: PERMISOS DE UBICACIÓN Y BIOMETRÍA PARA IPHONE -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>LAD necesita tu ubicación para mostrarte órdenes cercanas y guiarte durante la entrega.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>LAD usa tu ubicación en segundo plano para asegurar que el cliente reciba actualizaciones en tiempo real de su paquete.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>LAD usa FaceID para validar tu identidad al inicio de cada jornada de trabajo, protegiendo tu cuenta de accesos no autorizados.</string>
 	<!-- FIN DE PERMISOS -->
 
 </dict>

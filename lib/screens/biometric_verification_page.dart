@@ -157,7 +157,7 @@ class _BiometricVerificationPageState extends State<BiometricVerificationPage> {
       final String? selfieUrl = await _storageService.uploadFile(
         'order_photos', 
         "auth_${user.uid}_${DateTime.now().millisecondsSinceEpoch}", 
-        _localImagePath!
+        _localImagePath! // Aquí pasamos el String (Ruta/Blob)
       );
 
       if (selfieUrl == null) {

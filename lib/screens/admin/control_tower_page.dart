@@ -2,11 +2,14 @@ import 'dart:math'; // ✅ AÑADIDO PARA SECRETOS
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cloud_functions/cloud_functions.dart'; // ✅ AÑADIDO PARA AUDITORÍA CLOUD
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:otp/otp.dart'; // ✅ CORREGIDO: Usando la librería 'otp'
 import 'package:fl_chart/fl_chart.dart'; // ✅ AÑADIDO PARA GRÁFICOS
 import 'package:google_maps_flutter/google_maps_flutter.dart'; // ✅ AÑADIDO PARA MAPA GLOBAL
+import 'package:image_picker/image_picker.dart'; // ✅ AÑADIDO PARA SELFIE
+import 'package:lad_courier/services/storage_service.dart'; // ✅ AÑADIDO PARA SUBIDA
 import 'package:lad_courier/auth/auth_gate.dart';
 import 'package:lad_courier/services/admin_service.dart';
 import 'package:lad_courier/models/user_model.dart';
@@ -21,13 +24,17 @@ class ControlTowerPage extends StatefulWidget {
 
 class _ControlTowerPageState extends State<ControlTowerPage> {
   final AdminService _adminService = AdminService();
+  final FirebaseFunctions _functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+  
   bool _isUnlocked = false;
+  bool _isSelfieVerified = false; // 🛡️ NUEVO: Paso 1 de Seguridad
   bool _isLoading = true;
+  bool _isProcessingSelfie = false;
   String? _totpSecret;
   final TextEditingController _codeController = TextEditingController();
 
-  String _activeView = 'DASHBOARD'; // 🛡️ CONTROL DE VISTA
-  bool _isRadarActive = false; // 🛡️ CARGA BAJO DEMANDA PARA AHORRO API
+  String _activeView = 'DASHBOARD'; 
+  bool _isRadarActive = false; 
   final Set<Marker> _mapMarkers = {};
 
   @override
@@ -49,16 +56,69 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
     final lastAuth = prefs.getInt('admin_auth_timestamp') ?? 0;
     final now = DateTime.now().millisecondsSinceEpoch;
 
-    // 8 Horas = 8 * 60 * 60 * 1000 milisegundos
+    // 8 Horas
     const eightHours = 8 * 60 * 60 * 1000;
 
     if (now - lastAuth < eightHours) {
       setState(() {
         _isUnlocked = true;
+        _isSelfieVerified = true;
         _isLoading = false;
       });
     } else {
       setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _takeAdminSelfie() async {
+    setState(() => _isProcessingSelfie = true);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+    
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera,
+        preferredCameraDevice: CameraDevice.front,
+        maxWidth: 600,
+      );
+
+      if (image == null) {
+        setState(() => _isProcessingSelfie = false);
+        return;
+      }
+
+      // 1. SUBIR SELFIE TEMPORAL
+      final storage = StorageService();
+      final String uid = FirebaseAuth.instance.currentUser!.uid;
+      final String? url = await storage.uploadFile(
+        'admin_verifications', 
+        "admin_session_$uid", 
+        image
+      );
+
+      if (url == null) throw "Error al subir evidencia.";
+
+      // 2. AUDITORÍA FORENSE (GOOGLE VISION)
+      final result = await _functions.httpsCallable('verifyLivenessCloud').call({
+        'imageUrl': url,
+      });
+
+      if (result.data['success'] == true) {
+        setState(() {
+          _isSelfieVerified = true;
+          _isProcessingSelfie = false;
+        });
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(content: Text("✅ IDENTIDAD BIOMÉTRICA CONFIRMADA"), backgroundColor: Colors.green)
+        );
+      } else {
+        throw result.data['error'] ?? "Fallo en la auditoría facial.";
+      }
+    } catch (e) {
+      setState(() => _isProcessingSelfie = false);
+      scaffoldMessenger.showSnackBar(
+        SnackBar(content: Text("❌ ERROR DE SEGURIDAD: $e"), backgroundColor: Colors.red)
+      );
     }
   }
 
@@ -213,10 +273,10 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
               crossAxisSpacing: 15,
               mainAxisSpacing: 15,
               children: [
-                _buildMenuCard("RADAR FLOTA", Icons.radar, Colors.blueAccent, "EN VIVO", () => setState(() => _activeView = 'MAPA')),
-                _buildMenuCard("VERIFICACIONES", Icons.verified_user, Colors.orangeAccent, "PENDIENTES", () => setState(() => _activeView = 'VERIFICACIONES')),
-                _buildMenuCard("RECLAMACIONES", Icons.feedback, Colors.redAccent, "BUZÓN", () => setState(() => _activeView = 'RECLAMACIONES')),
-                _buildMenuCard("ARCHIVO FOTOS", Icons.photo_library, Colors.greenAccent, "EVIDENCIAS", () => setState(() => _activeView = 'EVIDENCIAS')),
+                _buildMenuCard("RADAR", Icons.radar, Colors.blueAccent, "EN VIVO", () => setState(() => _activeView = 'MAPA')),
+                _buildMenuCard("AUDITORÍA", Icons.verified_user, Colors.orangeAccent, "PENDIENTES", () => setState(() => _activeView = 'VERIFICACIONES')),
+                _buildMenuCard("TICKETS", Icons.feedback, Colors.redAccent, "BUZÓN", () => setState(() => _activeView = 'RECLAMACIONES')),
+                _buildMenuCard("ARCHIVO", Icons.photo_library, Colors.greenAccent, "EVIDENCIAS", () => setState(() => _activeView = 'EVIDENCIAS')),
               ],
             ),
           ),
@@ -322,6 +382,12 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
                     icon: Icons.restore, 
                     color: Colors.blue, 
                     onTap: () => _handleRestoration(driver.uid)
+                  ),
+                  _FranchiseActionBtn(
+                    label: "SEGURIDAD", 
+                    icon: Icons.lock_reset, 
+                    color: Colors.white, 
+                    onTap: () => _handleSecurityReset(driver)
                   ),
                 ],
               )
@@ -539,7 +605,7 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
                   if (context.mounted) Navigator.pop(context);
                 },
                 icon: const Icon(Icons.warning, color: Colors.black),
-                label: const Text("MARCAR PARA INVESTIGACIÓN", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
+                label: const Text("INVESTIGAR", style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
                 style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
               ),
             ],
@@ -602,22 +668,38 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.lock_person, color: Colors.greenAccent, size: 80),
+              Icon(
+                !_isSelfieVerified ? Icons.face_retouching_natural : Icons.lock_person, 
+                color: Colors.greenAccent, 
+                size: 80
+              ),
               const SizedBox(height: 20),
-              const Text(
-                "ACCESO RESTRINGIDO",
-                style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
+              Text(
+                !_isSelfieVerified ? "IDENTIFICACIÓN REQUERIDA" : "ACCESO RESTRINGIDO",
+                style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900),
               ),
               const SizedBox(height: 10),
               Text(
-                _totpSecret == null
-                    ? "Para continuar, debes configurar tu llave maestra de seguridad."
-                    : "Ingresa el código de 6 dígitos de tu Google Authenticator",
+                !_isSelfieVerified 
+                    ? "Para entrar a la Torre de Control, debes validar tu identidad con una selfie de hoy."
+                    : (_totpSecret == null
+                        ? "Para continuar, debes configurar tu llave maestra de seguridad."
+                        : "Ingresa el código de 6 dígitos de tu Google Authenticator"),
                 textAlign: TextAlign.center,
                 style: const TextStyle(color: Colors.white54, fontSize: 14),
               ),
               const SizedBox(height: 40),
-              if (_totpSecret == null)
+              
+              if (!_isSelfieVerified)
+                _isProcessingSelfie 
+                  ? const CircularProgressIndicator(color: Colors.greenAccent)
+                  : ElevatedButton.icon(
+                      onPressed: _takeAdminSelfie,
+                      icon: const Icon(Icons.camera_alt),
+                      label: const Text("TOMAR SELFIE DE SEGURIDAD"),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
+                    )
+              else if (_totpSecret == null)
                 ElevatedButton(
                   onPressed: _setupAdminAuthenticator,
                   style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, foregroundColor: Colors.black, padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
@@ -771,6 +853,31 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
               navigator.pop(); // Cierra el diálogo de auditoría
             },
             child: const Text("CONFIRMAR"),
+          )
+        ],
+      ),
+    );
+  }
+
+  void _handleSecurityReset(UserModel driver) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Colors.grey[900],
+        title: const Text("RESET DE SEGURIDAD", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Text("Se enviará un correo de recuperación a ${driver.email}. El driver deberá cambiar su contraseña para volver a entrar. ¿Proceder?", style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
+          ElevatedButton(
+            onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
+              final navigator = Navigator.of(context);
+              await _adminService.resetUserSecurity(driver.email);
+              if (!mounted) return;
+              navigator.pop();
+              scaffoldMessenger.showSnackBar(const SnackBar(content: Text("✅ Correo de seguridad enviado.")));
+            },
+            child: const Text("ENVIAR RESET"),
           )
         ],
       ),

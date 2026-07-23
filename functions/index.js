@@ -2,6 +2,7 @@ const { onCall, HttpsError, onRequest } = require("firebase-functions/v2/https")
 const { onSchedule } = require("firebase-functions/v2/scheduler");
 const { onDocumentCreated, onDocumentUpdated } = require("firebase-functions/v2/firestore");
 const { logger } = require("firebase-functions");
+const vision = require('@google-cloud/vision'); // ✅ IA DE GOOGLE INTEGRADA
 const admin = require("firebase-admin");
 
 if (admin.apps.length === 0) {
@@ -114,7 +115,6 @@ exports.setupDriverBank = onCall({
         console.log(`🔗 Generando link de onboarding para: ${stripeAccountId}`);
         const accountLink = await stripe.accountLinks.create({
             account: stripeAccountId,
-            // 🛡️ REFUERZO V16.2: Usamos enlaces que Stripe acepta sin validación previa de dominio
             refresh_url: 'https://connect.stripe.com/setup/s/' + stripeAccountId,
             return_url: 'https://ladcourier.com',
             type: 'account_onboarding',
@@ -147,9 +147,20 @@ exports.authorizeOrderPayment = onCall({ region: REGION, invoker: "public", secr
         const orderDoc = await admin.firestore().collection("orders").doc(orderId).get();
         const orderData = orderDoc.data();
         const clientDoc = await admin.firestore().collection("users").doc(orderData.clientId).get();
+        const clientData = clientDoc.data();
 
-        const platformCustomerId = clientDoc.data()?.[fields.customerId];
-        const platformPaymentMethodId = clientDoc.data()?.[fields.paymentMethod];
+        // 🛡️ BYPASS VIP: Si el cliente es inspector, aprobamos sin Stripe
+        if (clientData?.isVipTester === true) {
+            console.log("💎 VIP DETECTADO: Autorizando orden sin cobro de Stripe.");
+            await admin.firestore().collection("orders").doc(orderId).update({
+                paymentStatus: 'authorized',
+                isVipOrder: true
+            });
+            return { success: true, isVip: true };
+        }
+
+        const platformCustomerId = clientData?.[fields.customerId];
+        const platformPaymentMethodId = clientData?.[fields.paymentMethod];
 
         if (!platformCustomerId || !platformPaymentMethodId) throw new Error("Cliente no configurado.");
 
@@ -190,6 +201,17 @@ exports.captureOrderPayment = onCall({ region: REGION, invoker: "public", secret
     try {
         const orderDoc = await admin.firestore().collection("orders").doc(orderId).get();
         const orderData = orderDoc.data();
+
+        // 🛡️ BYPASS VIP: Si la orden fue marcada como VIP, no llamamos a Stripe
+        if (orderData?.isVipOrder === true) {
+            console.log("💎 VIP DETECTADO: Capturando orden sin cobro real.");
+            await admin.firestore().collection("orders").doc(orderId).update({
+                paymentStatus: 'captured',
+                capturedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            return { success: true, isVip: true };
+        }
+
         const piId = orderData?.stripePaymentIntentId;
         const driverDoc = await admin.firestore().collection("users").doc(orderData.assignedMessengerId).get();
         const mode = (await admin.firestore().collection("admin_settings").doc("stripe").get()).data()?.stripe_mode || "test";
@@ -216,6 +238,13 @@ exports.cancelOrderPayment = onCall({ region: REGION, invoker: "public", secrets
     try {
         const orderDoc = await admin.firestore().collection("orders").doc(orderId).get();
         const orderData = orderDoc.data();
+
+        // 🛡️ BYPASS VIP: Si la orden fue marcada como VIP
+        if (orderData?.isVipOrder === true) {
+            await admin.firestore().collection("orders").doc(orderId).update({ paymentStatus: 'cancelled' });
+            return { success: true, isVip: true };
+        }
+
         const piId = orderData?.stripePaymentIntentId;
         const driverDoc = await admin.firestore().collection("users").doc(orderData.assignedMessengerId).get();
         const stripeAccountId = driverDoc.data()?.stripeAccountId;
@@ -329,28 +358,20 @@ exports.syncStripeStatus = onCall({ region: REGION, invoker: "public", secrets: 
 
 /**
  * 💳 12. WEBHOOK DE STRIPE: EL VIGILANTE SOBERANO (V17.0)
- * Este webhook cumple con el contrato de "Seller Compliance" automáticamente.
  */
 exports.stripeWebhook = onRequest({
     region: REGION,
     secrets: ["STRIPE_SECRET_TEST", "STRIPE_SECRET_LIVE"]
 }, async (req, res) => {
     const { stripe } = await getStripeInstance();
-    const sig = req.headers['stripe-signature'];
-    let event;
+    let event = req.body;
 
     try {
-        // En producción, aquí verificaríamos la firma (sig)
-        event = req.body;
-
-        // 🤖 CASO A: Stripe necesita información del Driver (Compliance)
         if (event.type === 'account.updated') {
             const account = event.data.object;
             const uid = account.metadata.firebaseUid;
 
             if (uid && account.requirements.currently_due.length > 0) {
-                console.log(`⚠️ ALERTA COMPLIANCE: El Driver ${uid} tiene requisitos pendientes.`);
-
                 const userDoc = await admin.firestore().collection("users").doc(uid).get();
                 const fcmToken = userDoc.data()?.fcmToken;
 
@@ -366,7 +387,6 @@ exports.stripeWebhook = onRequest({
                 }
             }
 
-            // Sincronizar estado automáticamente
             const isActive = account.details_submitted && account.charges_enabled;
             await admin.firestore().collection("users").doc(uid).update({
                 stripeStatusLive: isActive ? 'active' : 'pending',
@@ -374,7 +394,6 @@ exports.stripeWebhook = onRequest({
             });
         }
 
-        // 💰 CASO B: Pago de Cliente (Amanda) capturado con éxito
         if (event.type === 'payment_intent.succeeded') {
             const pi = event.data.object;
             const orderId = pi.metadata.orderId;
@@ -448,10 +467,22 @@ exports.processImmediatePayment = onCall({ region: REGION, invoker: "public", se
         const orderDoc = await orderRef.get();
         if (!orderDoc.exists) throw new Error("La orden no existe.");
         const orderData = orderDoc.data();
-
         const clientDoc = await admin.firestore().collection("users").doc(orderData.clientId).get();
-        const platformCustomerId = clientDoc.data()?.[fields.customerId];
-        const platformPaymentMethodId = clientDoc.data()?.[fields.paymentMethod];
+        const clientData = clientDoc.data();
+
+        // 🛡️ BYPASS VIP: Si el cliente es inspector
+        if (clientData?.isVipTester === true) {
+            console.log("💎 VIP DETECTADO: Procesando cobro directo simbólico.");
+            await orderRef.update({
+                paymentStatus: 'captured',
+                isVipOrder: true,
+                completedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            return { success: true, isVip: true };
+        }
+
+        const platformCustomerId = clientData?.[fields.customerId];
+        const platformPaymentMethodId = clientData?.[fields.paymentMethod];
 
         if (!platformCustomerId || !platformPaymentMethodId) throw new Error("Falta método de pago.");
 
@@ -487,7 +518,7 @@ exports.processImmediatePayment = onCall({ region: REGION, invoker: "public", se
 });
 
 /**
- * 💳 17. STRIPE IDENTITY: SESIÓN DE VERIFICACIÓN (V17.0)
+ * 💳 17. STRIPE IDENTITY
  */
 exports.createIdentitySession = onCall({
     region: REGION,
@@ -509,14 +540,12 @@ exports.createIdentitySession = onCall({
             sessionId: session.id
         };
     } catch (error) {
-        console.error("❌ ERROR IDENTITY:", error.message);
         throw new HttpsError("internal", error.message);
     }
 });
 
 /**
- * 💳 18. WEB SETUP SESSION (Para iPhones/Web PWA)
- * Crea una sesión de Stripe Checkout para vincular tarjeta en la web.
+ * 💳 18. WEB SETUP SESSION
  */
 exports.createWebSetupSession = onCall({
     region: REGION,
@@ -555,8 +584,7 @@ exports.createWebSetupSession = onCall({
 });
 
 /**
- * 🛡️ 19. AUDITORÍA FORENSE DE IDENTIDAD (GOOGLE CLOUD VISION)
- * Valida que la selfie sea de un humano real y coincida con el usuario.
+ * 🛡️ 19. AUDITORÍA FORENSE (VISION)
  */
 exports.verifyLivenessCloud = onCall({
     region: REGION,
@@ -564,42 +592,29 @@ exports.verifyLivenessCloud = onCall({
     secrets: ["STRIPE_SECRET_TEST", "STRIPE_SECRET_LIVE"]
 }, async (request) => {
     if (!request.auth) throw new HttpsError("unauthenticated", "Sesión requerida.");
-
     const { imageUrl } = request.data;
-    const vision = require('@google-cloud/vision');
     const client = new vision.ImageAnnotatorClient();
-
     try {
-        // 🚀 ANALIZAMOS LA IMAGEN CON EL OJO DE GOOGLE
-        const [result] = await client.faceDetection(imageUrl);
+        const [result] = await client.faceDetection({ image: { source: { imageUri: imageUrl } } });
         const faces = result.faceAnnotations;
+        if (!faces || faces.length === 0) return { success: false, error: "No rostro." };
+        return { success: true, confidence: faces[0].detectionConfidence };
+    } catch (error) { throw new HttpsError("internal", error.message); }
+});
 
-        if (!faces || faces.length === 0) {
-            return { success: false, error: "No se detectó ningún rostro humano en la imagen." };
-        }
-
-        const face = faces[0];
-
-        // 🛡️ REGLA DE ORO LAD: Verificamos parpadeo o inclinación natural (Liveness)
-        // Cloud Vision nos da probabilidades de ojos abiertos/cerrados y emociones.
-        const isHumanLikely = face.detectionConfidence > 0.8;
-        const joyLikely = face.joyLikelihood !== 'VERY_UNLIKELY'; // Un humano suele tener micro-gestos
-
-        if (!isHumanLikely) {
-            return { success: false, error: "La auditoría forense sospecha de una imagen no real (Falsificación detectada)." };
-        }
-
-        // Si pasa el filtro, marcamos el éxito
-        return {
-            success: true,
-            confidence: face.detectionConfidence,
-            landmarking: face.landmarkingConfidence
-        };
-
-    } catch (error) {
-        console.error("❌ ERROR FORENSE:", error.message);
-        throw new HttpsError("internal", "Fallo en el servidor de auditoría.");
-    }
+/**
+ * 🛰️ 20. MOTOR OCR CLOUD
+ */
+exports.analyzeReceiptCloud = onCall({ region: REGION, invoker: "public" }, async (request) => {
+    if (!request.auth) throw new HttpsError("unauthenticated", "Sesión requerida.");
+    const { imageUrl } = request.data;
+    const client = new vision.ImageAnnotatorClient();
+    try {
+        const [result] = await client.textDetection({ image: { source: { imageUri: imageUrl } } });
+        const fullText = result.fullTextAnnotation ? result.fullTextAnnotation.text : "";
+        if (!fullText) return { success: false, error: "No texto." };
+        return { success: true, rawText: fullText };
+    } catch (error) { throw new HttpsError("internal", error.message); }
 });
 
 /**
@@ -610,7 +625,6 @@ exports.autoLADSystemCleanup = onSchedule({
     region: REGION,
     secrets: ["STRIPE_SECRET_TEST", "STRIPE_SECRET_LIVE"]
 }, async (event) => {
-    const { stripe } = await getStripeInstance();
     const db = admin.firestore();
     const batch = db.batch();
     let totalOpCount = 0;
@@ -618,9 +632,6 @@ exports.autoLADSystemCleanup = onSchedule({
     const orderExpiry = 30 * 60 * 1000;
     const rejectedOrderExpiry = 24 * 60 * 60 * 1000;
     const completedOrderExpiry = 10 * 24 * 60 * 60 * 1000; // 🛡️ SOBERANÍA: 10 días de auditoría
-    const clientTimeout = 10 * 60 * 1000;
-    const pickupTimeout = 60 * 60 * 1000;
-    const deliveryTimeout = 120 * 60 * 1000;
 
     const ordersSnapshot = await db.collection("orders")
         .where("status", "in", ["rejected", "cancelled", "negotiating", "price_proposed", "en_route_to_pickup", "picked_up", "completed"])
@@ -629,16 +640,13 @@ exports.autoLADSystemCleanup = onSchedule({
     for (const doc of ordersSnapshot.docs) {
         const data = doc.data();
         const nowMs = admin.firestore().Timestamp.now().toMillis();
-        const age = nowMs - (data.createdAt?.toMillis() || nowMs);
-
-        // ... (lógica intermedia de penalizaciones se mantiene igual) ...
-
         const lastUpdate = data.updatedAt ? data.updatedAt.toMillis() : data.createdAt.toMillis();
+
         let currentExpiry = orderExpiry;
         if (data.status === "rejected") currentExpiry = rejectedOrderExpiry;
         if (data.status === "completed") currentExpiry = completedOrderExpiry;
 
-        if (["rejected", "cancelled", "completed"].includes(data.status) && (nowMs - lastUpdate) > currentExpiry) {
+        if ((nowMs - lastUpdate) > currentExpiry) {
             batch.delete(doc.ref);
             totalOpCount++;
         }

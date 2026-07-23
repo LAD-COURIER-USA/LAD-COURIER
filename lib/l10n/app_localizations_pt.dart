@@ -1161,6 +1161,20 @@ class AppLocalizationsPt extends AppLocalizations {
   String get verif_step2_btn_start => 'INICIAR DIGITALIZAÇÃO ID';
 
   @override
+  String get verif_step3_title => 'Chave de Segurança (2FA)';
+
+  @override
+  String get verif_step3_desc =>
+      'Blindagem de acesso com Google Authenticator.';
+
+  @override
+  String get verif_step4_title => 'Foto de Perfil Profissional';
+
+  @override
+  String get verif_step4_desc =>
+      'Envie uma foto clara para que seus clientes o reconheçam.';
+
+  @override
   String get verif_footer =>
       'Seus dados são criptografados e processados diretamente pelo Stripe sob padrões bancários.';
 

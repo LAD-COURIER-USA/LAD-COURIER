@@ -75,7 +75,7 @@ class _DriverSelectionPageState extends State<DriverSelectionPage> {
   Stream<List<UserModel>> _getCompatibleDrivers() {
     return FirebaseFirestore.instance
         .collection('users')
-        .where('role', isEqualTo: 'MESSENGER')
+        .where('role', whereIn: ['MESSENGER', 'DRIVER']) // 🛡️ UNIFICACIÓN DE ROLES LAD
         .where('isMessengerActive', isEqualTo: true) // 1. REQUISITO: DISPONIBLE
         .snapshots()
         .map((snapshot) {
@@ -93,6 +93,7 @@ class _DriverSelectionPageState extends State<DriverSelectionPage> {
         double pickupLimit = 5.0;
         double dropoffLimit = 5.0;
 
+        // 🛡️ BLINDAJE DE ORTOGRAFÍA LAD: Soporte para 'standart'
         if (plan == 'standard' || plan == 'standart') {
           pickupLimit = 25.0;
           dropoffLimit = 25.0;

@@ -216,16 +216,16 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
 
         final bool isLive = StripeModeService().isLive();
         
-        // 🛡️ REGLA DOBLE ADN REFORZADA: Solo está activo si el status es 'active'
-        final bool isBankActive = isLive 
+        // 🛡️ REGLA VIP SOBERANA: Si es VIP, tiene luz verde automática
+        final bool isBankActive = userModel.isVipTester || (isLive 
             ? (userModel.stripeStatusLive == 'active')
-            : (userModel.stripeStatus == 'active' || userModel.isStripeConnected == true);
+            : (userModel.stripeStatus == 'active' || userModel.isStripeConnected == true));
 
-        final bool hasStripeAccount = isLive 
+        final bool hasStripeAccount = userModel.isVipTester || (isLive 
             ? (userModel.stripeAccountIdLive != null)
-            : (userModel.stripeAccountId != null && userModel.stripeAccountId!.isNotEmpty);
+            : (userModel.stripeAccountId != null && userModel.stripeAccountId!.isNotEmpty));
 
-        final bool isIdentityVerified = userModel.isIdentityVerified || userModel.verificationStatus == 'APROBADO_DOC';
+        final bool isIdentityVerified = userModel.isVipTester || userModel.isIdentityVerified || userModel.verificationStatus == 'APROBADO_DOC';
 
         return Scaffold(
           backgroundColor: Colors.white,
@@ -277,9 +277,9 @@ class _VerificationProcessPageState extends State<VerificationProcessPage> with 
                         child: TextButton.icon(
                           onPressed: _isOnboardingLoading ? null : _syncStripeStatus,
                           icon: const Icon(Icons.sync, color: Colors.green),
-                          label: Text(
-                            l10n.verif_step1_sync_btn,
-                            style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.green, fontSize: 11),
+                          label: const Text(
+                            "SINCRONIZAR ESTADO",
+                            style: TextStyle(fontWeight: FontWeight.w900, color: Colors.green, fontSize: 11),
                           ),
                         ),
                       ),

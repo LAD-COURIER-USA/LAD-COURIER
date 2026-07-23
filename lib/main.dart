@@ -19,6 +19,8 @@ import 'package:lad_courier/widgets/invitation_card.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/notification_service.dart';
 import 'package:lad_courier/services/stripe_mode_service.dart';
+import 'package:image_picker/image_picker.dart'; // 🚀 PARA MANEJO DE IMÁGENES BINGO
+import 'package:lad_courier/pages/client/create_order_page.dart'; // 🚀 PARA NAVEGACIÓN AUTOMÁTICA
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -123,6 +125,7 @@ class MyApp extends StatefulWidget {
 class _MyAppState extends State<MyApp> {
   AppLinks? _appLinks;
   final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  static const _screenshotChannel = MethodChannel('com.laddigital.smartshopper/screenshot');
 
   @override
   void initState() {
@@ -132,9 +135,61 @@ class _MyAppState extends State<MyApp> {
       try {
         _appLinks = AppLinks();
         _initDeepLinks();
+        _initSharedImageListener(); // 🚀 ESCUCHA GLOBAL DE BINGO
       } catch (_) {}
     }
     _listenToAuthChanges(); 
+  }
+
+  void _initSharedImageListener() {
+    _screenshotChannel.setMethodCallHandler((call) async {
+      debugPrint("SISTEMA LAD: Evento de Canal Screenshot -> ${call.method}");
+      
+      if (call.method == 'onImageShared') {
+        final String path = call.arguments;
+        _handleBingoNavigation(imagePath: path);
+      } else if (call.method == 'onScreenshotDetected') {
+        _handleBingoNavigation(autoStartOCR: true);
+      }
+    });
+
+    // 🚀 ACTIVACIÓN DEL VIGILANTE SOBERANO
+    _screenshotChannel.invokeMethod('startScreenshotWatcher').catchError((e) {
+      debugPrint("SISTEMA LAD: No se pudo activar el vigilante nativo: $e");
+    });
+  }
+
+  void _handleBingoNavigation({String? imagePath, bool autoStartOCR = false}) async {
+    // 🛡️ Esperamos a que la App esté lista y el usuario logueado
+    int retry = 0;
+    while (FirebaseAuth.instance.currentUser == null && retry < 12) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      retry++;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      debugPrint("SISTEMA LAD: No se pudo navegar a BINGO - Usuario no autenticado.");
+      return;
+    }
+
+    final context = navigatorKey.currentContext;
+    if (context != null && context.mounted) {
+      debugPrint("SISTEMA LAD: Ejecutando Teletransporte BINGO...");
+      
+      // 🚀 NAVEGACIÓN INTELIGENTE: Si ya estamos en una página, limpiamos hasta el Dashboard
+      // y lanzamos la nueva misión para evitar duplicidad.
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreateOrderPage(
+            initialImage: imagePath != null ? XFile(imagePath) : null,
+            autoStartOCR: autoStartOCR,
+          ),
+        ),
+        (route) => route.isFirst,
+      );
+    }
   }
 
   void _listenToAuthChanges() {
@@ -170,24 +225,36 @@ class _MyAppState extends State<MyApp> {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       String? text = data?.text?.trim();
       if (text != null && text.isNotEmpty) {
-        if (text.length >= 20 && text.length <= 40) _processReferralId(text);
+        // 🛡️ REGLA SOBERANA: Un ID de Driver NUNCA tiene espacios
+        if (text.length >= 20 && text.length <= 40 && !text.contains(' ')) {
+          _processReferralId(text);
+        }
       }
     } catch (_) {}
   }
 
   void _handleIncomingUri(Uri uri) {
     String? referrerId = uri.queryParameters['id'] ?? uri.queryParameters['ref'];
-    if (referrerId != null && referrerId.isNotEmpty) _processReferralId(referrerId);
+    if (referrerId != null && referrerId.isNotEmpty) {
+      // 🛡️ LIMPIEZA TOTAL: Eliminamos cualquier espacio o basura del ID
+      _processReferralId(referrerId.trim());
+    }
   }
 
   void _processReferralId(String driverId) async {
     try {
+      final cleanId = driverId.trim();
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('pending_messenger_invitation', driverId);
+      await prefs.setString('pending_messenger_invitation', cleanId);
+      
+      debugPrint("SISTEMA LAD: Procesando invitación para Driver ID: $cleanId");
+      
       if (FirebaseAuth.instance.currentUser != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _showInvitationDialog(driverId));
+        WidgetsBinding.instance.addPostFrameCallback((_) => _showInvitationDialog(cleanId));
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint("Error en processReferralId: $e");
+    }
   }
 
   void _showInvitationDialog(String driverId) {
@@ -200,7 +267,12 @@ class _MyAppState extends State<MyApp> {
       builder: (dialogContext) => InvitationCard(
         messengerId: driverId,
         onAccept: () async {
-          Navigator.pop(dialogContext);
+          final user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            // 🚀 BINGO: Vinculamos al Driver con el Cliente en Firestore
+            await UserService().linkMessengerToClient(user.uid, driverId);
+          }
+          if (dialogContext.mounted) Navigator.pop(dialogContext);
         },
         onReject: () => Navigator.pop(dialogContext),
       ),

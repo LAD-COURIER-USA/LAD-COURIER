@@ -38,6 +38,7 @@ class UserModel {
   final Timestamp? lastBiometricVerification;
   final String? lastSessionSelfieUrl;
   final String? totpSecret; 
+  final bool isVipTester; // 🛡️ PUENTE VIP PARA INSPECTORES
   final String driverFranchiseStatus; // 🛡️ ACTIVE, SUSPENDED, REVOKED
   final String? suspensionMessage;    // 🛡️ Motivo de la sanción
   final Timestamp? suspendedUntil;    // 🛡️ Fecha de fin de sanción
@@ -102,6 +103,7 @@ class UserModel {
     this.lastBiometricVerification,
     this.lastSessionSelfieUrl,
     this.totpSecret,
+    this.isVipTester = false, // 🛡️ DEFAULT: Nadie es VIP a menos que se diga lo contrario
     this.driverFranchiseStatus = 'ACTIVE',
     this.suspensionMessage,
     this.suspendedUntil,
@@ -159,6 +161,7 @@ class UserModel {
       lastBiometricVerification: data['last_biometric_verification'],
       lastSessionSelfieUrl: data['lastSessionSelfieUrl'],
       totpSecret: data['totpSecret'],
+      isVipTester: data['isVipTester'] ?? false, // 🛡️ CAPTURA DESDE FIRESTORE
       driverFranchiseStatus: data['driverFranchiseStatus'] ?? 'ACTIVE',
       suspensionMessage: data['suspensionMessage'],
       suspendedUntil: data['suspendedUntil'],
@@ -216,6 +219,7 @@ class UserModel {
       'last_biometric_verification': lastBiometricVerification,
       'lastSessionSelfieUrl': lastSessionSelfieUrl,
       'totpSecret': totpSecret,
+      'isVipTester': isVipTester, // 🛡️ SINCRO CON FIRESTORE
       'driverFranchiseStatus': driverFranchiseStatus,
       'suspensionMessage': suspensionMessage,
       'suspendedUntil': suspendedUntil,

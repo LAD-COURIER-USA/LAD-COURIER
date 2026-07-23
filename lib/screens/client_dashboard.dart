@@ -11,6 +11,7 @@ import 'package:lad_courier/screens/client_profile_page.dart';
 import 'package:lad_courier/services/order_service.dart';
 import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/chat_service.dart';
+import 'package:image_picker/image_picker.dart'; // ✅ AÑADIDO PARA BINGO WEB
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
@@ -131,6 +132,9 @@ class _ClientDashboardState extends State<ClientDashboard> {
   }
 
   bool _checkPaymentMethodStatus(AppLocalizations l10n) {
+    // 🛡️ PASE VIP: El inspector no necesita tarjeta
+    if (_clientProfile?.isVipTester ?? false) return true;
+
     if (_clientProfile?.defaultPaymentMethodId == null) {
       showDialog(
         context: context,
@@ -218,6 +222,11 @@ class _ClientDashboardState extends State<ClientDashboard> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildWelcomeSection(l10n),
+                      const SizedBox(height: 20),
+                      
+                      // 🚀 NUEVA SECCIÓN BINGO UNIVERSAL (V19.9)
+                      _buildBingoQuickAction(l10n),
+                      
                       const SizedBox(height: 25),
                       _buildSectionTitle(l10n.client_dash_active_missions.toUpperCase(), Icons.radar, Colors.indigo[900]!),
                       _buildActiveOrdersList(l10n),
@@ -765,6 +774,76 @@ class _ClientDashboardState extends State<ClientDashboard> {
         ),
       ],
     );
+  }
+
+  Widget _buildBingoQuickAction(AppLocalizations l10n) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.deepPurple[900]!, Colors.black],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(25),
+        boxShadow: [BoxShadow(color: Colors.deepPurple.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 8))],
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.auto_awesome, color: Colors.greenAccent, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text("MAGIA BINGO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.2)),
+                    Text("Pide en un toque con tu ticket", style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            height: 55,
+            child: ElevatedButton.icon(
+              onPressed: _launchBingoWorkflow,
+              icon: const Icon(Icons.wallpaper, color: Colors.black),
+              label: const Text("BINGO: SUBIR SCREENSHOT", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.greenAccent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                elevation: 4,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _launchBingoWorkflow() async {
+    final picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 50,
+    );
+
+    if (image != null && mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => CreateOrderPage(
+            initialImage: image,
+            autoStartOCR: false,
+          ),
+        ),
+      );
+    }
   }
 
   void _showDriverRestingDialog(UserModel m, AppLocalizations l10n) {

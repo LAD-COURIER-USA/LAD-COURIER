@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'; // ✅ AÑADIDO PARA RESET DE CLAVE
 import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA debugPrint
 import '../models/user_model.dart';
 import '../models/order_model.dart';
@@ -140,5 +141,24 @@ class AdminService {
       'resolution': resolution,
       'resolvedAt': FieldValue.serverTimestamp(),
     });
+  }
+
+  // 🛡️ ACCIÓN: Reset de Seguridad (Expulsar piratas)
+  Future<void> resetUserSecurity(String email) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      debugPrint("SISTEMA LAD: Email de reset enviado a $email para expulsar posibles intrusos.");
+    } catch (e) {
+      throw "No se pudo enviar el correo de recuperación: $e";
+    }
+  }
+
+  // 🛡️ ACCIÓN: Eliminación de Respeto (Sin lista negra)
+  Future<void> softDeleteUser(String uid) async {
+    // 1. Borramos el documento de Firestore para que no pueda operar
+    await _db.collection('users').doc(uid).delete();
+    
+    // Nota: La eliminación de Firebase Auth requiere una Cloud Function 
+    // que ya tenemos programada ('deleteUserAccount')
   }
 }

@@ -52,14 +52,17 @@ class _UserDataValidatorState extends State<UserDataValidator> {
           );
         }
 
-        if (snapshot.hasData && !snapshot.data!.exists) {
-          return widget.builder(context, null);
+        // 🛡️ SISTEMA LAD: Mientras esperamos el documento, mostramos un spinner limpio.
+        // Esto evita el "mareo" de pasar por RoleDispatcher antes de que Firestore responda.
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(
+              child: CircularProgressIndicator(color: Colors.black),
+            ),
+          );
         }
 
-        // 🛡️ SISTEMA LAD: Si el stream está cargando, permitimos que el flujo continúe
-        // entregando 'null'. Esto evita el bloqueo de pantalla con un spinner infinito
-        // y permite que AuthGate redirija a RoleDispatcher de forma fluida.
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.hasData && !snapshot.data!.exists) {
           return widget.builder(context, null);
         }
 

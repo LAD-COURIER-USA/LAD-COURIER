@@ -1,45 +1,20 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <base href="/">
-
+  <base href="/app/">
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="LAD Courier USA - Tu plataforma soberana de mensajería y logística en USA.">
-
-  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LAD Courier USA">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
-
-  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
-
-  <!-- 🗺️ MOTOR DE MAPAS GOOGLE (REQUERIDO PARA WEB) -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXcHoOg_VZ409FGy2fpmh0bpFisKHnAG0"></script>
-
   <title>LAD Courier USA v19.2</title>
   <link rel="manifest" href="manifest.json">
-
-  <!-- 💳 LIBRERÍA MAESTRA DE STRIPE (V17.15) -->
   <script src="https://js.stripe.com/v3/"></script>
-
-  <!-- 🐞 BINGO DEBUGGER PRO -->
   <script>
-    function logToScreen(msg, isError = false) {
-      console.log((isError ? '❌ ' : 'ℹ️ ') + msg);
-    }
-
-    window.onerror = function(message, source, lineno, colno, error) {
-      logToScreen('ERROR: ' + message + ' Line: ' + lineno, true);
-    };
-
-    window.addEventListener('unhandledrejection', function(event) {
-      logToScreen('REJECTION: ' + event.reason, true);
-    });
-
-    // Forzar renderizado HTML para Safari
     window.flutterWebRenderer = "html";
   </script>
 </head>

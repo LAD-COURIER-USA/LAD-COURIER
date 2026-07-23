@@ -1170,6 +1170,20 @@ class AppLocalizationsFr extends AppLocalizations {
   String get verif_step2_btn_start => 'COMMENCER LE SCAN ID';
 
   @override
+  String get verif_step3_title => 'Clé de Sécurité (2FA)';
+
+  @override
+  String get verif_step3_desc =>
+      'Blindage de l\'accès avec Google Authenticator.';
+
+  @override
+  String get verif_step4_title => 'Photo de Profil Professionnelle';
+
+  @override
+  String get verif_step4_desc =>
+      'Téléchargez une photo claire pour que vos clients vous reconnaissent.';
+
+  @override
   String get verif_footer =>
       'Vos données sont cryptées et traitées directement par Stripe selon les normes bancaires.';
 

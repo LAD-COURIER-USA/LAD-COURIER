@@ -1155,6 +1155,19 @@ class AppLocalizationsEn extends AppLocalizations {
   String get verif_step2_btn_start => 'START ID SCAN';
 
   @override
+  String get verif_step3_title => 'Security Key (2FA)';
+
+  @override
+  String get verif_step3_desc => 'Access shielding with Google Authenticator.';
+
+  @override
+  String get verif_step4_title => 'Professional Profile Photo';
+
+  @override
+  String get verif_step4_desc =>
+      'Upload a clear photo so your customers recognize you.';
+
+  @override
   String get verif_footer =>
       'Your data is encrypted and processed directly by Stripe under banking standards.';
 
