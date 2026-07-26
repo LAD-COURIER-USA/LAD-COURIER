@@ -1,205 +1,246 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LAD DIGITAL SYSTEMS LLC | LAD Courier USA Official</title>
-    <link rel="icon" type="image/png" href="assets/favicon.png">
+    <title>LAD Courier | Centro de Mando Logístico 2026</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #4B39A8;
-            --secondary: #FFFFFF;
-            --card-bg: #F8F9FA;
-            --text-main: #1A1A1A;
-            --text-muted: #666666;
-            --border-color: #EEEEEE;
+        body { font-family: 'Inter', sans-serif; }
+        .font-brand { font-family: 'Orbitron', sans-serif; }
+        .bg-lad-purple { background-color: #4B39A8; }
+        .text-lad-purple { color: #4B39A8; }
+        .border-lad-purple { border-color: #4B39A8; }
+
+        .app-screenshot {
+            width: 100%;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+            border: 4px solid #1f2937;
+            transition: transform 0.3s ease;
         }
+        .app-screenshot:hover { transform: scale(1.05); border-color: #4B39A8; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; }
+        .reveal { opacity: 0; transform: translateY(20px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
 
-        body { background-color: var(--secondary); color: var(--text-main); line-height: 1.6; }
-
-        /* HEADER */
-        header { padding: 20px 8%; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); z-index: 1000; }
-        .logo-llc { height: 75px; transition: height 0.3s ease; }
-        .nav-links a { text-decoration: none; color: var(--primary); font-weight: 800; font-size: 14px; letter-spacing: 1px; }
-
-        /* HERO */
-        .hero { padding: 80px 8% 60px; text-align: center; max-width: 1200px; margin: 0 auto; }
-        .hero h1 { font-size: 52px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 20px; line-height: 1.1; color: #000; }
-        .hero p { font-size: 20px; color: var(--text-muted); max-width: 800px; margin: 0 auto 50px; }
-
-        /* DASHBOARDS SIDE-BY-SIDE */
-        .dashboards { display: flex; justify-content: center; gap: 40px; margin-bottom: 80px; flex-wrap: wrap; }
-        .dash-card { text-align: center; }
-        .dash-img { height: 550px; border-radius: 45px; border: 12px solid #111; box-shadow: 0 40px 80px rgba(0,0,0,0.15); transition: transform 0.4s ease; background: #000; }
-        .dash-img:hover { transform: translateY(-10px); }
-        .dash-label { margin-top: 25px; font-weight: 900; letter-spacing: 2px; font-size: 12px; color: var(--primary); text-transform: uppercase; }
-
-        /* DOWNLOADS */
-        .download-section { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 100px; padding: 0 5%; }
-        .dl-button { display: flex; align-items: center; gap: 15px; background: #000; color: #fff; padding: 15px 35px; border-radius: 20px; text-decoration: none; transition: 0.3s; border: 2px solid #000; }
-        .dl-button:hover { background: var(--primary); border-color: var(--primary); transform: scale(1.05); }
-        .dl-button.amazon { background: #fff; color: #000; border: 2px solid #000; }
-        .dl-button img { height: 30px; }
-        .dl-text { text-align: left; }
-        .dl-text span { display: block; font-size: 10px; opacity: 0.8; }
-        .dl-text strong { font-size: 16px; }
-
-        /* FEATURES */
-        .features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 40px; padding: 100px 8%; background: #fafafa; border-top: 1px solid var(--border-color); }
-        .feature-card { background: var(--card-bg); padding: 50px; border-radius: 40px; border: 1px solid var(--border-color); transition: 0.3s; }
-        .feature-card:hover { background: #fff; box-shadow: 0 20px 50px rgba(0,0,0,0.05); border-color: var(--primary); }
-        .f-icon { font-size: 45px; margin-bottom: 25px; display: block; }
-        .feature-card h3 { font-size: 26px; font-weight: 900; margin-bottom: 15px; letter-spacing: -0.5px; }
-        .feature-card p { color: var(--text-muted); font-size: 17px; font-weight: 500; }
-
-        /* CORPORATE SECTION */
-        .corporate { padding: 100px 8%; text-align: center; }
-        .corporate h2 { font-size: 32px; font-weight: 900; margin-bottom: 20px; }
-        .corp-btn { display: inline-block; padding: 15px 40px; border-radius: 50px; border: 2px solid var(--primary); color: var(--primary); text-decoration: none; font-weight: 800; font-size: 14px; letter-spacing: 1px; transition: 0.3s; margin-top: 30px; }
-        .corp-btn:hover { background: var(--primary); color: #fff; }
-
-        /* FOOTER */
-        footer { padding: 80px 8% 50px; background: #fff; border-top: 1px solid var(--border-color); text-align: center; }
-        .footer-nav { margin-bottom: 40px; }
-        .footer-nav a { color: var(--text-main); text-decoration: none; margin: 0 20px; font-weight: 700; font-size: 14px; }
-        .footer-nav a:hover { color: var(--primary); }
-        .copy { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-top: 30px; border-top: 1px solid #f0f0f0; padding-top: 30px; }
-
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 40px; }
-            .dash-img { height: 400px; border-width: 8px; }
-        }
+        .btn-glow:hover { box-shadow: 0 0 20px rgba(75, 57, 168, 0.6); }
     </style>
 </head>
-<body>
+<body class="bg-gray-50 text-gray-900 overflow-x-hidden">
 
-    <header>
-        <img src="assets/logo_llc.png" alt="LAD DIGITAL SYSTEMS LLC" class="logo-llc">
-        <div class="nav-links">
-            <a href="#" onclick="openContactForm(event)">SOPORTE OFICIAL</a>
+    <!-- HEADER -->
+<header class="fixed w-full top-0 z-50 bg-white/95 backdrop-blur-md border-b border-gray-100">
+    <div class="max-w-7xl mx-auto px-6 h-20 flex justify-between items-center">
+        <div class="flex items-center gap-4">
+            <img src="assets/logo.png" alt="LAD Courier USA Logo" class="h-16 w-auto drop-shadow-md">
+            <div class="flex flex-col">
+                <span class="font-brand font-black text-xl tracking-tighter text-lad-purple uppercase leading-none">LAD COURIER USA</span>
+                <span class="font-brand font-bold text-[8px] text-indigo-400 tracking-[0.2em] uppercase">— MICRO-FRANQUICIA SAAS —</span>
+            </div>
         </div>
-    </header>
-
-    <main>
-        <section class="hero">
-            <h1>LAD Courier USA</h1>
-            <p>La plataforma soberana de logística que conecta directamente a clientes y conductores bajo un modelo transparente, seguro y de liquidación instantánea.</p>
-
-            <div class="dashboards">
-                <div class="dash-card">
-                    <img src="assets/driver_dash.png" alt="Driver App" class="dash-img">
-                    <div class="dash-label">Modo Operador</div>
-                </div>
-                <div class="dash-card">
-                    <img src="assets/client_dash.png" alt="Client App" class="dash-img">
-                    <div class="dash-label">Modo Cliente</div>
-                </div>
-            </div>
-
-            <div class="download-section">
-                <a href="downloads/lad-courier-v11.apk" class="dl-button">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" alt="Android">
-                    <div class="dl-text"><span>Descarga Directa</span><strong>APK ANDROID</strong></div>
-                </a>
-                <a href="https://www.amazon.com/gp/mas/get-appstore/android" class="dl-button amazon">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon">
-                    <div class="dl-text"><span>Disponible en</span><strong>AMAZON APPSTORE</strong></div>
-                </a>
-            </div>
-        </section>
-
-        <section class="features-grid">
-            <div class="feature-card">
-                <span class="f-icon">📸</span>
-                <h3>Magia SmartShopper</h3>
-                <p>Nuestra tecnología BINGO captura automáticamente tus tickets de compra online y genera misiones de entrega en segundos. Sin teclear direcciones, sin errores.</p>
-            </div>
-            <div class="feature-card">
-                <span class="f-icon">🛡️</span>
-                <h3>Búnker de Seguridad</h3>
-                <p>Protección total mediante la Auditoría Forense Indy. Validación biométrica y seguimiento GPS histórico para garantizar que cada entrega sea real y confiable.</p>
-            </div>
-            <div class="feature-card">
-                <span class="f-icon">💰</span>
-                <h3>Pagos Directos</h3>
-                <p>El dinero va del cliente directo al driver a través de Stripe Connect. Sin retenciones de plataforma, sin esperas semanales. Tú controlas tu capital.</p>
-            </div>
-        </section>
-
-        <section class="corporate">
-            <h2>LAD DIGITAL SYSTEMS LLC</h2>
-            <p>Construyendo el futuro de la logística descentralizada en los Estados Unidos.</p>
-            <a href="app/#/admin" class="corp-btn">ACCESO CORPORATIVO: TORRE DE CONTROL</a>
-        </section>
-    </main>
-
-    <footer>
-        <div class="footer-nav">
-            <a href="privacy.html">Privacidad</a>
-            <a href="terms.html">Términos</a>
-            <a href="#" onclick="openContactForm(event)">Contactarnos</a>
-        </div>
-        <div class="copy">
-            <p>&copy; 2026 LAD DIGITAL SYSTEMS LLC. Miami, Florida.</p>
-            <p style="margin-top: 8px; font-size: 10px; opacity: 0.6; letter-spacing: 1px;">POWERED BY BINGO TECHNOLOGY & STRIPE INFRASTRUCTURE</p>
-        </div>
-    </footer>
-
-    <!-- 🛡️ FORMULARIO DE CONTACTO SOBERANO (OCULTO POR DEFECTO) -->
-    <div id="contactModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:2000; backdrop-filter:blur(10px); align-items:center; justify-content:center;">
-        <div style="background:#fff; width:90%; max-width:500px; padding:40px; border-radius:30px; box-shadow:0 20px 50px rgba(0,0,0,0.3); position:relative;">
-            <button onclick="closeContactForm()" style="position:absolute; top:20px; right:20px; border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
-            <h2 style="font-weight:900; margin-bottom:10px;">Contactar al Búnker</h2>
-            <p style="font-size:13px; color:#666; margin-bottom:25px;">Envíanos tu duda o sugerencia y nuestro equipo técnico te responderá en breve.</p>
-
-            <form id="emailForm" onsubmit="sendEmail(event)">
-                <label for="name" style="display:none;">Nombre</label>
-                <input type="text" id="name" placeholder="Tu Nombre" required style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #ddd; font-family:inherit;">
-                <label for="userEmail" style="display:none;">Email</label>
-                <input type="email" id="userEmail" placeholder="Tu Email" required style="width:100%; padding:15px; margin-bottom:15px; border-radius:12px; border:1px solid #ddd; font-family:inherit;">
-                <label for="message" style="display:none;">Mensaje</label>
-                <textarea id="message" placeholder="¿En qué podemos ayudarte?" required style="width:100%; padding:15px; height:120px; border-radius:12px; border:1px solid #ddd; font-family:inherit; margin-bottom:20px;"></textarea>
-                <button type="submit" style="width:100%; padding:18px; background:#4B39A8; color:#fff; border:none; border-radius:15px; font-weight:900; cursor:pointer; font-size:16px;">ENVIAR MENSAJE</button>
-            </form>
+        <div class="hidden md:flex gap-4">
+            <a href="llc.html" class="text-xs font-brand font-bold text-gray-500 hover:text-lad-purple transition uppercase tracking-widest">Corporativo</a>
+            <a href="https://app-lad-courier.web.app/#/admin" class="text-xs font-brand font-bold text-gray-500 hover:text-lad-purple transition uppercase tracking-widest">Torre de Control</a>
         </div>
     </div>
+</header>
 
-    <script>
-        // Lógica de invitación soberana LAD
+<main>
+    <!-- HERO SECTION -->
+    <section class="pt-32 pb-16 bg-gradient-to-b from-indigo-50 to-white border-b border-gray-100">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-12 items-center">
+            <div class="reveal active text-center md:text-left">
+                <h1 class="font-brand text-4xl md:text-6xl font-black leading-tight mb-6 uppercase">
+                    Negocia <span class="text-lad-purple">Directo</span>, Sin Intermediarios
+                </h1>
+                <p class="text-xl text-gray-600 mb-8 font-light italic">"Tu envío, tu precio, tu control total."</p>
+
+                <!-- BOTONES DE DESCARGA UNIFICADOS -->
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start items-stretch">
+                    <a href="downloads/lad-courier-v11.apk" download onclick="handleDownloadClick(event)" class="bg-black text-white px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:scale-105 transition shadow-xl min-w-[240px]">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" class="h-8 invert" alt="Android">
+                        <div class="text-left">
+                            <p class="text-[9px] uppercase opacity-60">Descarga Directa</p>
+                            <p class="font-brand text-sm uppercase text-white">APK ANDROID</p>
+                            <p class="text-[8px] opacity-40 italic">Móviles & Tablets</p>
+                        </div>
+                    </a>
+
+                    <a href="https://app-lad-courier.web.app" class="bg-white text-black border-2 border-black px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:scale-105 transition shadow-xl min-w-[240px]">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" class="h-8 filter invert" alt="PWA">
+                        <div class="text-left">
+                            <p class="text-[9px] uppercase opacity-60">Acceso Inmediato</p>
+                            <p class="font-brand text-sm uppercase text-black">WEB APP PWA</p>
+                            <p class="text-[8px] opacity-40 italic">iPhone, iPad & Fire</p>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- QR DE MARKETING CENTRADO -->
+                <div class="mt-10 flex flex-col items-center md:items-start gap-4">
+                    <div class="flex items-center gap-6 bg-white p-5 rounded-[2rem] shadow-2xl border border-indigo-100">
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://ladcourier.com" alt="QR Descarga" class="w-24 h-24">
+                        <div class="text-left">
+                            <p class="text-xs font-black text-lad-purple uppercase leading-tight tracking-tighter">Escanea para<br>Abrir en tu Móvil</p>
+                            <p class="text-[9px] text-gray-400 mt-2 uppercase font-bold italic leading-tight">Acceso Rápido para<br>Nuevos Clientes</p>
+                        </div>
+                    </div>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase tracking-widest italic ml-2">Sincronización Universal BINGO 360°</p>
+                </div>
+
+                <!-- ACCESOS ESPECIALES -->
+                <div class="mt-12 flex flex-wrap gap-3 justify-center md:justify-start">
+                    <a href="./llc.html" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-brand text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition btn-glow">LAD DIGITAL SYSTEMS LLC</a>
+                    <a href="https://app-lad-courier.web.app/#/admin" class="bg-gray-900 text-green-400 px-6 py-3 rounded-xl font-brand text-[10px] font-black uppercase tracking-widest hover:bg-black transition border border-green-900/30">Torre de Control</a>
+                </div>
+
+                <div class="mt-8 tip bg-indigo-50 border-l-4 border-lad-purple p-4 rounded-r-xl max-w-lg">
+                    <p class="text-[11px] text-gray-600 leading-tight">
+                        <span class="font-bold text-lad-purple">CONSEJO PROFESIONAL:</span> Para obtener la máxima potencia del búnker operativo (GPS en tiempo real y alertas de alta prioridad), los Conductores deben invertir en un dispositivo <span class="font-bold">Android</span> dedicado para su negocio.
+                    </p>
+                </div>
+            </div>
+            <div class="flex justify-center reveal active">
+                <!-- 📸 IMAGEN 06 (MAPA) en el Hero para no repetir el Dashboard -->
+                <img src="assets/06.webp" alt="LAD Courier Mapa" class="app-screenshot max-w-[320px]">
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN SMART SHOPPER -->
+    <section class="py-24 bg-indigo-50/30">
+        <div class="max-w-7xl mx-auto px-6">
+            <div class="text-center mb-20">
+                <h2 class="font-brand text-4xl md:text-6xl font-black mb-6 uppercase italic tracking-tighter">Buscador Universal SmartShopper</h2>
+                <p class="text-xl text-gray-500 max-w-3xl mx-auto font-light leading-relaxed">
+                    Hemos eliminado las categorías. Ahora el límite lo pones tú. Compra en <span class="text-lad-purple font-bold">cualquier tienda online de USA</span> y nosotros nos encargamos de la logística.
+                </p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
+                <div class="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-transparent hover:border-lad-purple transition-all group">
+                    <div class="w-20 h-20 bg-black text-white rounded-3xl flex items-center justify-center mb-8 text-3xl font-black group-hover:rotate-12 transition">01</div>
+                    <h3 class="font-brand text-xl font-bold mb-4 uppercase tracking-tight">Cualquier Tienda</h3>
+                    <p class="text-gray-600 leading-relaxed">Repuestos, herramientas, medicinas, ropa o comida. Usa nuestro buscador para entrar en el sitio oficial de cualquier comercio en USA.</p>
+                </div>
+
+                <div class="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-transparent hover:border-lad-purple transition-all group">
+                    <div class="w-20 h-20 bg-black text-white rounded-3xl flex items-center justify-center mb-8 text-3xl font-black group-hover:rotate-12 transition">02</div>
+                    <h3 class="font-brand text-xl font-bold mb-4 uppercase tracking-tight">Captura el Ticket</h3>
+                    <p class="text-gray-600 leading-relaxed">Una vez realices tu compra (selecciona 'Pickup'), toma una captura de pantalla del recibo. LAD detectará tu gesto al instante.</p>
+                </div>
+
+                <div class="bg-white p-10 rounded-[3rem] shadow-2xl border-b-8 border-transparent hover:border-lad-purple transition-all group">
+                    <div class="w-20 h-20 bg-green-500 text-white rounded-3xl flex items-center justify-center mb-8 text-3xl font-black group-hover:rotate-12 transition">03</div>
+                    <h3 class="font-brand text-xl font-bold mb-4 uppercase tracking-tight text-green-600">BINGO: Auto-Llenado</h3>
+                    <p class="text-gray-600 leading-relaxed">Toca la notificación y ¡BUM! Nuestra IA lee el ticket, valida la dirección y crea tu orden de delivery en segundos.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- GRID DE IMÁGENES -->
+    <section class="py-20 bg-white">
+        <div class="max-w-7xl mx-auto px-6 text-center">
+            <h2 class="font-brand text-3xl font-black mb-16 uppercase italic text-gray-800 tracking-widest">Tecnología de Soberanía Logística</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
+                <div class="reveal">
+                    <!-- 📸 IMAGEN 01 (Dashboard Driver) -->
+                    <img src="assets/01.webp" class="app-screenshot mb-4" alt="Dashboard">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Inteligencia de Datos</p>
+                </div>
+                <div class="reveal">
+                    <!-- 📸 IMAGEN 02 (Dashboard Cliente) -->
+                    <img src="assets/02.webp" class="app-screenshot mb-4" alt="Servicios">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Libertad de Compra</p>
+                </div>
+                <div class="reveal">
+                    <!-- 📸 IMAGEN 03 (Negociación $0.70) -->
+                    <img src="assets/03.webp" class="app-screenshot mb-4" alt="Negociación">
+                    <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Trato Directo</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SECCIÓN SOCIAL -->
+    <section class="py-24 bg-gray-900 text-white">
+        <div class="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
+            <div class="reveal">
+                <div class="bg-indigo-500/20 text-indigo-400 border border-indigo-500/30 px-4 py-1 rounded-full text-[10px] font-brand mb-6 inline-block uppercase tracking-widest">LAD SOCIAL CONNECT</div>
+                <h2 class="font-brand text-4xl font-black mb-6 uppercase italic">Únete a la Revolución</h2>
+                <p class="text-gray-400 text-lg mb-8 leading-relaxed">Síguenos en nuestras plataformas oficiales para ver tutoriales en vivo, historias de éxito de drivers y nuevas actualizaciones del búnker.</p>
+
+                <div class="flex gap-6 items-center">
+                    <a href="#" class="hover:scale-110 transition opacity-80 hover:opacity-100"><img src="https://upload.wikimedia.org/wikipedia/commons/e/ef/Youtube_logo.png" class="h-8" alt="YouTube"></a>
+                    <a href="#" class="hover:scale-110 transition opacity-80 hover:opacity-100"><img src="https://upload.wikimedia.org/wikipedia/commons/5/5a/X_logo_2023.svg" class="h-6 invert" alt="X"></a>
+                    <a href="#" class="hover:scale-110 transition opacity-80 hover:opacity-100"><img src="https://upload.wikimedia.org/wikipedia/en/a/a9/TikTok_logo.svg" class="h-8 invert" alt="TikTok"></a>
+                </div>
+            </div>
+            <div class="reveal text-center">
+                <img src="assets/05.webp" class="app-screenshot max-w-[250px] mx-auto border-indigo-500/50" alt="Dashboard Premium">
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- FOOTER -->
+<footer class="bg-black text-white py-20 px-6 border-t border-lad-purple">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-start gap-12 border-b border-white/10 pb-16">
+        <div>
+            <h3 class="font-brand font-black text-2xl text-lad-purple mb-4">LAD COURIER USA</h3>
+            <p class="text-[11px] text-gray-400 leading-relaxed max-w-md">
+                Plataforma propiedad de <span class="text-white font-bold">LAD DIGITAL SYSTEMS LLC</span>.
+                Innovación logística soberana en los Estados Unidos.
+            </p>
+        </div>
+        <div class="flex flex-col gap-4 text-left">
+            <p class="font-brand text-[10px] text-lad-purple font-black tracking-widest uppercase">Canales de Atención</p>
+            <a href="mailto:support@ladcourier.com?subject=Soporte Técnico - LAD Courier" class="text-white font-bold text-sm hover:text-lad-purple transition uppercase tracking-tighter">Support / Contactarnos</a>
+            <a href="llc.html" class="text-white font-bold text-sm hover:text-lad-purple transition uppercase tracking-tighter">Corporativo LLC</a>
+        </div>
+        <div class="flex flex-col gap-4 text-left">
+            <p class="font-brand text-[10px] text-lad-purple font-black tracking-widest uppercase">Legal</p>
+            <a href="privacy.html" class="text-white font-bold text-sm hover:text-lad-purple transition uppercase tracking-tighter">Políticas de Privacidad</a>
+            <a href="terms.html" class="text-white font-bold text-sm hover:text-lad-purple transition uppercase tracking-tighter">Términos de Uso</a>
+        </div>
+    </div>
+    <div class="max-w-7xl mx-auto pt-8 text-center md:text-left">
+        <p class="text-[9px] text-gray-500 font-bold tracking-widest uppercase italic">© 2026 LAD DIGITAL SYSTEMS LLC. MIAMI, FLORIDA. ALL RIGHTS RESERVED.</p>
+    </div>
+</footer>
+
+<script>
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
+
+    window.onload = function() {
         const urlParams = new URLSearchParams(window.location.search);
-        const driverId = urlParams.get('id');
-        if (driverId) {
-            navigator.clipboard.writeText(driverId);
-            console.log("SISTEMA LAD: Invitación detectada y guardada.");
+        const ref = urlParams.get('ref') || urlParams.get('id');
+        if (ref) {
+            // 🛡️ REGLA SOBERANA: Captura automática al entrar
+            navigator.clipboard.writeText(ref.trim()).then(() => {
+                console.log("SISTEMA LAD: ID vinculado al portapapeles con éxito.");
+            });
+
+            // Backup por interacción para navegadores estrictos
+            document.body.addEventListener('click', function() {
+                navigator.clipboard.writeText(ref.trim());
+            }, { once: true });
         }
+    }
 
-        // 🛠️ LÓGICA DEL FORMULARIO DE CONTACTO
-        function openContactForm(e) {
-            if(e) e.preventDefault();
-            document.getElementById('contactModal').style.display = 'flex';
+    function handleDownloadClick(event) {
+        const urlParams = new URLSearchParams(window.location.search);
+        const ref = urlParams.get('ref') || urlParams.get('id');
+        if (ref) {
+            navigator.clipboard.writeText(ref.trim());
         }
-
-        function closeContactForm() {
-            document.getElementById('contactModal').style.display = 'none';
-        }
-
-        function sendEmail(e) {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const email = document.getElementById('userEmail').value;
-            const msg = document.getElementById('message').value;
-
-            // Construimos el link de correo (la forma más segura y barata)
-            const subject = encodeURIComponent("CONSULTA WEB: " + name);
-            const body = encodeURIComponent("Nombre: " + name + "\nEmail: " + email + "\n\nMensaje:\n" + msg);
-
-            window.location.href = "mailto:info@ladcourier.com?subject=" + subject + "&body=" + body;
-
-            alert("¡Gracias! Se abrirá tu aplicación de correo para confirmar el envío.");
-            closeContactForm();
-        }
-    </script>
+    }
+</script>
 </body>
 </html>
