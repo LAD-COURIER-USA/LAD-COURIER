@@ -13,9 +13,16 @@ import 'package:lad_courier/services/user_service.dart';
 import 'package:lad_courier/services/chat_service.dart';
 import 'package:image_picker/image_picker.dart'; // ✅ AÑADIDO PARA BINGO WEB
 import 'package:lad_courier/l10n/app_localizations.dart';
+import 'package:lad_courier/auth/auth_gate.dart'; // 🚀 AÑADIDO PARA LOGOUT
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
 import 'package:lad_courier/screens/chat_screen.dart';
+import 'package:lad_courier/widgets/invitation_card.dart'; // ✅ AÑADIDO PARA VINCULACIÓN
+import 'package:shared_preferences/shared_preferences.dart'; // ✅ AÑADIDO PARA MEMORIA LOCAL
+import 'package:universal_html/html.dart' as html; // 🚀 AÑADIDO PARA LEER URL
+import 'package:cloud_firestore/cloud_firestore.dart'; // 🚀 AÑADIDO PARA VERIFICAR DB
+import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
+
 
 class ClientDashboard extends StatefulWidget {
   const ClientDashboard({super.key});
@@ -50,6 +57,113 @@ class _ClientDashboardState extends State<ClientDashboard> {
     _loadProfile();
     _startNegotiationListener();
     _startRejectionListener(); 
+    
+    // 🛡️ VIGILANTE SOBERANO DE VINCULACIÓN: 
+    // Buscamos invitaciones pendientes en cuanto el Dashboard esté listo.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkPendingInvitations(isManual: false));
+  }
+
+  Future<void> _checkPendingInvitations({bool isManual = false}) async {
+    try {
+      String? foundId;
+
+      // 🛡️ REFUERZO V2026: Escaneo de URL en tiempo real en el Dashboard
+      if (kIsWeb) {
+        try {
+          final String href = html.window.location.href;
+          debugPrint("SISTEMA LAD: Escaneando URL en Dashboard -> $href");
+          
+          // Radar Regex: Busca id o ref en la URL actual (social links)
+          final regExp = RegExp(r'[?&](id|ref)=([^&#/]+)');
+          final match = regExp.firstMatch(href);
+          if (match != null) {
+            foundId = match.group(2);
+            debugPrint("SISTEMA LAD: Driver pescado de URL en Dashboard -> $foundId");
+          }
+          
+          // Respaldo: LocalStorage y Cookies
+          if (foundId == null || foundId.isEmpty) {
+            foundId = html.window.localStorage['pending_messenger_invitation'];
+            
+            if (foundId == null || foundId.isEmpty) {
+              final String cookies = html.document.cookie ?? "";
+              final List<String> cookieList = cookies.split(';');
+              for (var cookie in cookieList) {
+                if (cookie.trim().startsWith('pending_messenger_invitation=')) {
+                  foundId = cookie.split('=')[1].trim();
+                  break;
+                }
+              }
+            }
+          }
+        } catch (_) {}
+      }
+
+      // Si no estaba en la URL/Navegador, buscamos en memoria interna (Android)
+      if (foundId == null || foundId.isEmpty) {
+        final prefs = await SharedPreferences.getInstance();
+        foundId = prefs.getString('pending_messenger_invitation');
+      }
+
+      if (foundId != null && foundId.isNotEmpty) {
+        final String cleanId = foundId.trim();
+        // Verificamos si ya está vinculado consultando la DB directamente
+        final userDoc = await FirebaseFirestore.instance.collection('users').doc(_auth.currentUser!.uid).get();
+        final List<dynamic> linkedIds = userDoc.data()?['linkedMessengerIds'] ?? [];
+        
+        if (!linkedIds.contains(cleanId)) {
+          _showInvitationCard(cleanId);
+        } else {
+          // Si ya está vinculado, limpiamos los rastros locales para no repetir
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('pending_messenger_invitation');
+          if (kIsWeb) {
+            html.window.localStorage.remove('pending_messenger_invitation');
+          }
+          
+          if (isManual && mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text("Este driver ya está en tu red de confianza."), backgroundColor: Colors.blueGrey)
+            );
+          }
+        }
+      } else if (isManual && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("No se encontraron nuevas invitaciones en el enlace."), backgroundColor: Colors.orange)
+        );
+      }
+    } catch (e) {
+      debugPrint("SISTEMA LAD ERROR: Fallo al verificar invitaciones: $e");
+    }
+  }
+
+  void _showInvitationCard(String driverId) {
+    if (!mounted) return;
+    
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => InvitationCard(
+        messengerId: driverId,
+        onAccept: () async {
+          final user = _auth.currentUser;
+          final navigator = Navigator.of(context);
+          if (user != null) {
+            await _userService.linkMessengerToClient(user.uid, driverId);
+          }
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('pending_messenger_invitation');
+          navigator.pop();
+          _loadProfile(); // Recargamos para ver al nuevo driver en la lista
+        },
+        onReject: () async {
+          final navigator = Navigator.of(context);
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.remove('pending_messenger_invitation');
+          navigator.pop();
+        },
+      ),
+    );
   }
 
   void _startRejectionListener() {
@@ -131,11 +245,42 @@ class _ClientDashboardState extends State<ClientDashboard> {
     }
   }
 
-  bool _checkPaymentMethodStatus(AppLocalizations l10n) {
-    // 🛡️ PASE VIP: El inspector no necesita tarjeta
-    if (_clientProfile?.isVipTester ?? false) return true;
+  Future<void> _logout() async {
+    final l10n = AppLocalizations.of(context)!;
+    bool? confirm = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(l10n.common_logout, style: const TextStyle(fontWeight: FontWeight.w900)),
+        content: Text(l10n.common_logout_confirm),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: Text(l10n.common_cancel.toUpperCase())),
+          TextButton(onPressed: () => Navigator.pop(context, true), child: Text(l10n.common_exit, style: const TextStyle(color: Colors.red, fontWeight: FontWeight.bold))),
+        ],
+      ),
+    );
 
-    if (_clientProfile?.defaultPaymentMethodId == null) {
+    if (confirm == true) {
+      await FirebaseAuth.instance.signOut();
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (context) => const AuthGate()),
+          (route) => false,
+        );
+      }
+    }
+  }
+
+  bool _checkPaymentMethodStatus(AppLocalizations l10n, UserModel? profile) {
+    // 🛡️ PASE VIP: El inspector no necesita tarjeta
+    if (profile?.isVipTester ?? false) return true;
+
+    final bool isLive = StripeModeService().isLive();
+    final String? paymentMethodId = profile?.getActivePaymentMethodId(isLive);
+
+    debugPrint("🛡️ SISTEMA LAD: Verificando pago [Modo: ${isLive ? 'LIVE' : 'TEST'}] [ID: $paymentMethodId]");
+
+    if (paymentMethodId == null) {
       showDialog(
         context: context,
         builder: (context) => AlertDialog(
@@ -175,12 +320,17 @@ class _ClientDashboardState extends State<ClientDashboard> {
     return StreamBuilder<UserModel?>(
       stream: _userService.getUserStream(user.uid),
       builder: (context, profileSnapshot) {
+        if (profileSnapshot.hasError) {
+          debugPrint("❌ SISTEMA LAD: Error en Stream de Perfil: ${profileSnapshot.error}");
+        }
+
         if (profileSnapshot.connectionState == ConnectionState.waiting && _clientProfile == null) {
           return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
         }
         
         if (profileSnapshot.hasData) {
           _clientProfile = profileSnapshot.data;
+          debugPrint("🛡️ SISTEMA LAD: Perfil Cargado [${_clientProfile?.displayName}] [Payment Live: ${_clientProfile?.defaultPaymentMethodIdLive}]");
         }
 
         return Scaffold(
@@ -193,6 +343,11 @@ class _ClientDashboardState extends State<ClientDashboard> {
             elevation: 0,
             actions: [
               IconButton(
+                icon: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                onPressed: _logout,
+                tooltip: "Cerrar Sesión",
+              ),
+              IconButton(
                 icon: const Icon(Icons.history, color: Colors.black, size: 26),
                 tooltip: "Historial 36h",
                 onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedOrdersPage())),
@@ -202,7 +357,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
           ),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () {
-              if (_checkPaymentMethodStatus(l10n)) {
+              if (_checkPaymentMethodStatus(l10n, profileSnapshot.data)) {
                 Navigator.push(context, MaterialPageRoute(builder: (context) => const CreateOrderPage(autoStartOCR: false)));
               }
             },
@@ -237,7 +392,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
                       _buildSectionTitle("SOLICITUDES RECHAZADAS", Icons.warning_amber_rounded, Colors.red[900]!),
                       _buildRejectedOrdersList(l10n),
                       const SizedBox(height: 25),
-                      _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black),
+                      _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black, onAction: () => _checkPendingInvitations(isManual: true)),
                       _buildMessengerDetailedList(l10n),
                       const SizedBox(height: 80),
                     ],
@@ -295,14 +450,25 @@ class _ClientDashboardState extends State<ClientDashboard> {
     );
   }
 
-  Widget _buildSectionTitle(String title, IconData icon, Color color) {
+  Widget _buildSectionTitle(String title, IconData icon, Color color, {VoidCallback? onAction}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(width: 8),
-          Text(title, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: color, letterSpacing: 1.1)),
+          Expanded(child: Text(title, style: TextStyle(fontWeight: FontWeight.w900, fontSize: 13, color: color, letterSpacing: 1.1))),
+          if (onAction != null)
+            TextButton.icon(
+              onPressed: onAction,
+              icon: const Icon(Icons.sync, size: 16, color: Colors.deepPurple),
+              label: const Text("SINCRONIZAR", style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w900, fontSize: 10)),
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.deepPurple.withValues(alpha: 0.1),
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+              ),
+            ),
         ],
       ),
     );
@@ -689,7 +855,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
         child: InkWell(
           borderRadius: BorderRadius.circular(25),
           onTap: () {
-            if (!_checkPaymentMethodStatus(l10n)) return;
+            if (!_checkPaymentMethodStatus(l10n, _clientProfile)) return;
 
             if (!m.isMessengerActive) {
               _showDriverRestingDialog(m, l10n);

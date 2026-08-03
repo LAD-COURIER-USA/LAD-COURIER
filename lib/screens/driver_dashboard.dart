@@ -14,6 +14,8 @@ import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/auth/auth_gate.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart'; // 🚀 AÑADIDO PARA COMPARTIR LINKS
+
 
 const List<String> _allServices = [
   'Paquetería y Mensajería',
@@ -362,8 +364,59 @@ class _DriverDashboardState extends State<DriverDashboard> {
   Widget build(BuildContext context) {
     if (_isLoadingProfile) return const Scaffold(body: Center(child: CircularProgressIndicator(color: Colors.black)));
     final l10n = AppLocalizations.of(context)!;
-    final bool isActive = _driverProfile?.isMessengerActive ?? false;
 
+    // 🛡️ REFUERZO V2026.5: SOBERANÍA DE HARDWARE (Bloqueo Driver en Web)
+    if (kIsWeb) {
+      return Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 500),
+            child: Padding(
+              padding: const EdgeInsets.all(30),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.phonelink_setup_rounded, color: Colors.amber, size: 80),
+                  const SizedBox(height: 30),
+                  const Text(
+                    "REQUISITO DE HARDWARE PROFESIONAL",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20, letterSpacing: 1.5),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Para garantizar un rastreo GPS continuo, la seguridad de tus entregas y el funcionamiento óptimo en segundo plano, el rol de Driver requiere el uso de nuestra App Nativa para Android.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.bold, height: 1.5),
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Debido a las limitaciones técnicas del sistema Apple (iOS) y navegadores web que bloquean el GPS al apagar la pantalla, este dispositivo solo está habilitado para el Rol de Cliente.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.amber, fontSize: 12, fontWeight: FontWeight.bold, fontStyle: FontStyle.italic),
+                  ),
+                  const SizedBox(height: 40),
+                  ElevatedButton.icon(
+                    onPressed: _logout,
+                    icon: const Icon(Icons.logout),
+                    label: const Text("SALIR DEL BÚNKER"),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: Colors.black,
+                      padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 20),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final bool isActive = _driverProfile?.isMessengerActive ?? false;
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
@@ -389,7 +442,40 @@ class _DriverDashboardState extends State<DriverDashboard> {
           child: Column(
             children: [
               _buildStatusCard(isActive, l10n),
-              const SizedBox(height: 30),
+              const SizedBox(height: 20),
+
+              // 🛡️ REFUERZO V2026.4: TIP DE NEGOCIO SOBERANO
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.indigo[900],
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.1), blurRadius: 10)],
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.stars_rounded, color: Colors.amber, size: 28),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Text(
+                            "POTENCIA TU NEGOCIO",
+                            style: TextStyle(color: Colors.amber, fontWeight: FontWeight.w900, fontSize: 11, letterSpacing: 1),
+                          ),
+                          Text(
+                            "Para una mejor experiencia GPS y recibir más alertas, recomendamos usar un dispositivo Android como herramienta principal.",
+                            style: TextStyle(color: Colors.white.withValues(alpha: 0.9), fontSize: 10, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 25),
               GridView.count(
                 crossAxisCount: kIsWeb ? (MediaQuery.of(context).size.width > 900 ? 4 : 2) : 2,
                 shrinkWrap: true,
@@ -407,11 +493,143 @@ class _DriverDashboardState extends State<DriverDashboard> {
                     await Navigator.push(context, MaterialPageRoute(builder: (context) => const SubscriptionPage()));
                     _fetchDriverProfile();
                   }),
-                  _buildActionCard(l10n.driver_menu_invite, Icons.share, Colors.purple[800]!, Colors.purple[50]!, () => _invitationService.shareInvitationLink(context)),
+                  _buildActionCard(l10n.driver_menu_invite, Icons.qr_code_2_rounded, Colors.purple[800]!, Colors.purple[50]!, () => _showInviteDualDialog(context)),
                 ],
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  void _showInviteDualDialog(BuildContext context) {
+    final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
+    final androidLink = _invitationService.getAndroidLink(uid);
+    final iphoneLink = _invitationService.getIPhoneLink(uid);
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        backgroundColor: Colors.white,
+        title: const Text("VINCULAR NUEVO CLIENTE", textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Selecciona el sistema del cliente:", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 30),
+            
+            // 🤖 BOTÓN QR ANDROID (Casi igual al anterior)
+            _buildLargeInviteButton(
+              context, 
+              "CLIENTE ANDROID", 
+              Icons.android, 
+              Colors.green[700]!, 
+              androidLink,
+              "Para teléfonos Samsung, Motorola, etc."
+            ),
+            
+            const SizedBox(height: 20),
+
+            // 🍏 BOTÓN QR iPHONE (Nuevo camino directo)
+            _buildLargeInviteButton(
+              context, 
+              "CLIENTE iPHONE / iPAD", 
+              Icons.apple, 
+              Colors.black, 
+              iphoneLink,
+              "Acceso directo a la Web App PWA"
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context), 
+            child: const Text("CERRAR", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold))
+          )
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLargeInviteButton(BuildContext context, String title, IconData icon, Color color, String link, String sub) {
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: color,
+          padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 15),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20), 
+            side: BorderSide(color: color.withValues(alpha: 0.3), width: 2)
+          ),
+          elevation: 5,
+        ),
+        onPressed: () {
+          Navigator.pop(context);
+          _showQRDetail(context, title, link, color);
+        },
+        child: Row(
+          children: [
+            Icon(icon, size: 30),
+            const SizedBox(width: 15),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14)),
+                  Text(sub, style: const TextStyle(fontSize: 9, color: Colors.grey, fontWeight: FontWeight.bold)),
+                ],
+              ),
+            ),
+            const Icon(Icons.qr_code_scanner, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showQRDetail(BuildContext context, String title, String link, Color color) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+        backgroundColor: Colors.white,
+        title: Text(title, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, color: color, fontSize: 14)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(15),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: color.withValues(alpha: 0.2)),
+              ),
+              child: Image.network(
+                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=$link",
+                height: 200,
+                width: 200,
+              ),
+            ),
+            const SizedBox(height: 15),
+            const Text("Escanea este código con la cámara del cliente", textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54)),
+            const SizedBox(height: 20),
+            ElevatedButton.icon(
+              onPressed: () {
+                SharePlus.instance.share(ShareParams(text: link));
+              },
+              icon: const Icon(Icons.share, size: 16),
+              label: const Text("COMPARTIR LINK"),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: color, 
+                foregroundColor: Colors.white, 
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+              ),
+            )
+          ],
         ),
       ),
     );

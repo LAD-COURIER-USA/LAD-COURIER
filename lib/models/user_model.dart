@@ -62,9 +62,13 @@ class UserModel {
 
   final String? lastIncomingChatId;
   final String? lastIncomingChatTitle;
+  final List<String> linkedMessengerIds;
 
   String? getActiveCustomerId(bool isLive) => isLive ? stripeCustomerIdLive : stripeCustomerId;
-  String? getActivePaymentMethodId(bool isLive) => isLive ? defaultPaymentMethodIdLive : defaultPaymentMethodId;
+  String? getActivePaymentMethodId(bool isLive) {
+    final id = isLive ? defaultPaymentMethodIdLive : defaultPaymentMethodId;
+    return id;
+  }
   String? getActiveAccountId(bool isLive) => isLive ? stripeAccountIdLive : stripeAccountId;
 
   UserModel({
@@ -121,6 +125,7 @@ class UserModel {
     this.driverCategory,
     this.lastIncomingChatId,
     this.lastIncomingChatTitle,
+    this.linkedMessengerIds = const [],
   });
 
   factory UserModel.fromFirestore(DocumentSnapshot doc) {
@@ -179,6 +184,7 @@ class UserModel {
       driverCategory: data['driverCategory'],
       lastIncomingChatId: data['lastIncomingChatId'],
       lastIncomingChatTitle: data['lastIncomingChatTitle'],
+      linkedMessengerIds: List<String>.from(data['linkedMessengerIds'] ?? []),
     );
   }
 
@@ -237,6 +243,7 @@ class UserModel {
       'driverCategory': driverCategory,
       'lastIncomingChatId': lastIncomingChatId,
       'lastIncomingChatTitle': lastIncomingChatTitle,
+      'linkedMessengerIds': linkedMessengerIds,
     };
   }
 
@@ -290,6 +297,7 @@ class UserModel {
     String? driverCategory,
     String? lastIncomingChatId,
     String? lastIncomingChatTitle,
+    List<String>? linkedMessengerIds,
   }) {
     return UserModel(
       uid: uid ?? this.uid,
@@ -341,6 +349,7 @@ class UserModel {
       driverCategory: driverCategory ?? this.driverCategory,
       lastIncomingChatId: lastIncomingChatId ?? this.lastIncomingChatId,
       lastIncomingChatTitle: lastIncomingChatTitle ?? this.lastIncomingChatTitle,
+      linkedMessengerIds: linkedMessengerIds ?? this.linkedMessengerIds,
     );
   }
 }

@@ -19,14 +19,43 @@
   <!-- 🗺️ MOTOR DE MAPAS GOOGLE (REQUERIDO PARA WEB) -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXcHoOg_VZ409FGy2fpmh0bpFisKHnAG0"></script>
 
-  <title>LAD Courier USA v19.2</title>
+  <title>LAD Courier USA v20.1</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- 🛡️ REFUERZO V2026: Limpiador de Caché Forzado para iPad -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
 
   <!-- 💳 LIBRERÍA MAESTRA DE STRIPE (V17.15) -->
   <script src="https://js.stripe.com/v3/"></script>
 
   <!-- 🐞 BINGO DEBUGGER PRO -->
   <script>
+    // 🛡️ ANCLA DE ACERO V2026: Captura de ID Instantánea
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+      const driverId = urlParams.get('id') || urlParams.get('ref') || hashParams.get('id') || hashParams.get('ref');
+
+      if (driverId) {
+        const cleanId = driverId.trim();
+        localStorage.setItem('pending_messenger_invitation', cleanId);
+        localStorage.setItem('referred_by_id', cleanId);
+        // 🍪 Tatuaje de Cookie para máxima seguridad
+        const expiry = new Date();
+        expiry.setTime(expiry.getTime() + (24 * 60 * 60 * 1000));
+        document.cookie = "pending_messenger_invitation=" + cleanId + "; expires=" + expiry.toUTCString() + "; path=/; SameSite=Lax";
+        console.log("SISTEMA LAD: Invitación blindada en memoria -> " + cleanId);
+      }
+    })();
+
     function logToScreen(msg, isError = false) {
       console.log((isError ? '❌ ' : 'ℹ️ ') + msg);
     }

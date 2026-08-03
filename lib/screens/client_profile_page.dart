@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:cloud_functions/cloud_functions.dart'; // 🟢 Importación vital
+import 'package:flutter/foundation.dart'; // 🚀 AÑADIDO PARA kIsWeb
+import 'package:universal_html/html.dart' as html; // 🌐 PARA LEER URL EN WEB
 import 'package:lad_courier/services/support_service.dart'; // ✅ AÑADIDO PARA SOPORTE
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/models/user_model.dart';
@@ -34,6 +36,32 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
   @override
   void initState() {
     super.initState();
+    // 🛡️ REFUERZO V2026: Verificación de retorno de Stripe en Web
+    if (kIsWeb) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _checkStripeReturn());
+    }
+  }
+
+  void _checkStripeReturn() async {
+    try {
+      final String href = html.window.location.href;
+      if (href.contains('setup=success')) {
+        debugPrint("🚀 SISTEMA LAD WEB: Detectado éxito en Stripe. Sincronizando...");
+        final HttpsCallable callable = FirebaseFunctions.instanceFor(region: 'us-central1')
+            .httpsCallable('syncPaymentMethod');
+        await callable.call();
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("✅ Tarjeta vinculada con éxito."), backgroundColor: Colors.green)
+          );
+          // Limpiamos la URL para no re-sincronizar al rotar o recargar
+          html.window.history.replaceState(null, '', html.window.location.pathname);
+        }
+      }
+    } catch (e) {
+      debugPrint("⚠️ SISTEMA LAD WEB ERROR: Fallo al sincronizar retorno: $e");
+    }
   }
 
   // 🟢 LÓGICA DE ELIMINACIÓN REFORZADA CON CLOUD FUNCTIONS
@@ -452,6 +480,35 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
   void _switchToDriverRole() async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
+
+    // 🛡️ REFUERZO V2026.5: SOBERANÍA DE HARDWARE (Bloqueo en Web)
+    if (kIsWeb) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.orange),
+              SizedBox(width: 10),
+              Text("REQUISITO DE HARDWARE", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            ],
+          ),
+          content: const Text(
+            "Por limitaciones técnicas del sistema Apple (iOS) para realizar su negocio como Driver de forma estable y profesional, este rol debe activarse y utilizarse exclusivamente desde un teléfono Android.\n\nUsted puede seguir operando como Cliente desde este dispositivo sin problemas.",
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: Colors.black87),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("ENTENDIDO", style: TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
+            )
+          ],
+        ),
+      );
+      return;
+    }
 
     final res = await _authService.switchUserRole(newRole: 'MESSENGER');
     if (!mounted) return;

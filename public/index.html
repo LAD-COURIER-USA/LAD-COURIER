@@ -58,17 +58,19 @@
                 <p class="text-xl text-gray-600 mb-8 font-light italic">"Tu envío, tu precio, tu control total."</p>
 
                 <!-- BOTONES DE DESCARGA UNIFICADOS -->
-                <div class="flex flex-wrap gap-4 justify-center md:justify-start items-stretch">
+                <div class="download-box flex flex-wrap gap-4 justify-center md:justify-start items-stretch">
+                    <!-- 🤖 RUTA APK BLINDADA -->
                     <a href="downloads/lad-courier-v11.apk" download onclick="handleDownloadClick(event)" class="bg-black text-white px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:scale-105 transition shadow-xl min-w-[240px]">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/d/d7/Android_robot.svg" class="h-8 invert" alt="Android">
                         <div class="text-left">
-                            <p class="text-[9px] uppercase opacity-60">Descarga Directa</p>
+                            <p class="text-[9px] uppercase opacity-60">Instalación Directa</p>
                             <p class="font-brand text-sm uppercase text-white">APK ANDROID</p>
                             <p class="text-[8px] opacity-40 italic">Móviles & Tablets</p>
                         </div>
                     </a>
 
-                    <a href="https://app-lad-courier.web.app" class="bg-white text-black border-2 border-black px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:scale-105 transition shadow-xl min-w-[240px]">
+                    <!-- 🍏 RUTA PWA PARA iPHONE/IPAD -->
+                    <a href="https://ladcourier.com/app/index.html#/" id="pwaMainBtn" class="bg-white text-black border-2 border-black px-6 py-4 rounded-2xl font-bold flex items-center gap-3 hover:scale-105 transition shadow-xl min-w-[240px]">
                         <img src="https://upload.wikimedia.org/wikipedia/commons/3/31/Apple_logo_white.svg" class="h-8 filter invert" alt="PWA">
                         <div class="text-left">
                             <p class="text-[9px] uppercase opacity-60">Acceso Inmediato</p>
@@ -92,18 +94,17 @@
 
                 <!-- ACCESOS ESPECIALES -->
                 <div class="mt-12 flex flex-wrap gap-3 justify-center md:justify-start">
-                    <a href="./llc.html" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-brand text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition btn-glow">LAD DIGITAL SYSTEMS LLC</a>
+                    <a href="llc.html" class="bg-indigo-600 text-white px-6 py-3 rounded-xl font-brand text-[10px] font-black uppercase tracking-widest hover:bg-indigo-700 transition btn-glow">LAD DIGITAL SYSTEMS LLC</a>
                     <a href="https://app-lad-courier.web.app/#/admin" class="bg-gray-900 text-green-400 px-6 py-3 rounded-xl font-brand text-[10px] font-black uppercase tracking-widest hover:bg-black transition border border-green-900/30">Torre de Control</a>
                 </div>
 
                 <div class="mt-8 tip bg-indigo-50 border-l-4 border-lad-purple p-4 rounded-r-xl max-w-lg">
                     <p class="text-[11px] text-gray-600 leading-tight">
-                        <span class="font-bold text-lad-purple">CONSEJO PROFESIONAL:</span> Para obtener la máxima potencia del búnker operativo (GPS en tiempo real y alertas de alta prioridad), los Conductores deben invertir en un dispositivo <span class="font-bold">Android</span> dedicado para su negocio.
+                        <span class="font-bold text-lad-purple">AVISO DE COMPATIBILIDAD:</span> LAD Courier es universal para todos nuestros <span class="font-bold">Clientes</span> (iPhone, iPad, Fire y Android). Para operar tu propio negocio como <span class="font-bold">Driver</span> con GPS fluido y máxima estabilidad, el sistema requiere un dispositivo <span class="font-bold">Android de gama media o alta</span>.
                     </p>
                 </div>
             </div>
             <div class="flex justify-center reveal active">
-                <!-- 📸 IMAGEN 06 (MAPA) en el Hero para no repetir el Dashboard -->
                 <img src="assets/06.webp" alt="LAD Courier Mapa" class="app-screenshot max-w-[320px]">
             </div>
         </div>
@@ -147,17 +148,14 @@
             <h2 class="font-brand text-3xl font-black mb-16 uppercase italic text-gray-800 tracking-widest">Tecnología de Soberanía Logística</h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-12">
                 <div class="reveal">
-                    <!-- 📸 IMAGEN 01 (Dashboard Driver) -->
                     <img src="assets/01.webp" class="app-screenshot mb-4" alt="Dashboard">
                     <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Inteligencia de Datos</p>
                 </div>
                 <div class="reveal">
-                    <!-- 📸 IMAGEN 02 (Dashboard Cliente) -->
                     <img src="assets/02.webp" class="app-screenshot mb-4" alt="Servicios">
                     <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Libertad de Compra</p>
                 </div>
                 <div class="reveal">
-                    <!-- 📸 IMAGEN 03 (Negociación $0.70) -->
                     <img src="assets/03.webp" class="app-screenshot mb-4" alt="Negociación">
                     <p class="font-brand text-[10px] text-lad-purple font-bold uppercase tracking-widest">Trato Directo</p>
                 </div>
@@ -212,6 +210,19 @@
     </div>
 </footer>
 
+<div id="inviteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:10000; align-items:center; justify-content:center; backdrop-filter:blur(10px);">
+    <div style="background:#fff; width:90%; max-width:400px; padding:35px; border-radius:30px; text-align:center; color:#000; box-shadow:0 25px 50px rgba(0,0,0,0.5);">
+        <div style="width:70px; height:70px; background:#4B39A8; border-radius:20px; margin:0 auto 20px; display:flex; align-items:center; justify-content:center;">
+            <svg style="width:40px; height:40px; color:#fff" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+        </div>
+        <h2 id="modalTitle" style="font-weight:900; font-size:22px; margin-bottom:10px; font-family:'Orbitron',sans-serif;">¡HOLA! 👋</h2>
+        <p id="modalText" style="font-size:14px; color:#666; margin-bottom:25px; line-height:1.4; font-family:sans-serif;">Has recibido una invitación especial.<br>¿Ya tienes nuestra aplicación instalada?</p>
+        <button onclick="handleYes()" style="width:100%; padding:18px; background:#000; color:#fff; border:none; border-radius:15px; font-weight:900; margin-bottom:12px; cursor:pointer; font-size:14px; font-family:'Orbitron',sans-serif; letter-spacing:1px;">SÍ, YA LA TENGO</button>
+        <button onclick="handleNo()" style="width:100%; padding:18px; background:#F0F0F0; color:#000; border:none; border-radius:15px; font-weight:900; cursor:pointer; font-size:14px; font-family:'Orbitron',sans-serif; letter-spacing:1px;">NO, SOY NUEVO</button>
+        <p style="font-size:8px; color:#aaa; margin-top:15px; font-weight:bold;">ID: <span id="modalDriverId"></span></p>
+    </div>
+</div>
+
 <script>
     const observer = new IntersectionObserver((entries) => {
         entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
@@ -219,18 +230,85 @@
     document.querySelectorAll('.reveal').forEach((el) => observer.observe(el));
 
     window.onload = function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const ref = urlParams.get('ref') || urlParams.get('id');
-        if (ref) {
-            // 🛡️ REGLA SOBERANA: Captura automática al entrar
-            navigator.clipboard.writeText(ref.trim()).then(() => {
-                console.log("SISTEMA LAD: ID vinculado al portapapeles con éxito.");
-            });
+        // 🕵️ RADAR DE ESPECTRO COMPLETO (Sintaxis JS Reparada)
+        const fullUrl = window.location.href;
+        const regExp = /[?&](id|ref)=([^&#/]+)/;
+        const match = regExp.exec(fullUrl);
 
-            // Backup por interacción para navegadores estrictos
-            document.body.addEventListener('click', function() {
-                navigator.clipboard.writeText(ref.trim());
-            }, { once: true });
+        let ref = null;
+        if (match) {
+            ref = match[2];
+        } else {
+            const urlParams = new URLSearchParams(window.location.search);
+            ref = urlParams.get('ref') || urlParams.get('id');
+        }
+
+        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+                      (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+
+        if (ref) {
+            const cleanId = ref.trim();
+            console.log("SISTEMA LAD: Invitación detectada -> " + cleanId);
+
+            // 🚀 CANAL DE TRANSPORTE SOBERANO
+            const expiry = new Date();
+            expiry.setTime(expiry.getTime() + (24 * 60 * 60 * 1000));
+            document.cookie = "pending_messenger_invitation=" + cleanId + "; expires=" + expiry.toUTCString() + "; path=/; domain=ladcourier.com; SameSite=Lax";
+            localStorage.setItem('pending_messenger_invitation', cleanId);
+
+            // Ruta absoluta unificada
+            const targetUrl = "https://ladcourier.com/app/index.html?id=" + cleanId + "#/";
+
+            window.goToApp = function(e) {
+                if (e) e.preventDefault();
+                window.location.replace(targetUrl);
+            };
+
+            const pwaBtn = document.getElementById('pwaMainBtn');
+            if (pwaBtn) {
+                pwaBtn.href = targetUrl;
+                pwaBtn.onclick = window.goToApp;
+            }
+
+            const copyId = () => {
+                const textArea = document.createElement("textarea");
+                textArea.value = cleanId;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try { document.execCommand('copy'); } catch (err) {}
+                document.body.removeChild(textArea);
+            };
+
+            if (!isIOS) copyId();
+
+            // 🎨 BIENVENIDA INSTANTÁNEA (300ms)
+            setTimeout(() => {
+                const modal = document.getElementById('inviteModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    document.getElementById('modalDriverId').innerText = cleanId.substring(0, 8);
+                    if (isIOS) {
+                        document.getElementById('modalTitle').innerText = "¡HOLA iOS & FIRE! 🔥";
+                        document.getElementById('modalText').innerHTML = "Has recibido una invitación de driver.<br>¿Ya tienes el icono de LAD en tu pantalla de inicio?";
+                    } else {
+                        document.getElementById('modalTitle').innerText = "¡HOLA ANDROID! 🤖";
+                    }
+                }
+            }, 300);
+
+            window.handleYes = function() { window.goToApp(); };
+
+            window.handleNo = function() {
+                document.getElementById('inviteModal').style.display = 'none';
+                const downloadSection = document.querySelector('.download-box');
+                if (downloadSection) downloadSection.scrollIntoView({ behavior: 'smooth' });
+                if (!isIOS) copyId();
+            };
+
+            document.querySelectorAll('a[href*="/app/"]').forEach(link => {
+                link.href = targetUrl;
+                link.onclick = window.goToApp;
+            });
         }
     }
 
@@ -238,7 +316,12 @@
         const urlParams = new URLSearchParams(window.location.search);
         const ref = urlParams.get('ref') || urlParams.get('id');
         if (ref) {
-            navigator.clipboard.writeText(ref.trim());
+            const textArea = document.createElement("textarea");
+            textArea.value = ref.trim();
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
         }
     }
 </script>

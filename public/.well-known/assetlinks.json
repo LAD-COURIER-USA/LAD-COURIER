@@ -1,1 +1,16 @@
-[{ "relation": ["delegate_permission/common.handle_all_urls"], "target": { "namespace": "android_app", "package_name": "com.elmensajero.app.messenger", "sha256_cert_fingerprints": [ "B3:AD:27:96:42:3F:01:9D:01:E2:EA:A2:17:40:81:BA:DE:AA:C3:B8:C4:41:61:6C:FC:FA:CD:AD:07:78:71:2F", "62:3F:37:23:1F:23:25:51:51:28:61:6C:D4:EA:11:4A:B5:E5:BB:7A:8F:99:A8:36:24:73:25:A1:57:42:EB:91" ] } }] 
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.elmensajero.app.messenger",
+      "sha256_cert_fingerprints": [
+        "b3:ad:27:96:42:3f:01:9d:01:e2:ea:a2:17:40:81:ba:de:aa:c3:b8:c4:41:61:6c:fc:fa:cd:ad:07:78:71:2f",
+        "62:3f:37:23:1f:23:25:51:51:28:61:6c:d4:ea:11:4a:b5:e5:bb:7a:8f:99:a8:36:24:73:25:a1:57:42:eb:91",
+        "f3:87:8f:05:05:68:c0:77:e8:26:af:00:36:be:78:4d:96:00:f9:df:e9:8c:8b:83:b8:fa:70:be:7d:41:5a:46"
+      ]
+    }
+  }
+]

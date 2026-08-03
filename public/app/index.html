@@ -1,20 +1,74 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <base href="/">
+  <base href="/app/">
+
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="LAD Courier USA - Tu plataforma soberana de mensajería y logística en USA.">
+
+  <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="LAD Courier USA">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <!-- 🗺️ MOTOR DE MAPAS GOOGLE (REQUERIDO PARA WEB) -->
   <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCXcHoOg_VZ409FGy2fpmh0bpFisKHnAG0"></script>
-  <title>LAD Courier USA v19.2</title>
+
+  <title>LAD Courier USA v20.1</title>
   <link rel="manifest" href="manifest.json">
-  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- 🛡️ REFUERZO V2026: Limpiador de Caché Forzado para iPad -->
   <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
+      });
+    }
+  </script>
+
+  <!-- 💳 LIBRERÍA MAESTRA DE STRIPE (V17.15) -->
+  <script src="https://js.stripe.com/v3/"></script>
+
+  <!-- 🐞 BINGO DEBUGGER PRO -->
+  <script>
+    // 🛡️ ANCLA DE ACERO V2026: Captura de ID Instantánea
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hashParams = new URLSearchParams(window.location.hash.split('?')[1]);
+      const driverId = urlParams.get('id') || urlParams.get('ref') || hashParams.get('id') || hashParams.get('ref');
+
+      if (driverId) {
+        const cleanId = driverId.trim();
+        localStorage.setItem('pending_messenger_invitation', cleanId);
+        localStorage.setItem('referred_by_id', cleanId);
+        // 🍪 Tatuaje de Cookie para máxima seguridad
+        const expiry = new Date();
+        expiry.setTime(expiry.getTime() + (24 * 60 * 60 * 1000));
+        document.cookie = "pending_messenger_invitation=" + cleanId + "; expires=" + expiry.toUTCString() + "; path=/; SameSite=Lax";
+        console.log("SISTEMA LAD: Invitación blindada en memoria -> " + cleanId);
+      }
+    })();
+
+    function logToScreen(msg, isError = false) {
+      console.log((isError ? '❌ ' : 'ℹ️ ') + msg);
+    }
+
+    window.onerror = function(message, source, lineno, colno, error) {
+      logToScreen('ERROR: ' + message + ' Line: ' + lineno, true);
+    };
+
+    window.addEventListener('unhandledrejection', function(event) {
+      logToScreen('REJECTION: ' + event.reason, true);
+    });
+
+    // Forzar renderizado HTML para Safari
     window.flutterWebRenderer = "html";
   </script>
 </head>

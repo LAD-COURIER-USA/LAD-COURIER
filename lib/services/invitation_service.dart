@@ -5,64 +5,65 @@ import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 
 /// Un servicio dedicado para manejar toda la lógica relacionada con
-/// la creación y gestión de invitaciones.
+/// la creación y gestión de invitaciones (Android e iPhone).
 class InvitationService {
-  /// Construye un enlace de invitación personal para el usuario actual (Referido estándar)
+
+  /// --- 🤖 ENLACES DE NUEVA GENERACIÓN (V2026) ---
+
+  /// Genera el enlace para usuarios Android (Vía Landing Page)
+  String getAndroidLink(String uid) {
+    return 'https://ladcourier.com/?id=$uid';
+  }
+
+  /// Genera el enlace para usuarios iPhone/iPad (Vía Landing Page con filtro iOS)
+  String getIPhoneLink(String uid) {
+    return 'https://ladcourier.com/?id=$uid&os=ios';
+  }
+
+  /// Método para compartir rápido (Usa el nuevo estándar SharePlus 2026)
+  void shareLink(BuildContext context, {required bool isIPhone}) {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final String link = isIPhone ? getIPhoneLink(user.uid) : getAndroidLink(user.uid);
+    final String msg = isIPhone 
+      ? "¡Hola! 👋 Únete a mi red de confianza en LAD Courier (iOS/Web): $link"
+      : "¡Hola! 👋 Descarga la App y únete a mi red en LAD Courier (Android): $link";
+
+    SharePlus.instance.share(ShareParams(text: msg, subject: "Invitación LAD Courier"));
+  }
+
+  /// --- 🏛️ FUNCIONES ORIGINALES ACTUALIZADAS ---
+
+  /// Construye un enlace de invitación personal (Referido estándar)
   void shareInvitationLink(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     final l10n = AppLocalizations.of(context)!;
 
-    if (user == null) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(l10n.service_invitation_error_user),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-      return;
-    }
+    if (user == null) return;
 
     final String userId = user.uid;
-    const String domain = "ladcourier.com";
-    final String invitationLink = 'https://$domain/invite?id=$userId&type=referral';
-
+    final String invitationLink = 'https://ladcourier.com/?id=$userId&type=referral';
     final String shareMessage = l10n.service_invitation_share_msg(invitationLink);
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: shareMessage,
-        subject: l10n.service_invitation_subject,
-      ),
-    );
+    SharePlus.instance.share(ShareParams(text: shareMessage, subject: l10n.service_invitation_subject));
   }
 
-  /// NUEVO MÉTODO TÁCTICO: Recomendar un mensajero específico por parte de un cliente.
-  /// Incluye banderas para evitar que cuente como red de crecimiento del mensajero.
+  /// Recomendar un mensajero específico por parte de un cliente.
   void shareMessengerRecommendation({
     required BuildContext context,
     required UserModel messenger,
     required UserModel client,
   }) {
     final l10n = AppLocalizations.of(context)!;
-    const String domain = "ladcourier.com";
-
-    // El enlace incluye el ID del cliente (quien invita), el ID del mensajero (el recomendado)
-    // y el tipo 'recommendation' para que el sistema sepa que no es captación directa del mensajero.
     final String invitationLink =
-        'https://$domain/invite?id=${client.uid}&recommendedMessengerId=${messenger.uid}&type=recommendation';
+        'https://ladcourier.com/?id=${client.uid}&recommendedMessengerId=${messenger.uid}&type=recommendation';
 
     final String shareMessage = l10n.service_recommend_share_msg(
       messenger.displayName ?? "Driver",
       invitationLink,
     );
 
-    SharePlus.instance.share(
-      ShareParams(
-        text: shareMessage,
-        subject: l10n.service_recommend_subject,
-      ),
-    );
+    SharePlus.instance.share(ShareParams(text: shareMessage, subject: l10n.service_recommend_subject));
   }
 }

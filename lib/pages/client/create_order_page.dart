@@ -13,6 +13,7 @@ import 'package:lad_courier/services/ocr_service.dart';
 import 'package:lad_courier/services/geodata_service.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
+import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
 import 'package:lad_courier/pages/client/driver_selection_page.dart';
 import 'package:lad_courier/models/user_model.dart';
 import 'package:lad_courier/models/order_model.dart';
@@ -20,7 +21,6 @@ import 'package:flutter_custom_tabs/flutter_custom_tabs.dart' as custom_tabs;
 import 'package:photo_manager/photo_manager.dart';
 import 'package:image_picker/image_picker.dart'; // ✅ AÑADIDO PARA XFile
 import 'package:permission_handler/permission_handler.dart';
-import 'package:lad_courier/services/stripe_mode_service.dart'; // 🧬 IMPORTACIÓN DOBLE ADN
 
 class CreateOrderPage extends StatefulWidget {
   final Map<String, dynamic>? selectedMessenger;
@@ -419,21 +419,23 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   Future<void> _pickProductPhoto() async {
-    final Position? position = await _ensureLocationPermission();
-    if (position == null) return;
     if (!mounted) return;
 
-    // 🛡️ REFUERZO V19.12: Captura y Procesamiento BINGO
-    await _storageService.uploadProductPhoto(
-      "prod_${DateTime.now().millisecondsSinceEpoch}", 
-      context, 
-      onLocalPathPicked: (path) async {
-        if (mounted) {
-          debugPrint("SISTEMA LAD: Foto de cámara detectada. Iniciando OCR...");
-          _processImageWorkflow(XFile(path));
-        }
-      }
-    );
+    // 🛡️ REFUERZO V2026: Abrimos el picker primero para asegurar el gesto de usuario en iPad/Safari
+    final ImagePicker picker = ImagePicker();
+    final XFile? image = await picker.pickImage(
+      source: ImageSource.camera, // Intentamos cámara directo primero
+      imageQuality: 50,
+      maxWidth: 1024,
+    ).catchError((_) => picker.pickImage(source: ImageSource.gallery, imageQuality: 50)); // Fallback a galería si falla
+
+    if (image != null && mounted) {
+      debugPrint("SISTEMA LAD: Imagen capturada en iPad/Web. Iniciando workflow...");
+      _processImageWorkflow(image);
+      
+      // Obtenemos ubicación en segundo plano para no bloquear
+      _ensureLocationPermission(); 
+    }
   }
 
   Future<void> _processImageWorkflow(dynamic file) async {
@@ -705,7 +707,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
 
   Widget _buildActionButton(AppLocalizations l10n) {
     // 🛡️ PASE VIP: El inspector no necesita tarjeta vinculada
-    bool hasP = (_clientModel?.isVipTester ?? false) || _clientModel?.defaultPaymentMethodId != null;
+    final bool isLive = StripeModeService().isLive();
+    bool hasP = (_clientModel?.isVipTester ?? false) || _clientModel?.getActivePaymentMethodId(isLive) != null;
     return Column(children: [
       if (!hasP) Padding(padding: const EdgeInsets.only(bottom: 20), child: Container(padding: const EdgeInsets.all(15), decoration: BoxDecoration(color: Colors.red[50], borderRadius: BorderRadius.circular(15), border: Border.all(color: Colors.red[200]!)), child: const Row(children: [Icon(Icons.warning_amber_rounded, color: Colors.red), SizedBox(width: 10), Expanded(child: Text("DEBES VINCULAR UN MÉTODO DE PAGO EN TU PERFIL PARA SOLICITAR SERVICIOS.", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red)))]))),
       SizedBox(width: double.infinity, height: 65, child: ElevatedButton(onPressed: (_isLoading || !hasP) ? null : _handleOrderAction, style: ElevatedButton.styleFrom(backgroundColor: hasP ? Colors.black : Colors.grey[400], shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22))), child: _isLoading ? const CircularProgressIndicator(color: Colors.greenAccent) : Text(l10n.create_order_btn_send.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.white)))),

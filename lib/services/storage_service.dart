@@ -117,19 +117,25 @@ class StorageService {
       final Reference storageRef = _storage.ref().child(filePath);
       
       if (kIsWeb) {
-        // 🛡️ REFUERZO V19.7: Manejo inteligente de tipos en Web (iPad/Tablet)
+        // 🛡️ REFUERZO V19.12: Manejo inteligente de tipos en Web (iPad/Safari)
         Uint8List bytes;
         
         if (fileSource is Uint8List) {
           bytes = fileSource;
+        } else if (fileSource is XFile) {
+          bytes = await fileSource.readAsBytes();
         } else if (fileSource is String) {
           // Si es una ruta (blob URL en Web), usamos XFile para leer los bytes
           bytes = await XFile(fileSource).readAsBytes();
         } else {
+          debugPrint("⚠️ SISTEMA LAD: Tipo de archivo no soportado en Web: ${fileSource.runtimeType}");
           return null;
         }
 
-        final UploadTask uploadTask = storageRef.putData(bytes);
+        final UploadTask uploadTask = storageRef.putData(
+          bytes,
+          SettableMetadata(contentType: 'image/jpeg')
+        );
         final TaskSnapshot snapshot = await uploadTask;
         return await snapshot.ref.getDownloadURL();
       }

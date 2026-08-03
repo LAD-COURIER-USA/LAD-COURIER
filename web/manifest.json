@@ -1,8 +1,8 @@
 {
     "name": "LAD Courier USA",
     "short_name": "LAD Courier",
-    "start_url": "/",
-    "scope": "/",
+    "start_url": "/app/index.html",
+    "scope": "/app/",
     "display": "standalone",
     "background_color": "#000000",
     "theme_color": "#000000",
@@ -10,7 +10,7 @@
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "share_target": {
-        "action": "/",
+        "action": "/app/",
         "method": "POST",
         "enctype": "multipart/form-data",
         "params": {

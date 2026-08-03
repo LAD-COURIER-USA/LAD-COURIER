@@ -12,6 +12,11 @@
         .hero-gradient { background: radial-gradient(circle at top right, rgba(75, 57, 168, 0.05), transparent), radial-gradient(circle at bottom left, rgba(0, 0, 0, 0.02), transparent); }
         .card-glass { background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(0, 0, 0, 0.05); }
         .transition-soft { transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(200%); }
+        }
     </style>
 </head>
 <body class="bg-white text-slate-900 hero-gradient">
@@ -42,6 +47,7 @@
                     LAD DIGITAL SYSTEMS LLC es una fundición tecnológica dedicada a la creación de infraestructuras soberanas. No solo construimos software; creamos sistemas de libertad económica.
                 </p>
             </div>
+
             <div class="relative flex justify-center items-center">
                 <!-- 🛰️ VISUAL BINGO 360°: HOLOGRAMA DE INTELIGENCIA -->
                 <div class="w-full aspect-square relative flex items-center justify-center group">
@@ -56,7 +62,7 @@
                         <div class="absolute -top-1 left-1/2 w-2 h-2 bg-indigo-600 rounded-full shadow-[0_0_15px_#4b39a8]"></div>
                     </div>
 
-                    <!-- Núcleo BINGO 360 (Efecto Cristal) -->
+                    <!-- Núcleo BINGO 360 (Efecto Cristal Esférico) -->
                     <div class="relative w-48 h-48 bg-white/40 backdrop-blur-2xl rounded-full border border-white/50 shadow-2xl flex items-center justify-center group-hover:scale-105 transition-soft overflow-hidden">
                         <div class="absolute inset-0 bg-gradient-to-tr from-indigo-600/10 to-transparent"></div>
 
@@ -77,13 +83,6 @@
                     </div>
                 </div>
             </div>
-
-            <style>
-                @keyframes scan {
-                    0% { transform: translateY(-100%); }
-                    100% { transform: translateY(200%); }
-                }
-            </style>
         </section>
 
         <!-- PILARES: Creatividad e Innovación -->
@@ -117,7 +116,7 @@
             </div>
         </section>
 
-        <!-- VISIÓN FUTURA (Inspiración Tesla/Google) -->
+        <!-- VISIÓN FUTURA -->
         <section class="py-32 bg-slate-900 text-white overflow-hidden relative">
             <div class="absolute top-0 right-0 w-1/2 h-full bg-indigo-600/20 blur-[120px] rounded-full translate-x-1/2"></div>
             <div class="max-w-7xl mx-auto px-8 relative z-10 text-center">
@@ -138,7 +137,7 @@
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-12 text-center md:text-left">
             <div>
                 <h3 class="font-brand font-black text-xl text-slate-900 mb-2">LAD DIGITAL SYSTEMS LLC</h3>
-                <p class="text-xs text-slate-400 font-medium uppercase tracking-widest tracking-widest leading-loose">Miami, FL • United States of America</p>
+                <p class="text-xs text-slate-400 font-medium uppercase tracking-widest leading-loose">Miami, FL • United States of America</p>
             </div>
             <div class="flex gap-12">
                 <div class="flex flex-col gap-2">

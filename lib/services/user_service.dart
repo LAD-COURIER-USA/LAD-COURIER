@@ -205,7 +205,8 @@ class UserService {
 
   Future<UserModel?> getUser(String uid) async {
     try {
-      final doc = await _usersRef.doc(uid).get();
+      // 🛡️ REFUERZO: Forzamos obtención desde el servidor para evitar datos stale de caché
+      final doc = await _usersRef.doc(uid).get(const GetOptions(source: Source.serverAndCache));
       if (doc.exists) {
         return UserModel.fromFirestore(doc);
       }

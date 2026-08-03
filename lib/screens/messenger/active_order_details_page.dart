@@ -253,7 +253,27 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
       }
     }
 
-    final uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${dest.latitude},${dest.longitude}&travelmode=driving');
+    // 🛡️ REFUERZO V2026.2: Navegación Multi-Plataforma (iPad vs Fire vs Android)
+    Uri uri;
+    if (kIsWeb) {
+      if (defaultTargetPlatform == TargetPlatform.iOS) {
+        // 🍏 IPAD/IPHONE: Salto directo a Apple Maps Nativo
+        uri = Uri.parse('https://maps.apple.com/?daddr=${dest.latitude},${dest.longitude}&dirflg=d');
+      } else {
+        // 🤖 AMAZON FIRE / TABLETS: Usamos el protocolo 'geo' para forzar el GPS del sistema
+        // Si no hay app de mapas, Google Maps Web es el fallback automático
+        uri = Uri.parse('geo:${dest.latitude},${dest.longitude}?q=${dest.latitude},${dest.longitude}(Destino+LAD)');
+        
+        // 🛡️ Doble seguridad para Amazon Silk:
+        if (await canLaunchUrl(uri) == false) {
+           uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=${dest.latitude},${dest.longitude}&travelmode=driving');
+        }
+      }
+    } else {
+      // Android Nativo APK (Se mantiene tu flujo original de Google Maps App)
+      uri = Uri.parse('google.navigation:q=${dest.latitude},${dest.longitude}');
+    }
+
     await _orderService.updateOrderStatus(
         id, isPickup ? OrderStatus.enRouteToPickup : OrderStatus.enRouteToDelivery,
         message: isPickup ? l10n.order_details_en_route_pickup : l10n.order_details_en_route_delivery);
@@ -283,6 +303,7 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     setState(() => _isUploading = true);
+    
     try {
       final messenger = await _userService.getUser(FirebaseAuth.instance.currentUser!.uid);
       
@@ -297,27 +318,35 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
           throw result.data['error'] ?? "Error Stripe.";
         }
       } catch (stripeError) {
-        bool bypass = await _showBypassDialog(stripeError.toString(), l10n);
-        if (!bypass) {
-          if (mounted) setState(() => _isUploading = false);
-          return;
+        // 🛡️ REFUERZO V2026.4: Si el error es que ya se cobró (re-intento), lo ignoramos y seguimos
+        final String errorStr = stripeError.toString().toLowerCase();
+        if (errorStr.contains("already captured") || errorStr.contains("already_captured")) {
+           debugPrint("SISTEMA LAD: El pago ya estaba procesado. Continuando con el cierre...");
+        } else {
+          bool bypass = await _showBypassDialog(stripeError.toString(), l10n);
+          if (!bypass) {
+            if (mounted) setState(() => _isUploading = false);
+            return;
+          }
         }
       }
 
       final String fileName = _deliveryPhotoName ?? "delivery_${order.id}_${DateTime.now().millisecondsSinceEpoch}.jpg";
       final ref = FirebaseStorage.instance.ref().child('delivery_evidence').child(fileName);
 
-      // 🛡️ REFUERZO V19.2: Subida universal simplificada
+      // Subida rápida de evidencia
       await ref.putData(await _deliveryPhoto!.readAsBytes());
-      
       final String downloadUrl = await ref.getDownloadURL();
 
+      // 🛡️ REFUERZO V2026.4: GPS Ultra-rápido (1 seg) para no bloquear al driver
       Position? completionPos;
       try {
         completionPos = await Geolocator.getCurrentPosition(
-            locationSettings: const LocationSettings(accuracy: LocationAccuracy.high)).timeout(const Duration(seconds: 3));
+            locationSettings: const LocationSettings(accuracy: LocationAccuracy.low)
+        ).timeout(const Duration(seconds: 1)); 
       } catch (_) {}
 
+      // Actualización final en Firestore (Fuego y Olvido)
       await FirebaseFirestore.instance.collection('orders').doc(order.id).set({
         'status': OrderStatus.completed,
         'statusMessage': '✅ ¡Pedido entregado con éxito!',
@@ -329,11 +358,20 @@ class _ActiveOrderDetailsPageState extends State<ActiveOrderDetailsPage> {
             : null,
       }, SetOptions(merge: true));
 
-      navigator.pop();
+      // 🚀 SALIDA INMEDIATA: Volvemos a la zona de trabajo
+      if (mounted) {
+        navigator.pop();
+        scaffoldMessenger.showSnackBar(const SnackBar(
+          content: Text("✅ MISIÓN FINALIZADA CON ÉXITO"),
+          backgroundColor: Colors.green,
+        ));
+      }
     } catch (e) {
-      scaffoldMessenger.showSnackBar(SnackBar(content: Text("Error: $e")));
-    } finally {
-      if (mounted) setState(() => _isUploading = false);
+      debugPrint("Error crítico en finalización: $e");
+      if (mounted) {
+        scaffoldMessenger.showSnackBar(SnackBar(content: Text("Error: $e")));
+        setState(() => _isUploading = false);
+      }
     }
   }
 

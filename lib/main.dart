@@ -21,6 +21,7 @@ import 'package:lad_courier/services/notification_service.dart';
 import 'package:lad_courier/services/stripe_mode_service.dart';
 import 'package:image_picker/image_picker.dart'; // 🚀 PARA MANEJO DE IMÁGENES BINGO
 import 'package:lad_courier/pages/client/create_order_page.dart'; // 🚀 PARA NAVEGACIÓN AUTOMÁTICA
+import 'package:universal_html/html.dart' as html; // 🌐 PARA LEER URL EN IPAD/WEB
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -144,14 +145,47 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _checkWebUrlParameters() {
-    // 🌐 En Web, leemos la URL actual del navegador
+    // 🌐 REFUERZO V2026: Lectura de espectro completo de la URL
     try {
-      final uri = Uri.base;
-      if (uri.queryParameters.containsKey('id')) {
-        _handleIncomingUri(uri);
+      final String fullUrl = html.window.location.href;
+      debugPrint("SISTEMA LAD DEBUG: Escaneando URL Web -> $fullUrl");
+
+      String? driverId;
+
+      // 🕵️ MOTOR DE BÚSQUEDA SOBERANO (Busca id= o ref= en toda la cadena)
+      final regExp = RegExp(r'[?&](id|ref)=([^&#/]+)');
+      final match = regExp.firstMatch(fullUrl);
+      
+      if (match != null) {
+        driverId = match.group(2);
+      }
+
+      // Respaldo: Memoria del Navegador y Cookies
+      if (driverId == null || driverId.isEmpty) {
+        driverId = html.window.localStorage['pending_messenger_invitation'] ?? html.window.localStorage['pending_id'];
+        
+        if (driverId == null || driverId.isEmpty) {
+          final String cookies = html.document.cookie ?? "";
+          final List<String> cookieList = cookies.split(';');
+          for (var cookie in cookieList) {
+            if (cookie.trim().startsWith('pending_messenger_invitation=')) {
+              driverId = cookie.split('=')[1].trim();
+              break;
+            }
+          }
+        }
+      }
+
+      if (driverId != null && driverId.trim().isNotEmpty) {
+        final String cleanId = driverId.trim();
+        debugPrint("SISTEMA LAD WEB: ¡ID PESCADO! -> $cleanId");
+        
+        // Guardamos para el registro
+        html.window.localStorage['pending_messenger_invitation'] = cleanId;
+        _processReferralId(cleanId);
       }
     } catch (e) {
-      debugPrint("SISTEMA LAD: Error leyendo URL web: $e");
+      debugPrint("SISTEMA LAD ERROR: Fallo en radar de URL: $e");
     }
   }
 
@@ -214,14 +248,15 @@ class _MyAppState extends State<MyApp> {
           final pendingId = prefs.getString('pending_messenger_invitation');
           
           if (pendingId != null && pendingId.isNotEmpty) {
-            // 🛡️ REGLA DE ORO: Solo mostramos si NO está vinculado ya
+            // 🛡️ REGLA DE ORO SOBERANA: 
+            // Verificamos si ya está vinculado para no repetir la tarjeta 100 veces
             final userDoc = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
             final List<dynamic> linkedIds = userDoc.data()?['linkedMessengerIds'] ?? [];
             
             if (!linkedIds.contains(pendingId.trim())) {
-              WidgetsBinding.instance.addPostFrameCallback((_) => _showInvitationDialog(pendingId));
+              _showInvitationDialog(pendingId);
             } else {
-              // Si ya está vinculado, limpiamos la invitación pendiente
+              // Si ya es un driver vinculado, limpiamos la memoria en silencio
               await prefs.remove('pending_messenger_invitation');
             }
           }
@@ -248,9 +283,10 @@ class _MyAppState extends State<MyApp> {
     try {
       final data = await Clipboard.getData(Clipboard.kTextPlain);
       String? text = data?.text?.trim();
-      if (text != null && text.isNotEmpty) {
-        // 🛡️ REGLA SOBERANA: Un ID de Driver NUNCA tiene espacios
-        if (text.length >= 20 && text.length <= 40 && !text.contains(' ')) {
+      
+      // 🛡️ FILTRO DE SEGURIDAD SOBERANO (RESTAURADO)
+      if (text != null && text.isNotEmpty && text.length >= 20 && text.length <= 40) {
+        if (!text.contains(' ')) {
           _processReferralId(text);
         }
       }
@@ -270,21 +306,11 @@ class _MyAppState extends State<MyApp> {
       final cleanId = driverId.trim();
       final prefs = await SharedPreferences.getInstance();
       
-      // 🛡️ REGLA ANTIBUCLE: Si ya procesamos este ID en esta sesión, lo ignoramos
-      final lastId = prefs.getString('pending_messenger_invitation');
-      if (lastId == cleanId) return;
-
+      // Guardamos SIEMPRE en memoria permanente
       await prefs.setString('pending_messenger_invitation', cleanId);
-      debugPrint("SISTEMA LAD: Procesando invitación para Driver ID: $cleanId");
-
-      // 🧹 LIMPIEZA DE RASTRO: Borramos el portapapeles para que no se repita al reiniciar
-      if (!kIsWeb) {
-        await Clipboard.setData(const ClipboardData(text: ''));
-        debugPrint("SISTEMA LAD: Portapapeles consumido y limpiado.");
-      }
       
       if (FirebaseAuth.instance.currentUser != null) {
-        WidgetsBinding.instance.addPostFrameCallback((_) => _showInvitationDialog(cleanId));
+        _showInvitationDialog(cleanId);
       }
     } catch (e) {
       debugPrint("Error en processReferralId: $e");
@@ -293,7 +319,11 @@ class _MyAppState extends State<MyApp> {
 
   void _showInvitationDialog(String driverId) {
     final context = navigatorKey.currentContext;
-    if (context == null) return;
+    // Si el Dashboard aún no está listo, esperamos un poco
+    if (context == null) {
+      Future.delayed(const Duration(seconds: 1), () => _showInvitationDialog(driverId));
+      return;
+    }
 
     showDialog(
       context: context,
@@ -303,13 +333,10 @@ class _MyAppState extends State<MyApp> {
         onAccept: () async {
           final user = FirebaseAuth.instance.currentUser;
           if (user != null) {
-            // 🚀 BINGO: Vinculamos al Driver con el Cliente en Firestore
             await UserService().linkMessengerToClient(user.uid, driverId);
           }
-          // 🛡️ LIMPIEZA SOBERANA: Borramos la invitación de la memoria para que no se repita
           final prefs = await SharedPreferences.getInstance();
           await prefs.remove('pending_messenger_invitation');
-          
           if (dialogContext.mounted) Navigator.pop(dialogContext);
         },
         onReject: () async {

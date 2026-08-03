@@ -353,90 +353,6 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
     );
   }
 
-  void _showBusinessCard() {
-    if (_userModel == null) return;
-    final String qrData = "https://ladcourier.com/invite?id=${_userModel!.uid}";
-
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: SingleChildScrollView(
-          child: Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.black, width: 2.5),
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const FittedBox(child: Text("LAD COURIER", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 26, letterSpacing: 3, color: Colors.black))),
-                const FittedBox(child: Text("LAD DIGITAL SYSTEMS LLC", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, letterSpacing: 1.5, color: Colors.black87))),
-                const Divider(height: 25, color: Colors.black, thickness: 2.5),
-                Row(
-                  children: [
-                    CircleAvatar(radius: 35, backgroundColor: Colors.grey[300], backgroundImage: _photoUrl != null ? NetworkImage(_photoUrl!) : null),
-                    const SizedBox(width: 15),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          FittedBox(child: Text(_userModel?.displayName?.toUpperCase() ?? "DRIVER", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.black))),
-                          const Text("MESSENGER VERIFIED", style: TextStyle(color: Color(0xFF1B5E20), fontWeight: FontWeight.w900, fontSize: 11)),
-                          const SizedBox(height: 5),
-                          Text(_userModel?.phoneNumber ?? "", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15, color: Colors.black)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                QrImageView(data: qrData, size: 140.0),
-                const SizedBox(height: 15),
-                const Text("SCAN TO LINK", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.black)),
-                const SizedBox(height: 20),
-                const FittedBox(child: Text("EXPRESS DELIVERY • SHOPPING • LOGISTICS", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900, color: Colors.black, letterSpacing: 1.2))),
-                const SizedBox(height: 20),
-                TextButton(onPressed: () => Navigator.pop(context), style: TextButton.styleFrom(backgroundColor: Colors.black12, padding: const EdgeInsets.symmetric(horizontal: 40)), child: const Text("CERRAR", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900))),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMarketingSection(AppLocalizations l10n) {
-    if (_userModel == null) return const SizedBox.shrink();
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(25)),
-      child: Column(
-        children: [
-          const Icon(Icons.qr_code_scanner, color: Colors.greenAccent, size: 40),
-          const SizedBox(height: 10),
-          Text(l10n.prof_radar_title.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16, color: Colors.white)),
-          const SizedBox(height: 5),
-          const Text("TU HERRAMIENTA DE CRECIMIENTO", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.grey)),
-          const SizedBox(height: 20),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton.icon(
-              onPressed: _showBusinessCard,
-              icon: const Icon(Icons.badge, color: Colors.black),
-              label: const Text("MI TARJETA DE NEGOCIOS", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900)),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.greenAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15))),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -492,8 +408,6 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                 const SizedBox(height: 30),
                 _buildVerificationDashboard(),
                 if (isApproved) ...[
-                  _buildMarketingSection(l10n),
-                  const SizedBox(height: 30),
                   _buildMenuTile(title: l10n.earnings_history_title, icon: Icons.history_rounded, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedOrdersPage(isDriver: true)))),
                   const SizedBox(height: 10),
                   _buildMenuTile(

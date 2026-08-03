@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart'; // ✅ AÑADIDO PARA kIsWeb
 import 'package:lad_courier/services/role_selection_service.dart';
 import 'package:lad_courier/l10n/app_localizations.dart';
 
@@ -63,8 +64,37 @@ class _RoleDispatcherState extends State<RoleDispatcher> {
                   )
                 else ...[
                   _buildRoleButton(context, Icons.person, l10n.auth_role_client, 'CLIENT', Colors.black),
-                  const SizedBox(height: 20),
-                  _buildRoleButton(context, Icons.two_wheeler, l10n.auth_role_messenger, 'DRIVER', Colors.deepPurple),
+                  
+                  if (!kIsWeb) ...[
+                    const SizedBox(height: 20),
+                    _buildRoleButton(context, Icons.two_wheeler, l10n.auth_role_messenger, 'DRIVER', Colors.deepPurple),
+                  ] else ...[
+                    const SizedBox(height: 30),
+                    Container(
+                      padding: const EdgeInsets.all(15),
+                      decoration: BoxDecoration(
+                        color: Colors.amber[50],
+                        borderRadius: BorderRadius.circular(15),
+                        border: Border.all(color: Colors.amber[300]!),
+                      ),
+                      child: const Column(
+                        children: [
+                          Row(
+                            children: [
+                              Icon(Icons.info_outline, color: Colors.orange, size: 20),
+                              SizedBox(width: 10),
+                              Text("ROL DE DRIVER LIMITADO", style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: Colors.orange)),
+                            ],
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            "Por razones técnicas de estabilidad GPS, el registro como Driver debe realizarse desde un dispositivo Android nativo. En este dispositivo iOS/Web, solo está disponible el rol de Cliente.",
+                            style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black87),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
                 const Spacer(),
                 // 🛡️ NOTA DISCRETA AL PIE

@@ -78,10 +78,15 @@ class OCRService {
     return false;
   }
 
-  /// 🛰️ MOTOR DE ANÁLISIS HÍBRIDO (V19.10)
+  /// 🛰️ MOTOR DE ANÁLISIS HÍBRIDO (V19.11 - REFUERZO iPAD)
   Future<OCRResult> analyzeReceiptUniversal({required String? localPath, String? remoteUrl}) async {
+    debugPrint("SISTEMA LAD OCR: Modo ${kIsWeb ? 'WEB/IPAD' : 'NATIVO'}. Path: $localPath, URL: $remoteUrl");
+    
     if (kIsWeb) {
-      if (remoteUrl == null) return OCRResult();
+      if (remoteUrl == null || remoteUrl.isEmpty) {
+        debugPrint("⚠️ SISTEMA LAD: Error OCR - No hay URL remota en iPad.");
+        return OCRResult();
+      }
       return await _analyzeReceiptCloud(remoteUrl);
     } else {
       if (localPath == null) return OCRResult();
@@ -95,19 +100,50 @@ class OCRService {
       final result = await _functions.httpsCallable('analyzeReceiptCloud').call({'imageUrl': url});
       
       if (result.data['success'] == true) {
-        final data = result.data;
-        return OCRResult(
-          storeName: data['storeName'],
-          fullAddress: data['fullAddress'],
-          zipCode: data['zipCode'],
-          orderNumber: data['orderNumber'],
-          usedFLAI: true,
-        );
+        final String rawText = (result.data['rawText'] ?? "").toString().toUpperCase();
+        debugPrint("LAD BINGO: Texto recibido de la nube. Procesando rastro...");
+        
+        return _parseRawText(rawText);
       }
     } catch (e) {
       debugPrint("LAD ERROR Cloud OCR: $e");
     }
     return OCRResult();
+  }
+
+  OCRResult _parseRawText(String fullText) {
+    final List<String> lines = fullText.split('\n').map((e) => e.trim()).toList();
+
+    String country = _detectCountryByADN(fullText);
+    String? zip = _extractZipByCountry(fullText, country);
+    String? state = _detectStateByCountry(fullText, country);
+    String? city = _detectCity(fullText, zip);
+    String? streetNum = _extractStreetNumber(fullText, zip);
+    String? orderNum = _extractOrderNumber(lines);
+    String? storeName = _detectStoreImproved(lines.take(12).toList());
+
+    String? fullAddr = _reconstructAddress(lines, country, zip, streetNum);
+
+    final List<String> uiJunk = [
+      'RASTREADOR', 'ORDEN RECIBIDA', 'DETALLES', 'ESTADO', 'TRACKER', 'CHECKOUT', 'HISTORY', 
+      'CERRAR', 'VOLVER', 'ESTÁS EN', 'ESTAS EN', 'TU ORDEN', 'ORDEN PREPARADA', 'ORDEN LISTA'
+    ];
+    
+    if (fullAddr != null && uiJunk.any((word) => fullAddr!.contains(word))) {
+      fullAddr = null;
+    }
+
+    return OCRResult(
+      storeName: storeName,
+      fullAddress: fullAddr,
+      streetNumber: streetNum,
+      zipCode: zip,
+      cityName: city,
+      stateCode: state,
+      countryCode: country,
+      orderNumber: orderNum,
+      usedFLAI: true,
+    );
   }
 
   Future<OCRResult> analyzeReceipt(String imagePath) async {
@@ -122,55 +158,7 @@ class OCRService {
           .replaceAll(RegExp(r'\bLL\s+\d+\b'), '')      
           .trim();
 
-      final List<String> lines = fullText.split('\n').map((e) => e.trim()).toList();
-
-      String country = _detectCountryByADN(fullText);
-      String? zip = _extractZipByCountry(fullText, country);
-      String? state = _detectStateByCountry(fullText, country);
-      String? city = _detectCity(fullText, zip);
-      String? streetNum = _extractStreetNumber(fullText, zip);
-      String? orderNum = _extractOrderNumber(lines);
-      String? storeName = _detectStoreImproved(lines.take(12).toList());
-
-      bool canUseFLAI = await isHighEndDevice();
-      String? fullAddr;
-
-      if (canUseFLAI) {
-        final List<EntityAnnotation> annotations = await _entityExtractor.annotateText(fullText);
-        for (var a in annotations) {
-          if (a.entities.any((e) => e.type == EntityType.address)) {
-            fullAddr = a.text.toUpperCase().replaceAll('\n', ' ').trim();
-            break;
-          }
-        }
-      }
-
-      final List<String> uiJunk = [
-        'RASTREADOR', 'ORDEN RECIBIDA', 'DETALLES', 'ESTADO', 'TRACKER', 'CHECKOUT', 'HISTORY', 
-        'CERRAR', 'VOLVER', 'ESTÁS EN', 'ESTAS EN', 'TU ORDEN', 'ORDEN PREPARADA', 'ORDEN LISTA'
-      ];
-      
-      if (fullAddr != null && uiJunk.any((word) => fullAddr!.contains(word))) {
-        fullAddr = null;
-      }
-
-      fullAddr ??= _reconstructAddress(lines, country, zip, streetNum);
-
-      if (fullAddr != null && uiJunk.any((word) => fullAddr!.contains(word))) {
-        fullAddr = null;
-      }
-
-      return OCRResult(
-        storeName: storeName,
-        fullAddress: fullAddr,
-        streetNumber: streetNum,
-        zipCode: zip,
-        cityName: city,
-        stateCode: state,
-        countryCode: country,
-        orderNumber: orderNum,
-        usedFLAI: canUseFLAI,
-      );
+      return _parseRawText(fullText);
     } catch (e) {
       debugPrint('Error FLAI Service: $e');
       return OCRResult();

@@ -4,7 +4,6 @@ import 'package:universal_html/html.dart' as html; // Importación universal seg
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:lad_courier/auth/login_page.dart';
 import 'package:lad_courier/auth/register_page.dart';
-import 'package:lad_courier/widgets/invitation_card.dart'; // Tu widget personalizado
 
 class LoginOrRegisterPage extends StatefulWidget {
   const LoginOrRegisterPage({super.key});
@@ -21,39 +20,45 @@ class _LoginOrRegisterPageState extends State<LoginOrRegisterPage> {
   @override
   void initState() {
     super.initState();
-    // Ejecutamos la detección de referido al iniciar
     _checkReferral();
   }
 
-  // --- LÓGICA DE DETECCIÓN DE MENSAJERO DE CONFIANZA (OMNICANAL) ---
+  // --- LÓGICA DE DETECCIÓN DE ALTA PRECISIÓN ---
   Future<void> _checkReferral() async {
-    final prefs = await SharedPreferences.getInstance();
+    // 🛡️ REFUERZO SOBERANO: Búsqueda inmediata y persistente
+    for (int i = 0; i < 20; i++) {
+      String? foundId;
 
-    // 1. Revisar si ya lo teníamos guardado (Unificado con el sistema global LAD)
-    String? storedId = prefs.getString('pending_messenger_invitation');
-
-    // 2. ESCENARIO WEB: Si estamos en navegador, leemos el localStorage (inyectado por index.html)
-    if (kIsWeb && storedId == null) {
-      try {
-        storedId = html.window.localStorage['referred_by_id'];
-        if (storedId != null) {
-          await prefs.setString('pending_messenger_invitation', storedId);
-        }
-      } catch (e) {
-        debugPrint("Error leyendo localStorage: $e");
+      if (kIsWeb) {
+        try {
+          final String href = html.window.location.href;
+          // Buscamos el ID con el patrón Regex que Safari no puede engañar
+          final regExp = RegExp(r'[?&](id|ref)=([^&#/]+)');
+          final match = regExp.firstMatch(href);
+          if (match != null) {
+            foundId = match.group(2);
+          }
+          
+          // Respaldo de LocalStorage (Llave Unificada)
+          if (foundId == null || foundId.isEmpty) {
+            foundId = html.window.localStorage['pending_messenger_invitation'];
+          }
+        } catch (_) {}
       }
-    }
 
-    // 🛡️ SISTEMA LAD: Hemos eliminado la lectura redundante del portapapeles aquí 
-    // para evitar el molesto aviso de "Pegado desde el portapapeles" cada vez que 
-    // entras a la pantalla. Ahora centralizamos todo en el arranque de la App (main.dart).
+      final prefs = await SharedPreferences.getInstance();
+      foundId ??= prefs.getString('pending_messenger_invitation');
 
-    // 4. Si encontramos un ID, activamos la Tarjeta de Invitación
-    if (storedId != null && mounted) {
-      setState(() {
-        _referredById = storedId;
-        _showInvitation = true;
-      });
+      if (foundId != null && foundId.trim().isNotEmpty && mounted) {
+        final String cleanId = foundId.trim();
+        setState(() {
+          _referredById = cleanId;
+          _showInvitation = true; // 🚀 BINGO: Disparamos la bienvenida
+        });
+        await prefs.setString('pending_messenger_invitation', cleanId);
+        return; 
+      }
+      await Future.delayed(const Duration(seconds: 1));
     }
   }
 
@@ -68,34 +73,85 @@ class _LoginOrRegisterPageState extends State<LoginOrRegisterPage> {
     return Scaffold(
       body: Stack(
         children: [
-          // Capa Base: Pantalla de Login o Registro
+          // Capa Base
           showLoginPage
               ? LoginPage(onTap: togglePages)
               : RegisterPage(onTap: togglePages),
 
           // Capa Superior (Overlay): Invitación personalizada
           if (_showInvitation && _referredById != null)
-            Container(
-              color: Colors.black.withValues(alpha: 0.85), // Fondo oscuro semi-transparente
-              alignment: Alignment.center,
-              padding: const EdgeInsets.all(25),
-              child: InvitationCard(
-                messengerId: _referredById!,
-                onAccept: () {
-                  setState(() => _showInvitation = false);
-                  // Si aceptan, los llevamos directo a la pantalla de registro
-                  if (showLoginPage) togglePages();
-                },
-                onReject: () async {
-                  setState(() => _showInvitation = false);
-                  // Si rechazan, limpiamos la referencia de la memoria
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.remove('pending_messenger_invitation');
-                  // Marcamos este ID como rechazado para esta sesión
-                  await prefs.setBool('referral_rejected_$_referredById', true);
-                  // También limpiamos en web si aplica
-                  if (kIsWeb) html.window.localStorage.remove('referred_by_id');
-                },
+            Positioned.fill(
+              child: Container(
+                color: Colors.black, 
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(25),
+                child: SingleChildScrollView(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.stars_rounded, color: Colors.greenAccent, size: 60),
+                      const SizedBox(height: 20),
+                      const Text(
+                        "¡HOLA iOS & FIRE! 🔥",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900),
+                      ),
+                      const SizedBox(height: 10),
+                      const Text(
+                        "Has sido invitado a la red soberana.\n¿Es tu primera vez aquí?",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: Colors.white70, fontSize: 16),
+                      ),
+                      const SizedBox(height: 40),
+                      
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            setState(() {
+                              _showInvitation = false;
+                              showLoginPage = false; 
+                            });
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.greenAccent,
+                            foregroundColor: Colors.black,
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          ),
+                          child: const Text("NO, SOY NUEVO (REGISTRARME)", style: TextStyle(fontWeight: FontWeight.w900)),
+                        ),
+                      ),
+                      
+                      const SizedBox(height: 15),
+
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: () {
+                            setState(() {
+                              _showInvitation = false;
+                              showLoginPage = true; 
+                            });
+                          },
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Colors.white, width: 2),
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                          ),
+                          child: const Text("SÍ, YA TENGO CUENTA (INICIAR)", style: TextStyle(fontWeight: FontWeight.w900)),
+                        ),
+                      ),
+
+                      const SizedBox(height: 30),
+                      TextButton(
+                        onPressed: () => setState(() => _showInvitation = false),
+                        child: const Text("Omitir por ahora", style: TextStyle(color: Colors.grey)),
+                      ),
+                    ],
+                  ),
+                ),
               ),
             ),
         ],

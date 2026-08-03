@@ -1,6 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart'; // 🚀 AÑADIDO PARA kIsWeb y debugPrint
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:universal_html/html.dart' as html; // 🚀 AÑADIDO PARA LEER MEMORIA WEB
+
 
 /// Servicio encargado de la autenticación y gestión de perfiles en Firestore.
 class AuthService {
@@ -38,19 +41,47 @@ class AuthService {
       User? user = result.user;
 
       if (user != null) {
-        final prefs = await SharedPreferences.getInstance();
-        String? referredBy = prefs.getString('pending_messenger_invitation');
-        
-        // 1. Creamos el documento primero
-        await _createFirestoreUserDoc(user, email, name, invitingId: referredBy);
-        
-        // 🛡️ SISTEMA LAD: Eliminamos la espera bloqueante del servidor. 
-        // Firestore se encarga de la sincronización en segundo plano, 
-        // permitiendo que la UI fluya sin interrupciones.
+        String? referredBy;
 
-        if (referredBy != null) {
-          await prefs.remove('pending_messenger_invitation');
+        // 🛡️ REFUERZO SOBERANO V2026: Escaneo de URL en el momento del registro
+        if (kIsWeb) {
+          try {
+            final String href = html.window.location.href;
+            final regExp = RegExp(r'[?&](id|ref)=([^&#/]+)');
+            final match = regExp.firstMatch(href);
+            if (match != null) {
+              referredBy = match.group(2);
+              debugPrint("SISTEMA LAD: Driver detectado en URL de registro -> $referredBy");
+            }
+          } catch (_) {}
         }
+
+        // Si no estaba en la URL, buscamos en el LocalStorage o Cookies (respaldo)
+        if (referredBy == null || referredBy.isEmpty) {
+          try {
+            referredBy = html.window.localStorage['pending_messenger_invitation'];
+            
+            if (referredBy == null || referredBy.isEmpty) {
+              final String cookies = html.document.cookie ?? "";
+              final List<String> cookieList = cookies.split(';');
+              for (var cookie in cookieList) {
+                if (cookie.trim().startsWith('pending_messenger_invitation=')) {
+                  referredBy = cookie.split('=')[1].trim();
+                  break;
+                }
+              }
+            }
+          } catch (_) {}
+        }
+
+        // Respaldo final: SharedPreferences
+        if (referredBy == null || referredBy.isEmpty) {
+          final prefs = await SharedPreferences.getInstance();
+          referredBy = prefs.getString('pending_messenger_invitation');
+        }
+
+        // 1. Creamos el documento con el driver (si existe)
+        await _createFirestoreUserDoc(user, email, name, invitingId: referredBy);
       }
       return "SUCCESS";
     } catch (e) {
