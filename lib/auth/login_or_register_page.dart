@@ -127,6 +127,22 @@ class _LoginOrRegisterPageState extends State<LoginOrRegisterPage> {
 
                       SizedBox(
                         width: double.infinity,
+                        child: TextButton.icon(
+                          onPressed: () {
+                            html.window.open('https://www.tiktok.com/@lad_courier_usa/video/7671344211093900558', '_blank');
+                          },
+                          icon: const Icon(Icons.play_circle_fill, color: Colors.greenAccent),
+                          label: const Text(
+                            "VIDEO: ¿CÓMO INSTALAR EN MI PANTALLA?", 
+                            style: TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(height: 15),
+
+                      SizedBox(
+                        width: double.infinity,
                         child: OutlinedButton(
                           onPressed: () {
                             setState(() {

@@ -253,7 +253,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
       }
 
       // 🛡️ SEGURIDAD MANDATORIA 24H: Selfie + Huella
-      if (_driverProfile!.lastBiometricVerification != null) {
+      // 💎 BYPASS VIP: Los inspectores no necesitan re-verificarse cada 24h
+      if (!(_driverProfile!.isVipTester) && _driverProfile!.lastBiometricVerification != null) {
         final lastVerification = _driverProfile!.lastBiometricVerification!.toDate();
         final now = DateTime.now();
         final difference = now.difference(lastVerification).inHours;
@@ -263,8 +264,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
           _showBiometricPrompt();
           return;
         }
-      } else {
-        // Si nunca se ha verificado, obligamos la primera vez
+      } else if (!(_driverProfile!.isVipTester) && _driverProfile!.lastBiometricVerification == null) {
+        // Si no es VIP y nunca se ha verificado, obligamos la primera vez
         _showBiometricPrompt();
         return;
       }

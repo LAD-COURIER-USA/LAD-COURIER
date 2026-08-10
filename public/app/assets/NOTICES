@@ -1966,8 +1966,6 @@ camera
 flutter_lints
 image_picker_linux
 image_picker_windows
-in_app_purchase
-in_app_purchase_platform_interface
 local_auth
 local_auth_darwin
 local_auth_windows
@@ -2027,8 +2025,6 @@ google_maps_flutter_platform_interface
 image_picker_for_web
 image_picker_macos
 image_picker_platform_interface
-in_app_purchase_android
-in_app_purchase_storekit
 local_auth_android
 local_auth_platform_interface
 path_provider_android

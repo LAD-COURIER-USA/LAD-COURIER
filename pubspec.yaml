@@ -2,7 +2,7 @@ name: lad_courier
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 10.0.0+15
+version: 14.0.0+17
 
 environment:
   sdk: '>=3.10.4 <4.0.0'
@@ -25,7 +25,6 @@ dependencies:
   universal_html: ^2.2.4
 
   # --- ARMAMENTO DE PAGO Y FACTURACIÓN ---
-  in_app_purchase: ^3.2.0
   flutter_stripe: ^11.3.0
 
   # --- ACTUALIZACIÓN DEL ARSENAL ---

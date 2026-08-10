@@ -26,13 +26,14 @@ class AdminService {
   Future<Map<String, double>> getServicePopularity() async {
     final query = await _db.collection('orders').limit(1000).get();
     Map<String, double> stats = {
-      'Courier': 0,
-      'Logistics': 0,
-      'SmartShopper': 0,
+      'courier': 0,
+      'logistics': 0,
+      'shopping': 0,
     };
 
     for (var doc in query.docs) {
-      final type = doc.data()['type'] ?? 'Courier';
+      final data = doc.data();
+      final type = (data['serviceType'] ?? 'courier').toString().toLowerCase();
       if (stats.containsKey(type)) {
         stats[type] = stats[type]! + 1;
       }
@@ -111,7 +112,12 @@ class AdminService {
   // 🛰️ HILO 5: Misiones en curso (Activas, En Camino, Recogidas)
   Stream<List<OrderModel>> getActiveMissions() {
     return _db.collection('orders')
-        .where('status', whereIn: ['active', 'enRouteToPickup', 'pickedUp', 'enRouteToDelivery'])
+        .where('status', whereIn: [
+          OrderStatus.active, 
+          OrderStatus.enRouteToPickup, 
+          OrderStatus.pickedUp, 
+          OrderStatus.enRouteToDelivery
+        ])
         .snapshots()
         .map((snap) => snap.docs.map((doc) => OrderModel.fromFirestore(doc)).toList());
   }
@@ -153,12 +159,98 @@ class AdminService {
     }
   }
 
-  // 🛡️ ACCIÓN: Eliminación de Respeto (Sin lista negra)
-  Future<void> softDeleteUser(String uid) async {
-    // 1. Borramos el documento de Firestore para que no pueda operar
-    await _db.collection('users').doc(uid).delete();
+  // 💰 HILO 7: Estadísticas Financieras LAD (Fees acumulados)
+  Future<Map<String, dynamic>> getFinancialStats() async {
+    final query = await _db.collection('orders')
+        .where('paymentStatus', isEqualTo: 'captured')
+        .get();
     
-    // Nota: La eliminación de Firebase Auth requiere una Cloud Function 
-    // que ya tenemos programada ('deleteUserAccount')
+    double totalFees = 0;
+    int totalPaidMissions = 0;
+
+    for (var doc in query.docs) {
+      final data = doc.data();
+      // Sumamos feeCharged (en centavos desde Cloud Functions) o serviceFeeCharged (desde BillingService)
+      final fee = (data['feeCharged'] ?? 0) / 100.0; 
+      final manualFee = data['serviceFeeCharged'] ?? 0.0;
+      
+      totalFees += (fee > 0 ? fee : manualFee);
+      totalPaidMissions++;
+    }
+
+    return {
+      'totalFees': totalFees,
+      'totalPaidMissions': totalPaidMissions,
+    };
+  }
+
+  // 📈 HILO 8: Inteligencia de Marketing (Misión CEO)
+  // Analiza la relación entre Demanda (Órdenes) y Oferta (Drivers) por ciudad.
+  Future<Map<String, dynamic>> getMarketingIntelligence() async {
+    final now = DateTime.now();
+    final last7Days = now.subtract(const Duration(days: 7));
+    
+    // 1. OBTENER DEMANDA (Órdenes Exitosas)
+    final ordersQuery = await _db.collection('orders')
+        .where('paymentStatus', isEqualTo: 'captured')
+        .where('completionTimestamp', isGreaterThan: Timestamp.fromDate(last7Days))
+        .get();
+
+    Map<String, Map<String, dynamic>> report = {};
+
+    for (var doc in ordersQuery.docs) {
+      final data = doc.data();
+      final String addr = (data['pickupAddress'] ?? "").toString().toUpperCase();
+      
+      final parts = addr.split(',');
+      if (parts.length >= 2) {
+        String city = parts[parts.length - 2].trim();
+        if (city.isNotEmpty) {
+          if (!report.containsKey(city)) {
+            report[city] = {'orders': 0, 'driversInCity': 0, 'activeWorkers': <String>{}};
+          }
+          report[city]!['orders']++;
+          String dId = data['assignedMessengerId'] ?? "";
+          if (dId.isNotEmpty) (report[city]!['activeWorkers'] as Set).add(dId);
+        }
+      }
+    }
+
+    // 2. OBTENER OFERTA (Drivers Registrados en esas ciudades)
+    final usersQuery = await _db.collection('users')
+        .where('role', whereIn: ['DRIVER', 'MESSENGER'])
+        .get();
+
+    for (var doc in usersQuery.docs) {
+      final data = doc.data();
+      final String addr = (data['mainAddress'] ?? "").toString().toUpperCase();
+      
+      final parts = addr.split(',');
+      if (parts.length >= 2) {
+        String city = parts[parts.length - 2].trim();
+        if (city.isNotEmpty && report.containsKey(city)) {
+          report[city]!['driversInCity']++;
+        }
+      }
+    }
+
+    // 3. CÁLCULO DE RATIOS PARA MARKETING
+    Map<String, Map<String, dynamic>> finalResult = {};
+    report.forEach((city, stats) {
+      int orders = stats['orders'];
+      int totalDrivers = stats['driversInCity'];
+      int actualWorkers = (stats['activeWorkers'] as Set).length;
+
+      finalResult[city] = {
+        'orders': orders,
+        'totalDrivers': totalDrivers, // Cuántos drivers viven/trabajan ahí
+        'actualWorkers': actualWorkers, // Cuántos realmente trabajaron esta semana
+        // Si hay muchas órdenes y pocos drivers totales -> MKT A DRIVERS
+        // Si hay muchos drivers totales y pocas órdenes -> MKT A CLIENTES
+        'recommendation': (orders > totalDrivers * 5) ? 'BUSCAR DRIVERS' : (totalDrivers > orders ? 'BUSCAR CLIENTES' : 'EQUILIBRADO')
+      };
+    });
+
+    return finalResult;
   }
 }

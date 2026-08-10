@@ -508,6 +508,7 @@ exports.processImmediatePayment = onCall({ region: REGION, invoker: "public", se
         await orderRef.update({
             paymentStatus: 'captured',
             stripePaymentIntentId: charge.id,
+            feeCharged: 70, // 🛡️ SINCRO ESTADÍSTICAS LAD
             completedAt: admin.firestore.FieldValue.serverTimestamp()
         });
 

@@ -250,6 +250,7 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
       case 'RECLAMACIONES': return _buildTicketsView();
       case 'MAPA': return _buildGlobalMapView();
       case 'EVIDENCIAS': return _buildEvidenceArchiveView();
+      case 'MARKETING': return _buildMarketingIntelligenceView();
       default: return _buildDashboardView();
     }
   }
@@ -263,7 +264,7 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
           _buildQuickStats(),
           const SizedBox(height: 30),
           const Text(
-            "MONITOREO GLOBAL",
+            "INTELIGENCIA Y MONITOREO",
             style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
           ),
           const SizedBox(height: 15),
@@ -274,14 +275,90 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
               mainAxisSpacing: 15,
               children: [
                 _buildMenuCard("RADAR", Icons.radar, Colors.blueAccent, "EN VIVO", () => setState(() => _activeView = 'MAPA')),
+                _buildMenuCard("MKT INTEL", Icons.insights, Colors.pinkAccent, "GEOGRÁFICO", () => setState(() => _activeView = 'MARKETING')),
                 _buildMenuCard("AUDITORÍA", Icons.verified_user, Colors.orangeAccent, "PENDIENTES", () => setState(() => _activeView = 'VERIFICACIONES')),
                 _buildMenuCard("TICKETS", Icons.feedback, Colors.redAccent, "BUZÓN", () => setState(() => _activeView = 'RECLAMACIONES')),
-                _buildMenuCard("ARCHIVO", Icons.photo_library, Colors.greenAccent, "EVIDENCIAS", () => setState(() => _activeView = 'EVIDENCIAS')),
               ],
             ),
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildMarketingIntelligenceView() {
+    return FutureBuilder<Map<String, dynamic>>(
+      future: _adminService.getMarketingIntelligence(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return const Center(child: CircularProgressIndicator(color: Colors.greenAccent));
+        final data = snapshot.data!;
+
+        if (data.isEmpty) return const Center(child: Text("SIN DATOS SUFICIENTES PARA REPORTE", style: TextStyle(color: Colors.white54)));
+
+        return ListView(
+          padding: const EdgeInsets.all(20),
+          children: [
+            const Text("INTELIGENCIA DE MERCADO (7 DÍAS)", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 10),
+            const Text("Balance entre Demanda (Clientes) vs Oferta (Drivers) por ubicación.", style: TextStyle(color: Colors.white54, fontSize: 12)),
+            const SizedBox(height: 25),
+            ...data.entries.map((entry) {
+              final city = entry.key;
+              final stats = entry.value as Map<String, dynamic>;
+              final String recommendation = stats['recommendation'] ?? "EQUILIBRADO";
+              
+              Color statusColor = Colors.greenAccent;
+              if (recommendation == 'BUSCAR DRIVERS') statusColor = Colors.orangeAccent;
+              if (recommendation == 'BUSCAR CLIENTES') statusColor = Colors.blueAccent;
+
+              return Card(
+                color: Colors.grey[900],
+                margin: const EdgeInsets.only(bottom: 20),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15), side: BorderSide(color: statusColor.withValues(alpha: 0.3))),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(city, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18, letterSpacing: 1.2)),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8), border: Border.all(color: statusColor)),
+                            child: Text(recommendation, style: TextStyle(color: statusColor, fontWeight: FontWeight.bold, fontSize: 10)),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          _StatItem(label: "ÓRDENES", value: stats['orders'].toString(), color: Colors.white),
+                          _StatItem(label: "DRIVERS LOCALES", value: stats['totalDrivers'].toString(), color: Colors.greenAccent),
+                          _StatItem(label: "DRIVERS ACTIVOS", value: stats['actualWorkers'].toString(), color: Colors.amber),
+                        ],
+                      ),
+                      const SizedBox(height: 15),
+                      const Divider(color: Colors.white10),
+                      const SizedBox(height: 10),
+                      Text(
+                        recommendation == 'BUSCAR DRIVERS' 
+                          ? "⚠ Hay muchas órdenes para pocos conductores. ¡Marketing a Drivers necesario!"
+                          : (recommendation == 'BUSCAR CLIENTES' 
+                              ? "ℹ Hay muchos conductores esperando. ¡Aumentar marketing a Clientes!"
+                              : "✅ El mercado está saludable en esta zona."),
+                        style: const TextStyle(color: Colors.white70, fontSize: 11, fontStyle: FontStyle.italic),
+                      )
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
+        );
+      },
     );
   }
 
@@ -428,9 +505,9 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
                 child: PieChart(
                   PieChartData(
                     sections: [
-                      PieChartSectionData(color: Colors.orange, value: stats['Courier'], title: 'Courier', radius: 60, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      PieChartSectionData(color: Colors.blue, value: stats['Logistics'], title: 'Logistics', radius: 60, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                      PieChartSectionData(color: Colors.green, value: stats['SmartShopper'], title: 'Shopper', radius: 60, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      PieChartSectionData(color: Colors.orange, value: stats['courier'], title: 'Courier', radius: 60, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      PieChartSectionData(color: Colors.blue, value: stats['logistics'], title: 'Logistics', radius: 60, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      PieChartSectionData(color: Colors.green, value: stats['shopping'], title: 'Shopper', radius: 60, titleStyle: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ),
@@ -509,7 +586,9 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
         StreamBuilder<List<UserModel>>(
           stream: _adminService.getOnlineDrivers(),
           builder: (context, snapshot) {
+            int onlineCount = 0;
             if (snapshot.hasData) {
+              onlineCount = snapshot.data!.length;
               for (var driver in snapshot.data!) {
                 if (driver.lastKnownLocation != null) {
                   _mapMarkers.add(Marker(
@@ -521,23 +600,22 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
                 }
               }
             }
-            return const SizedBox.shrink();
+            return Positioned(
+              bottom: 20, left: 20,
+              child: Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(10)),
+                child: Row(
+                  children: [
+                    const Icon(Icons.circle, color: Colors.green, size: 12),
+                    const SizedBox(width: 5),
+                    Text("DRIVERS ONLINE: $onlineCount", style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+              ),
+            );
           },
         ),
-        Positioned(
-          bottom: 20, left: 20,
-          child: Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: Colors.black87, borderRadius: BorderRadius.circular(10)),
-            child: const Row(
-              children: [
-                Icon(Icons.circle, color: Colors.green, size: 12),
-                SizedBox(width: 5),
-                Text("DRIVERS ONLINE", style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-              ],
-            ),
-          ),
-        )
       ],
     );
   }
@@ -793,13 +871,23 @@ class _ControlTowerPageState extends State<ControlTowerPage> {
                 borderRadius: BorderRadius.circular(15),
                 border: Border.all(color: Colors.white10),
               ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _StatItem(label: "DRIVERS", value: totalDrivers.toString(), color: Colors.greenAccent),
-                  _StatItem(label: "PENDIENTES", value: pendingVerif.toString(), color: Colors.orangeAccent),
-                  _StatItem(label: "ALERTAS", value: redAlerts.toString(), color: redAlerts > 0 ? Colors.redAccent : Colors.blueAccent),
-                ],
+              child: FutureBuilder<Map<String, dynamic>>(
+                future: _adminService.getFinancialStats(),
+                builder: (context, snapshotFinance) {
+                  final String fees = snapshotFinance.hasData 
+                      ? "\$${snapshotFinance.data!['totalFees'].toStringAsFixed(2)}"
+                      : "...";
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _StatItem(label: "DRIVERS", value: totalDrivers.toString(), color: Colors.greenAccent),
+                      _StatItem(label: "FEES", value: fees, color: Colors.amber),
+                      _StatItem(label: "PENDIENTES", value: pendingVerif.toString(), color: Colors.orangeAccent),
+                      _StatItem(label: "ALERTAS", value: redAlerts.toString(), color: redAlerts > 0 ? Colors.redAccent : Colors.blueAccent),
+                    ],
+                  );
+                }
               ),
             );
           },
