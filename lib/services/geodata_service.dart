@@ -422,20 +422,29 @@ class GeodataService {
   }
 
   void _enrichData(Map<String, dynamic> data) {
-    if (data['address'] != null) {
-      final addr = data['address'];
-      final String number = addr['number'] ?? '';
-      final String street = addr['street'] ?? '';
-      final String city = (addr['city'] != null && addr['city'].toString().isNotEmpty) ? addr['city'] : '';
-      final String state = addr['state'] ?? '';
-      final String zip = addr['zip'] ?? '';
-      
-      String full = "$number $street".trim();
-      if (city.isNotEmpty) full += ", $city";
-      if (state.isNotEmpty) full += ", $state";
-      if (zip.isNotEmpty) full += " $zip";
-      
-      data['address']['full'] = full.toUpperCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+    try {
+      if (data['address'] != null && data['address'] is Map) {
+        // 🛡️ REFUERZO: Creamos una copia editable para evitar crashes de "unmodifiable map"
+        final addr = Map<String, dynamic>.from(data['address'] as Map);
+        
+        final String number = addr['number']?.toString() ?? '';
+        final String street = addr['street']?.toString() ?? '';
+        final String city = (addr['city'] != null && addr['city'].toString().isNotEmpty) ? addr['city'].toString() : '';
+        final String state = addr['state']?.toString() ?? '';
+        final String zip = addr['zip']?.toString() ?? '';
+        
+        String full = "$number $street".trim();
+        if (city.isNotEmpty) full += ", $city";
+        if (state.isNotEmpty) full += ", $state";
+        if (zip.isNotEmpty) full += " $zip";
+        
+        addr['full'] = full.toUpperCase().replaceAll(RegExp(r'\s+'), ' ').trim();
+        
+        // Re-inyectamos la dirección enriquecida
+        data['address'] = addr;
+      }
+    } catch (e) {
+      debugPrint("❌ Error enriqueciendo datos geográficos: $e");
     }
   }
 }

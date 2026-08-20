@@ -2341,6 +2341,288 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Llevas más de 2 horas con una entrega pendiente. No podrás recibir nuevas misiones hasta completar tus entregas activas.'**
   String get driver_quarantine_body;
+
+  /// No description provided for @prof_btn_rate_app.
+  ///
+  /// In es, this message translates to:
+  /// **'CALIFICAR LA APP'**
+  String get prof_btn_rate_app;
+
+  /// No description provided for @prof_rate_app_subtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Ayúdanos a mejorar en la tienda'**
+  String get prof_rate_app_subtitle;
+
+  /// No description provided for @prof_support_title.
+  ///
+  /// In es, this message translates to:
+  /// **'RECLAMACIONES Y SUGERENCIAS'**
+  String get prof_support_title;
+
+  /// No description provided for @client_dash_already_linked.
+  ///
+  /// In es, this message translates to:
+  /// **'Este driver ya está en tu red de confianza.'**
+  String get client_dash_already_linked;
+
+  /// No description provided for @client_dash_no_new_invitations.
+  ///
+  /// In es, this message translates to:
+  /// **'No se encontraron nuevas invitaciones en el enlace.'**
+  String get client_dash_no_new_invitations;
+
+  /// No description provided for @common_access_denied.
+  ///
+  /// In es, this message translates to:
+  /// **'ACCESO DENEGADO'**
+  String get common_access_denied;
+
+  /// No description provided for @logout_online_error.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún apareces como ONLINE en el sistema de Drivers. Por favor, ve a tu panel de Driver y ponte fuera de línea antes de cerrar sesión.'**
+  String get logout_online_error;
+
+  /// No description provided for @common_understood.
+  ///
+  /// In es, this message translates to:
+  /// **'ENTENDIDO'**
+  String get common_understood;
+
+  /// No description provided for @bingo_magic_title.
+  ///
+  /// In es, this message translates to:
+  /// **'MAGIA BINGO'**
+  String get bingo_magic_title;
+
+  /// No description provided for @bingo_magic_subtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Pide en un toque con tu ticket'**
+  String get bingo_magic_subtitle;
+
+  /// No description provided for @bingo_upload_screenshot.
+  ///
+  /// In es, this message translates to:
+  /// **'BINGO: SUBIR SCREENSHOT'**
+  String get bingo_upload_screenshot;
+
+  /// No description provided for @support_center_title.
+  ///
+  /// In es, this message translates to:
+  /// **'CENTRO DE SOPORTE LAD'**
+  String get support_center_title;
+
+  /// No description provided for @support_subject_label.
+  ///
+  /// In es, this message translates to:
+  /// **'Asunto / Motivo'**
+  String get support_subject_label;
+
+  /// No description provided for @support_message_label.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribe tu mensaje...'**
+  String get support_message_label;
+
+  /// No description provided for @common_send.
+  ///
+  /// In es, this message translates to:
+  /// **'ENVIAR'**
+  String get common_send;
+
+  /// No description provided for @support_success_msg.
+  ///
+  /// In es, this message translates to:
+  /// **'✅ Mensaje enviado al búnker.'**
+  String get support_success_msg;
+
+  /// No description provided for @driver_dash_invite_title.
+  ///
+  /// In es, this message translates to:
+  /// **'VINCULAR NUEVO CLIENTE'**
+  String get driver_dash_invite_title;
+
+  /// No description provided for @driver_dash_invite_body.
+  ///
+  /// In es, this message translates to:
+  /// **'Muestra este código o comparte el link para que tus clientes te envíen pedidos directamente.'**
+  String get driver_dash_invite_body;
+
+  /// No description provided for @driver_dash_btn_share_invite.
+  ///
+  /// In es, this message translates to:
+  /// **'COMPARTIR INVITACIÓN'**
+  String get driver_dash_btn_share_invite;
+
+  /// No description provided for @driver_dash_share_invite_sub.
+  ///
+  /// In es, this message translates to:
+  /// **'WhatsApp, Mensajes, etc.'**
+  String get driver_dash_share_invite_sub;
+
+  /// No description provided for @common_close.
+  ///
+  /// In es, this message translates to:
+  /// **'CERRAR'**
+  String get common_close;
+
+  /// No description provided for @common_qr_error.
+  ///
+  /// In es, this message translates to:
+  /// **'Error al generar QR'**
+  String get common_qr_error;
+
+  /// No description provided for @bingo_dialog_title.
+  ///
+  /// In es, this message translates to:
+  /// **'AÑADIR TICKET O FOTO'**
+  String get bingo_dialog_title;
+
+  /// No description provided for @bingo_dialog_body.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona el origen de la imagen para el auto-llenado BINGO.'**
+  String get bingo_dialog_body;
+
+  /// No description provided for @common_camera.
+  ///
+  /// In es, this message translates to:
+  /// **'CÁMARA'**
+  String get common_camera;
+
+  /// No description provided for @common_gallery.
+  ///
+  /// In es, this message translates to:
+  /// **'GALERÍA'**
+  String get common_gallery;
+
+  /// No description provided for @ocr_dialog_exact_title.
+  ///
+  /// In es, this message translates to:
+  /// **'UBICACIÓN EXACTA'**
+  String get ocr_dialog_exact_title;
+
+  /// No description provided for @ocr_dialog_auto_title.
+  ///
+  /// In es, this message translates to:
+  /// **'DETECCIÓN AUTOMÁTICA'**
+  String get ocr_dialog_auto_title;
+
+  /// No description provided for @ocr_label_store.
+  ///
+  /// In es, this message translates to:
+  /// **'ESTABLECIMIENTO:'**
+  String get ocr_label_store;
+
+  /// No description provided for @ocr_label_address.
+  ///
+  /// In es, this message translates to:
+  /// **'DIRECCIÓN SUGERIDA:'**
+  String get ocr_label_address;
+
+  /// No description provided for @ocr_label_order.
+  ///
+  /// In es, this message translates to:
+  /// **'NÚMERO DE ORDEN:'**
+  String get ocr_label_order;
+
+  /// No description provided for @ocr_btn_autofill.
+  ///
+  /// In es, this message translates to:
+  /// **'AUTO-LLENAR'**
+  String get ocr_btn_autofill;
+
+  /// No description provided for @create_order_pickup_origin.
+  ///
+  /// In es, this message translates to:
+  /// **'PUNTO DE ORIGEN'**
+  String get create_order_pickup_origin;
+
+  /// No description provided for @create_order_dropoff_dest.
+  ///
+  /// In es, this message translates to:
+  /// **'PUNTO DE DESTINO'**
+  String get create_order_dropoff_dest;
+
+  /// No description provided for @create_order_details_label.
+  ///
+  /// In es, this message translates to:
+  /// **'DETALLES'**
+  String get create_order_details_label;
+
+  /// No description provided for @create_order_gps_tooltip.
+  ///
+  /// In es, this message translates to:
+  /// **'USAR MI UBICACIÓN ACTUAL'**
+  String get create_order_gps_tooltip;
+
+  /// No description provided for @create_order_verified_msg.
+  ///
+  /// In es, this message translates to:
+  /// **'✓ UBICACIÓN EXACTA VERIFICADA (SISTEMA LAD)'**
+  String get create_order_verified_msg;
+
+  /// No description provided for @create_order_unverified_msg.
+  ///
+  /// In es, this message translates to:
+  /// **'⚠ LA DIRECCIÓN NO ES TAN PRECISA, EL DRIVER HARÁ LO POSIBLE POR ENCONTRARLA.'**
+  String get create_order_unverified_msg;
+
+  /// No description provided for @order_status_rejected.
+  ///
+  /// In es, this message translates to:
+  /// **'MISIÓN RECHAZADA'**
+  String get order_status_rejected;
+
+  /// No description provided for @client_dash_rejected_requests_title.
+  ///
+  /// In es, this message translates to:
+  /// **'SOLICITUDES RECHAZADAS'**
+  String get client_dash_rejected_requests_title;
+
+  /// No description provided for @alert_rejected_title.
+  ///
+  /// In es, this message translates to:
+  /// **'⚠️ MISIÓN RECHAZADA'**
+  String get alert_rejected_title;
+
+  /// No description provided for @alert_rejected_body.
+  ///
+  /// In es, this message translates to:
+  /// **'El driver {name} ha declinado tu solicitud.'**
+  String alert_rejected_body(String name);
+
+  /// No description provided for @alert_new_offer_title.
+  ///
+  /// In es, this message translates to:
+  /// **'💰 NUEVA OFERTA'**
+  String get alert_new_offer_title;
+
+  /// No description provided for @alert_new_offer_body.
+  ///
+  /// In es, this message translates to:
+  /// **'El driver {name} ha enviado una propuesta.'**
+  String alert_new_offer_body(String name);
+
+  /// No description provided for @common_reassign.
+  ///
+  /// In es, this message translates to:
+  /// **'REASIGNAR'**
+  String get common_reassign;
+
+  /// No description provided for @common_sync.
+  ///
+  /// In es, this message translates to:
+  /// **'SINCRONIZAR'**
+  String get common_sync;
+
+  /// No description provided for @neg_error_min_price.
+  ///
+  /// In es, this message translates to:
+  /// **'PRECIO NO VÁLIDO: El mínimo es \${price}.'**
+  String neg_error_min_price(String price);
 }
 
 class _AppLocalizationsDelegate

@@ -181,12 +181,13 @@ class _BiometricVerificationPageState extends State<BiometricVerificationPage> {
         debugPrint("✅ SISTEMA LAD: Auditoría Forense APROBADA.");
       }
 
-      // 3. ACTUALIZACIÓN EN FIRESTORE
+      // 3. ACTUALIZACIÓN EN FIRESTORE (Campo snake_case según UserModel)
       await FirebaseFirestore.instance.collection('users').doc(user.uid).update({
-        'lastBiometricVerification': FieldValue.serverTimestamp(),
+        'last_biometric_verification': FieldValue.serverTimestamp(),
         'lastVerificationPhoto': selfieUrl,
         'isIdentityVerified': true,
         'verificationStatus': 'APROBADO_DOC',
+        'lastActiveAt': FieldValue.serverTimestamp(), // 🛡️ Sincronizamos actividad al verificar
       });
 
       if (mounted) {

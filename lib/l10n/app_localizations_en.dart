@@ -1201,7 +1201,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get ss_btn_search => 'SEARCH';
 
   @override
-  String get ss_notif_title => 'BINGO! CAPTURE';
+  String get ss_notif_title => 'BINGO! CAPTURA';
 
   @override
   String get ss_notif_body =>
@@ -1227,4 +1227,158 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get driver_quarantine_body =>
       'You have a pending delivery for more than 2 hours. You won\'t be able to receive new missions until you complete your active deliveries.';
+
+  @override
+  String get prof_btn_rate_app => 'RATE THE APP';
+
+  @override
+  String get prof_rate_app_subtitle => 'Help us improve on the store';
+
+  @override
+  String get prof_support_title => 'CLAIMS AND SUGGESTIONS';
+
+  @override
+  String get client_dash_already_linked =>
+      'This driver is already in your trusted network.';
+
+  @override
+  String get client_dash_no_new_invitations =>
+      'No new invitations found in the link.';
+
+  @override
+  String get common_access_denied => 'ACCESS DENIED';
+
+  @override
+  String get logout_online_error =>
+      'You still appear as ONLINE in the Driver system. Please go to your Driver panel and go offline before logging out.';
+
+  @override
+  String get common_understood => 'UNDERSTOOD';
+
+  @override
+  String get bingo_magic_title => 'BINGO MAGIC';
+
+  @override
+  String get bingo_magic_subtitle => 'Order in one tap with your ticket';
+
+  @override
+  String get bingo_upload_screenshot => 'BINGO: UPLOAD SCREENSHOT';
+
+  @override
+  String get support_center_title => 'LAD SUPPORT CENTER';
+
+  @override
+  String get support_subject_label => 'Subject / Reason';
+
+  @override
+  String get support_message_label => 'Write your message...';
+
+  @override
+  String get common_send => 'SEND';
+
+  @override
+  String get support_success_msg => '✅ Message sent to the bunker.';
+
+  @override
+  String get driver_dash_invite_title => 'LINK NEW CUSTOMER';
+
+  @override
+  String get driver_dash_invite_body =>
+      'Show this code or share the link so your customers can send you orders directly.';
+
+  @override
+  String get driver_dash_btn_share_invite => 'SHARE INVITATION';
+
+  @override
+  String get driver_dash_share_invite_sub => 'WhatsApp, Messages, etc.';
+
+  @override
+  String get common_close => 'CLOSE';
+
+  @override
+  String get common_qr_error => 'Error generating QR';
+
+  @override
+  String get bingo_dialog_title => 'ADD TICKET OR PHOTO';
+
+  @override
+  String get bingo_dialog_body =>
+      'Select the source of the image for BINGO auto-filling.';
+
+  @override
+  String get common_camera => 'CAMERA';
+
+  @override
+  String get common_gallery => 'GALLERY';
+
+  @override
+  String get ocr_dialog_exact_title => 'EXACT LOCATION';
+
+  @override
+  String get ocr_dialog_auto_title => 'AUTOMATIC DETECTION';
+
+  @override
+  String get ocr_label_store => 'ESTABLISHMENT:';
+
+  @override
+  String get ocr_label_address => 'SUGGESTED ADDRESS:';
+
+  @override
+  String get ocr_label_order => 'ORDER NUMBER:';
+
+  @override
+  String get ocr_btn_autofill => 'AUTO-FILL';
+
+  @override
+  String get create_order_pickup_origin => 'PICKUP ORIGIN';
+
+  @override
+  String get create_order_dropoff_dest => 'DELIVERY DESTINATION';
+
+  @override
+  String get create_order_details_label => 'DETAILS';
+
+  @override
+  String get create_order_gps_tooltip => 'USE MY CURRENT LOCATION';
+
+  @override
+  String get create_order_verified_msg =>
+      '✓ EXACT LOCATION VERIFIED (LAD SYSTEM)';
+
+  @override
+  String get create_order_unverified_msg =>
+      '⚠ THE ADDRESS IS NOT THAT PRECISE, THE DRIVER WILL DO THEIR BEST TO FIND IT.';
+
+  @override
+  String get order_status_rejected => 'MISSION REJECTED';
+
+  @override
+  String get client_dash_rejected_requests_title => 'REJECTED REQUESTS';
+
+  @override
+  String get alert_rejected_title => '⚠️ MISSION REJECTED';
+
+  @override
+  String alert_rejected_body(String name) {
+    return 'Courier $name has declined your request.';
+  }
+
+  @override
+  String get alert_new_offer_title => '💰 NEW OFFER';
+
+  @override
+  String alert_new_offer_body(String name) {
+    return 'Courier $name has sent a proposal.';
+  }
+
+  @override
+  String get common_reassign => 'REASSIGN';
+
+  @override
+  String get common_sync => 'SYNC';
+
+  @override
+  String neg_error_min_price(String price) {
+    return 'INVALID PRICE: The minimum is \$$price.';
+  }
 }

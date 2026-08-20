@@ -8,29 +8,26 @@ import 'package:lad_courier/l10n/app_localizations.dart';
 /// la creación y gestión de invitaciones (Android e iPhone).
 class InvitationService {
 
-  /// --- 🤖 ENLACES DE NUEVA GENERACIÓN (V2026) ---
+  /// --- 🤖 ENLACE UNIFICADO SOBERANO (V2026) ---
 
-  /// Genera el enlace para usuarios Android (Vía Landing Page)
-  String getAndroidLink(String uid) {
+  /// Genera el enlace maestro que lleva a la Landing Page
+  String getUnifiedLink(String uid) {
     return 'https://ladcourier.com/?id=$uid';
   }
 
-  /// Genera el enlace para usuarios iPhone/iPad (Vía Landing Page con filtro iOS)
-  String getIPhoneLink(String uid) {
-    return 'https://ladcourier.com/?id=$uid&os=ios';
-  }
-
   /// Método para compartir rápido (Usa el nuevo estándar SharePlus 2026)
-  void shareLink(BuildContext context, {required bool isIPhone}) {
+  void shareLink(BuildContext context) {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    final String link = isIPhone ? getIPhoneLink(user.uid) : getAndroidLink(user.uid);
-    final String msg = isIPhone 
-      ? "¡Hola! 👋 Únete a mi red de confianza en LAD Courier (iOS/Web): $link"
-      : "¡Hola! 👋 Descarga la App y únete a mi red en LAD Courier (Android): $link";
+    final String link = getUnifiedLink(user.uid);
+    
+    // 🛡️ MENSAJE AMISTOSO RESTAURADO Y CORREGIDO
+    final String msg = "¡Hola! 👋 Te invito a formar parte de mi red de confianza en LAD Courier USA. "
+        "Descarga la App o accede vía Web para enviarme tus pedidos directamente y sin intermediarios. "
+        "Aquí tienes el acceso a mi búnker personal: $link";
 
-    SharePlus.instance.share(ShareParams(text: msg, subject: "Invitación LAD Courier"));
+    SharePlus.instance.share(ShareParams(text: msg, subject: "Invitación a LAD Courier USA"));
   }
 
   /// --- 🏛️ FUNCIONES ORIGINALES ACTUALIZADAS ---

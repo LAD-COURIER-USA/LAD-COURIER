@@ -24,7 +24,7 @@
   "earnings_refund_success_msg": "Zone configurée correctement.",
   "earnings_refund_pending_msg": "Configuration en cours...",
   "earnings_refund_anti_fraud_rule": "Le changement de zone est instantané et gratuit.",
-  "earnings_refund_disclaimer": "LAD Courier ne facture pas de frais mensuels. Uniquement des frais de service de 0,50 $ par commande réussie, quel que soit le prix convenu.",
+  "earnings_refund_disclaimer": "LAD Courier ne facture pas de frais mensuels. Uniquement des frais de service de 0.70 $ par commande réussie, quel que soit le prix convenu.",
   "driver_dash_title": "CENTRE DE COMMANDE DRIVER",
   "driver_status_online": "DRIVER EN Ligne",
   "driver_status_offline": "HORS SERVICE",
@@ -33,7 +33,7 @@
   "driver_menu_profile": "MON PROFIL",
   "driver_menu_earnings": "ZONES",
   "driver_menu_invite": "INVITER",
-  "driver_dialog_services_title": "SERVICES ACTIFS",
+  "driver_dialog_services_title": "SERVICES ACTIVOS",
   "driver_btn_confirm": "CONFIRMER",
   "driver_error_no_photo": "PHOTO DE PROFIL MANQUANTE",
   "driver_error_no_photo_msg": "Vous devez télécharger une photo professionnelle pour que vos clients puissent vous identifier.",
@@ -68,7 +68,7 @@
   "prof_section_pay": "OUTILS DE PAIEMENT (STRIPE)",
   "prof_pay_stripe": "Lier Stripe Connect",
   "prof_pay_stripe_sub": "Pour recevoir vos paiements instantanément",
-  "prof_pay_paypal": "Lier PayPal (Optionnel)",
+  "prof_pay_paypal": "PayPal (Optionnel)",
   "prof_pay_paypal_sub": "Uniquement pour les encaissements manuels",
   "prof_btn_save": "ENREGISTRER LES MODIFICATIONS",
   "prof_btn_switch": "PASSER EN MODE CLIENT",
@@ -256,7 +256,7 @@
   },
   "neg_title": "NÉGOCIATION",
   "neg_client_initial": "DEMANDE INITIALE (SANS PRIX)",
-  "neg_client_counter": "CONTRE-OFFRE DU CLIENT",
+  "neg_client_counter": "CONTRAOFERE DU CLIENT",
   "neg_driver_last": "VOTRE DERNIÈRE OFFRE",
   "neg_input_label": "VOTRE PROPOSITION ($)",
   "neg_btn_accept": "ACCEPTER",
@@ -323,7 +323,7 @@
   "neg_client_btn_counter": "FAIRE UNE CONTRE-OFFRE",
   "neg_client_btn_reject_cancel": "REJETER ET ANNULER",
   "neg_client_dialog_title": "VOTRE CONTRE-OFFRE",
-  "neg_client_dialog_body": "Proposez un nouveau prix au driver :",
+  "neg_client_dialog_body": "Proposez un nuevo prix au driver :",
   "neg_client_dialog_label": "Nouveau prix",
   "neg_client_dialog_btn_cancel": "REJETER",
   "neg_client_dialog_btn_send": "ENVOYER",
@@ -390,7 +390,6 @@
   "order_status_timeout_full_msg": "En raison du grand nombre de commandes, le chauffeur n'a pas pu s'en occuper à temps. Veuillez l'envoyer à un autre chauffeur disponible. Merci !",
   "auth_error_generic": "Erreur de sécurité : {message}",
   "@auth_error_generic": {
-    "description": "Erreur générique",
     "placeholders": {
       "message": {
         "type": "String"
@@ -406,7 +405,7 @@
   "driver_work_zone_waiting": "En attente de nouvelles missions...",
   "dashboard_btn_create_order": "Créer une commande",
   "client_label": "Client",
-  "counter_offer_label": "CONTRE-OFFRE",
+  "counter_offer_label": "CONTRAOFERTE",
   "new_order_label": "NOUVELLE COMMANDE",
   "create_order_requirements": "EXIGENCES",
   "create_order_section_messenger": "6. SÉLECTIONNEZ VOTRE COURSIER",
@@ -462,7 +461,7 @@
   "driver_service_shopping": "Achats et courses",
   "driver_service_smartshopper": "SmartShopper",
   "shopping_nav_instruction_title_alt": "💡 PLAN DE SECOURS",
-  "shopping_nav_instruction_body_alt": "Si l'établissement vous oblige à utiliser son application officielle, passez votre commande là-bas, prenez une capture d'écran du reçu et téléchargez-la ici.",
+  "shopping_nav_instruction_body_alt": "Si l'établissement vous oblige à utiliser son application officielle, passez votre commande là-bas, prenez una capture d'écran du reçu et téléchargez-la ici.",
   "client_dash_order_here": "COMMANDEZ ICI",
   "prof_btn_business_card": "MA CARTE DE VISITE",
   "business_card_title": "CARTE DE VISITE LAD COURIER",
@@ -536,7 +535,7 @@
   "verif_step3_title": "Clé de Sécurité (2FA)",
   "verif_step3_desc": "Blindage de l'accès avec Google Authenticator.",
   "verif_step4_title": "Photo de Profil Professionnelle",
-  "verif_step4_desc": "Téléchargez une photo claire pour que vos clients vous reconnaissent.",
+  "verif_step4_desc": "Téléchargez una photo claire pour que vos clients vous reconnaissent.",
   "verif_footer": "Vos données sont cryptées et traitées directement par Stripe selon les normes bancaires.",
   "order_status_driver_busy": "DRIVER OCCUPÉ",
   "order_status_route_problems": "PROBLÈMES SUR LA ROUTE",
@@ -547,12 +546,80 @@
   "ss_dialog_title": "QUE RECHERCHONS-NOUS AUJOURD'HUI ?",
   "ss_dialog_hint": "Ex: Pizza, Pharmacie, Best Buy...",
   "ss_btn_search": "RECHERCHER",
-  "ss_notif_title": "BINGO ! CAPTURE",
+  "ss_notif_title": "BINGO ! CAPTURA",
   "ss_notif_body": "Nous avons détecté que vous avez pris une capture d'écran du ticket. Voulez-vous la traiter maintenant pour créer votre commande ?",
   "ss_ocr_error_title": "TICKET NON DÉTECTÉ",
   "ss_ocr_error_body": "Nous n'avons pas pu extraire une adresse claire de l'image. Veuillez vous assurer que le ticket est lisible ou saisissez l'adresse manuellement.",
   "order_status_delivery_delayed": "LIVRAISON RETARDÉE",
   "order_status_delivery_delayed_msg": "CETTE LIVRAISON PREND PLUS DE 2 HEURES. NOUS AVONS INFORMÉ LE COURSIER.",
   "driver_quarantine_title": "MODE QUARANTAINE ACTIF",
-  "driver_quarantine_body": "Vous avez une livraison en attente depuis plus de 2 heures. Vous ne pourrez pas recevoir de nouvelles missions tant que vous n'aurez pas terminé vos livraisons actives."
+  "driver_quarantine_body": "Vous avez une livraison en attente depuis plus de 2 heures. Vous ne pourrez pas recevoir de nouvelles missions tant que vous n'aurez pas terminé vos livraisons actives.",
+  "prof_btn_rate_app": "ÉVALUER L'APPLICATION",
+  "prof_rate_app_subtitle": "Aidez-nous à nous améliorer sur le store",
+  "prof_support_title": "RÉCLAMATIONS ET SUGGESTIONS",
+  "client_dash_already_linked": "Ce coursier est déjà dans votre réseau de confiance.",
+  "client_dash_no_new_invitations": "Aucune nouvelle invitation trouvée dans le lien.",
+  "common_access_denied": "ACCÈS REFUSÉ",
+  "logout_online_error": "Vous apparaissez toujours comme EN LIGNE dans le système des coursiers. Veuillez vous mettre hors ligne dans votre panneau de coursier avant de vous déconnecter.",
+  "common_understood": "COMPRIS",
+  "bingo_magic_title": "MAGIE BINGO",
+  "bingo_magic_subtitle": "Commandez en un geste avec votre ticket",
+  "bingo_upload_screenshot": "BINGO : TÉLÉCHARGER CAPTURE",
+  "support_center_title": "CENTRE DE SUPPORT LAD",
+  "support_subject_label": "Sujet / Motif",
+  "support_message_label": "Écrivez votre message...",
+  "common_send": "ENVOYER",
+  "support_success_msg": "✅ Message envoyé au bunker.",
+  "driver_dash_invite_title": "LIER UN NOUVEAU CLIENT",
+  "driver_dash_invite_body": "Affichez ce code ou partagez le lien pour que vos clients vous envoient des commandes directement.",
+  "driver_dash_btn_share_invite": "PARTAGER L'INVITATION",
+  "driver_dash_share_invite_sub": "WhatsApp, Messages, etc.",
+  "common_close": "FERMER",
+  "common_qr_error": "Erreur lors de la génération du QR",
+  "bingo_dialog_title": "AJOUTER UN TICKET OU UNE PHOTO",
+  "bingo_dialog_body": "Sélectionnez la source de l'image pour le remplissage automatique BINGO.",
+  "common_camera": "APPAREIL PHOTO",
+  "common_gallery": "GALERIE",
+  "ocr_dialog_exact_title": "EMPLACEMENT EXACT",
+  "ocr_dialog_auto_title": "DÉTECTION AUTOMATIQUE",
+  "ocr_label_store": "ÉTABLISSEMENT :",
+  "ocr_label_address": "ADRESSE SUGGÉRÉE :",
+  "ocr_label_order": "NUMÉRO DE COMMANDE :",
+  "ocr_btn_autofill": "AUTO-REMPLISSAGE",
+  "create_order_pickup_origin": "POINT DE DÉPART",
+  "create_order_dropoff_dest": "DESTINATION DE LIVRAISON",
+  "create_order_details_label": "DÉTAILS",
+  "create_order_gps_tooltip": "UTILISER MA POSITION ACTUELLE",
+  "create_order_verified_msg": "✓ EMPLACEMENT EXACT VÉRIFIÉ (SYSTÈME LAD)",
+  "create_order_unverified_msg": "⚠ L'ADRESSE N'EST PAS TRÈS PRÉCISE, LE CHAUFFEUR FERA DE SON MIEUX POUR LA TROUVER.",
+  "order_status_rejected": "MISSION REJETÉE",
+  "client_dash_rejected_requests_title": "DEMANDES REJETÉES",
+  "alert_rejected_title": "⚠️ MISSION REJETÉE",
+  "alert_rejected_body": "Le coursier {name} a décliné votre demande.",
+  "@alert_rejected_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alert_new_offer_title": "💰 NOUVELLE OFFRE",
+  "alert_new_offer_body": "Le coursier {name} a envoyé une proposition.",
+  "@alert_new_offer_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "common_reassign": "RÉASSIGNER",
+  "common_sync": "SYNCHRONISER",
+  "neg_error_min_price": "PRIX INVALIDE : Le minimum est de ${price}.",
+  "@neg_error_min_price": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  }
 }

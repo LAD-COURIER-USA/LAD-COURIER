@@ -122,14 +122,16 @@ class _ClientDashboardState extends State<ClientDashboard> {
           }
           
           if (isManual && mounted) {
+            final localL10n = AppLocalizations.of(context)!;
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text("Este driver ya está en tu red de confianza."), backgroundColor: Colors.blueGrey)
+              SnackBar(content: Text(localL10n.client_dash_already_linked), backgroundColor: Colors.blueGrey)
             );
           }
         }
       } else if (isManual && mounted) {
+        final localL10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("No se encontraron nuevas invitaciones en el enlace."), backgroundColor: Colors.orange)
+          SnackBar(content: Text(localL10n.client_dash_no_new_invitations), backgroundColor: Colors.orange)
         );
       }
     } catch (e) {
@@ -173,10 +175,11 @@ class _ClientDashboardState extends State<ClientDashboard> {
     _rejectionSubscription?.cancel();
     _rejectionSubscription = _orderService.getRejectedOrdersStream(user.uid).listen((orders) {
       if (!mounted) return;
+      final localL10n = AppLocalizations.of(context)!;
       
       for (var o in orders) {
         if (!_lastKnownRejectedState.containsKey(o.id)) {
-          _triggerAlert("⚠️ MISIÓN RECHAZADA", "El driver ${o.messengerName ?? ''} ha declinado tu solicitud.");
+          _triggerAlert(localL10n.alert_rejected_title, localL10n.alert_rejected_body(o.messengerName ?? ''));
         }
       }
       _lastKnownRejectedState = {for (var o in orders) o.id: o.status};
@@ -199,6 +202,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
     _negotiationSubscription?.cancel();
     _negotiationSubscription = _orderService.getOrdersForClientResponseStream(user.uid).listen((orders) {
       if (!mounted) return;
+      final localL10n = AppLocalizations.of(context)!;
 
       if (_lastKnownOffersState.isNotEmpty) {
         for (var o in orders) {
@@ -206,7 +210,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
                            o.negotiationHistory.length > _lastKnownOffersState[o.id]!;
 
           if (isUpdated && o.lastPriceOfferedBy == 'driver') {
-            _triggerAlert("💰 NUEVA OFERTA", "El driver ${o.messengerName} ha enviado una propuesta.");
+            _triggerAlert(localL10n.alert_new_offer_title, localL10n.alert_new_offer_body(o.messengerName ?? ''));
           }
         }
       }
@@ -247,6 +251,26 @@ class _ClientDashboardState extends State<ClientDashboard> {
 
   Future<void> _logout() async {
     final l10n = AppLocalizations.of(context)!;
+
+    // 🛡️ REFUERZO SOBERANO: Bloqueo de Logout si está ONLINE como Driver
+    if (_clientProfile?.isMessengerActive ?? false) {
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(l10n.common_access_denied, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.red)),
+          content: Text(l10n.logout_online_error),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(l10n.common_understood, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.black)),
+            )
+          ],
+        ),
+      );
+      return;
+    }
+
     bool? confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -389,7 +413,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
                       _buildSectionTitle(l10n.client_dash_negotiations_title.toUpperCase(), Icons.handshake_outlined, Colors.orange[900]!),
                       _buildNegotiationList(l10n),
                       const SizedBox(height: 25),
-                      _buildSectionTitle("SOLICITUDES RECHAZADAS", Icons.warning_amber_rounded, Colors.red[900]!),
+                      _buildSectionTitle(l10n.client_dash_rejected_requests_title.toUpperCase(), Icons.warning_amber_rounded, Colors.red[900]!),
                       _buildRejectedOrdersList(l10n),
                       const SizedBox(height: 25),
                       _buildSectionTitle(l10n.client_dash_linked_drivers.toUpperCase(), Icons.group_outlined, Colors.black, onAction: () => _checkPendingInvitations(isManual: true)),
@@ -451,6 +475,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
   }
 
   Widget _buildSectionTitle(String title, IconData icon, Color color, {VoidCallback? onAction}) {
+    final l10n = AppLocalizations.of(context)!;
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Row(
@@ -462,7 +487,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
             TextButton.icon(
               onPressed: onAction,
               icon: const Icon(Icons.sync, size: 16, color: Colors.deepPurple),
-              label: const Text("SINCRONIZAR", style: TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w900, fontSize: 10)),
+              label: Text(l10n.common_sync, style: const TextStyle(color: Colors.deepPurple, fontWeight: FontWeight.w900, fontSize: 10)),
               style: TextButton.styleFrom(
                 backgroundColor: Colors.deepPurple.withValues(alpha: 0.1),
                 padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -736,7 +761,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
 
         return Column(
           children: orders.map((order) {
-            String msg = "MISIÓN RECHAZADA";
+            String msg = l10n.order_status_rejected;
             if (order.statusMessage == "TIMEOUT_CLIENT") msg = l10n.order_status_timeout_client;
             if (order.statusMessage == "TIMEOUT_DRIVER" || order.statusMessage == "DRIVER_BUSY") msg = l10n.order_status_driver_busy;
             if (order.statusMessage == "ROUTE_PROBLEMS") msg = l10n.order_status_route_problems;
@@ -801,7 +826,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
                             );
                           },
                           icon: const Icon(Icons.sync, size: 14),
-                          label: const Text("REASIGNAR", style: TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
+                          label: Text(l10n.common_reassign, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w900)),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFFFD1DC), // Rosado claro
                             foregroundColor: Colors.red[900],
@@ -965,8 +990,8 @@ class _ClientDashboardState extends State<ClientDashboard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text("MAGIA BINGO", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.2)),
-                    Text("Pide en un toque con tu ticket", style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.bold)),
+                    Text(l10n.bingo_magic_title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.2)),
+                    Text(l10n.bingo_magic_subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
@@ -979,7 +1004,7 @@ class _ClientDashboardState extends State<ClientDashboard> {
             child: ElevatedButton.icon(
               onPressed: _launchBingoWorkflow,
               icon: const Icon(Icons.wallpaper, color: Colors.black),
-              label: const Text("BINGO: SUBIR SCREENSHOT", style: TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)),
+              label: Text(l10n.bingo_upload_screenshot, style: const TextStyle(color: Colors.black, fontWeight: FontWeight.w900, fontSize: 14)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.greenAccent,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
@@ -993,22 +1018,44 @@ class _ClientDashboardState extends State<ClientDashboard> {
   }
 
   void _launchBingoWorkflow() async {
-    final picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.gallery,
-      imageQuality: 50,
-    );
-
-    if (image != null && mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CreateOrderPage(
-            initialImage: image,
-            autoStartOCR: false,
-          ),
-        ),
+    try {
+      final ImagePicker picker = ImagePicker();
+      debugPrint("SISTEMA LAD: Abriendo galería para BINGO...");
+      
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50,
       );
+
+      if (image != null) {
+        debugPrint("SISTEMA LAD: Imagen seleccionada: ${image.path}. Preparando vuelo...");
+        
+        if (!mounted) return;
+
+        // 🛡️ REFUERZO: Pequeño respiro para que el sistema recupere el aliento tras cerrar la galería
+        await Future.delayed(const Duration(milliseconds: 400));
+        
+        if (!mounted) return;
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              initialImage: image,
+              autoStartOCR: false,
+            ),
+          ),
+        );
+      } else {
+        debugPrint("SISTEMA LAD: Selección de imagen cancelada por el usuario.");
+      }
+    } catch (e) {
+      debugPrint("❌ SISTEMA LAD: Error crítico en picker de Dashboard: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("No se pudo abrir la galería: $e"), backgroundColor: Colors.red),
+        );
+      }
     }
   }
 

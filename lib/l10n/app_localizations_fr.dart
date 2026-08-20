@@ -84,7 +84,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get earnings_refund_disclaimer =>
-      'LAD Courier ne facture pas de frais mensuels. Uniquement des frais de service de 0,50 \$ par commande réussie, quel que soit le prix convenu.';
+      'LAD Courier ne facture pas de frais mensuels. Uniquement des frais de service de 0.70 \$ par commande réussie, quel que soit le prix convenu.';
 
   @override
   String get driver_dash_title => 'CENTRE DE COMMANDE DRIVER';
@@ -111,7 +111,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get driver_menu_invite => 'INVITER';
 
   @override
-  String get driver_dialog_services_title => 'SERVICES ACTIFS';
+  String get driver_dialog_services_title => 'SERVICES ACTIVOS';
 
   @override
   String get driver_btn_confirm => 'CONFIRMER';
@@ -227,7 +227,7 @@ class AppLocalizationsFr extends AppLocalizations {
       'Pour recevoir vos paiements instantanément';
 
   @override
-  String get prof_pay_paypal => 'Lier PayPal (Optionnel)';
+  String get prof_pay_paypal => 'PayPal (Optionnel)';
 
   @override
   String get prof_pay_paypal_sub => 'Uniquement pour les encaissements manuels';
@@ -522,7 +522,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get neg_client_initial => 'DEMANDE INITIALE (SANS PRIX)';
 
   @override
-  String get neg_client_counter => 'CONTRE-OFFRE DU CLIENT';
+  String get neg_client_counter => 'CONTRAOFERE DU CLIENT';
 
   @override
   String get neg_driver_last => 'VOTRE DERNIÈRE OFFRE';
@@ -647,7 +647,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get neg_client_dialog_title => 'VOTRE CONTRE-OFFRE';
 
   @override
-  String get neg_client_dialog_body => 'Proposez un nouveau prix au driver :';
+  String get neg_client_dialog_body => 'Proposez un nuevo prix au driver :';
 
   @override
   String get neg_client_dialog_label => 'Nouveau prix';
@@ -818,7 +818,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get client_label => 'Client';
 
   @override
-  String get counter_offer_label => 'CONTRE-OFFRE';
+  String get counter_offer_label => 'CONTRAOFERTE';
 
   @override
   String get new_order_label => 'NOUVELLE COMMANDE';
@@ -977,7 +977,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get shopping_nav_instruction_body_alt =>
-      'Si l\'établissement vous oblige à utiliser son application officielle, passez votre commande là-bas, prenez une capture d\'écran du reçu et téléchargez-la ici.';
+      'Si l\'établissement vous oblige à utiliser son application officielle, passez votre commande là-bas, prenez una capture d\'écran du reçu et téléchargez-la ici.';
 
   @override
   String get client_dash_order_here => 'COMMANDEZ ICI';
@@ -1181,7 +1181,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get verif_step4_desc =>
-      'Téléchargez une photo claire pour que vos clients vous reconnaissent.';
+      'Téléchargez una photo claire pour que vos clients vous reconnaissent.';
 
   @override
   String get verif_footer =>
@@ -1217,7 +1217,7 @@ class AppLocalizationsFr extends AppLocalizations {
   String get ss_btn_search => 'RECHERCHER';
 
   @override
-  String get ss_notif_title => 'BINGO ! CAPTURE';
+  String get ss_notif_title => 'BINGO ! CAPTURA';
 
   @override
   String get ss_notif_body =>
@@ -1243,4 +1243,159 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get driver_quarantine_body =>
       'Vous avez une livraison en attente depuis plus de 2 heures. Vous ne pourrez pas recevoir de nouvelles missions tant que vous n\'aurez pas terminé vos livraisons actives.';
+
+  @override
+  String get prof_btn_rate_app => 'ÉVALUER L\'APPLICATION';
+
+  @override
+  String get prof_rate_app_subtitle =>
+      'Aidez-nous à nous améliorer sur le store';
+
+  @override
+  String get prof_support_title => 'RÉCLAMATIONS ET SUGGESTIONS';
+
+  @override
+  String get client_dash_already_linked =>
+      'Ce coursier est déjà dans votre réseau de confiance.';
+
+  @override
+  String get client_dash_no_new_invitations =>
+      'Aucune nouvelle invitation trouvée dans le lien.';
+
+  @override
+  String get common_access_denied => 'ACCÈS REFUSÉ';
+
+  @override
+  String get logout_online_error =>
+      'Vous apparaissez toujours comme EN LIGNE dans le système des coursiers. Veuillez vous mettre hors ligne dans votre panneau de coursier avant de vous déconnecter.';
+
+  @override
+  String get common_understood => 'COMPRIS';
+
+  @override
+  String get bingo_magic_title => 'MAGIE BINGO';
+
+  @override
+  String get bingo_magic_subtitle => 'Commandez en un geste avec votre ticket';
+
+  @override
+  String get bingo_upload_screenshot => 'BINGO : TÉLÉCHARGER CAPTURE';
+
+  @override
+  String get support_center_title => 'CENTRE DE SUPPORT LAD';
+
+  @override
+  String get support_subject_label => 'Sujet / Motif';
+
+  @override
+  String get support_message_label => 'Écrivez votre message...';
+
+  @override
+  String get common_send => 'ENVOYER';
+
+  @override
+  String get support_success_msg => '✅ Message envoyé au bunker.';
+
+  @override
+  String get driver_dash_invite_title => 'LIER UN NOUVEAU CLIENT';
+
+  @override
+  String get driver_dash_invite_body =>
+      'Affichez ce code ou partagez le lien pour que vos clients vous envoient des commandes directement.';
+
+  @override
+  String get driver_dash_btn_share_invite => 'PARTAGER L\'INVITATION';
+
+  @override
+  String get driver_dash_share_invite_sub => 'WhatsApp, Messages, etc.';
+
+  @override
+  String get common_close => 'FERMER';
+
+  @override
+  String get common_qr_error => 'Erreur lors de la génération du QR';
+
+  @override
+  String get bingo_dialog_title => 'AJOUTER UN TICKET OU UNE PHOTO';
+
+  @override
+  String get bingo_dialog_body =>
+      'Sélectionnez la source de l\'image pour le remplissage automatique BINGO.';
+
+  @override
+  String get common_camera => 'APPAREIL PHOTO';
+
+  @override
+  String get common_gallery => 'GALERIE';
+
+  @override
+  String get ocr_dialog_exact_title => 'EMPLACEMENT EXACT';
+
+  @override
+  String get ocr_dialog_auto_title => 'DÉTECTION AUTOMATIQUE';
+
+  @override
+  String get ocr_label_store => 'ÉTABLISSEMENT :';
+
+  @override
+  String get ocr_label_address => 'ADRESSE SUGGÉRÉE :';
+
+  @override
+  String get ocr_label_order => 'NUMÉRO DE COMMANDE :';
+
+  @override
+  String get ocr_btn_autofill => 'AUTO-REMPLISSAGE';
+
+  @override
+  String get create_order_pickup_origin => 'POINT DE DÉPART';
+
+  @override
+  String get create_order_dropoff_dest => 'DESTINATION DE LIVRAISON';
+
+  @override
+  String get create_order_details_label => 'DÉTAILS';
+
+  @override
+  String get create_order_gps_tooltip => 'UTILISER MA POSITION ACTUELLE';
+
+  @override
+  String get create_order_verified_msg =>
+      '✓ EMPLACEMENT EXACT VÉRIFIÉ (SYSTÈME LAD)';
+
+  @override
+  String get create_order_unverified_msg =>
+      '⚠ L\'ADRESSE N\'EST PAS TRÈS PRÉCISE, LE CHAUFFEUR FERA DE SON MIEUX POUR LA TROUVER.';
+
+  @override
+  String get order_status_rejected => 'MISSION REJETÉE';
+
+  @override
+  String get client_dash_rejected_requests_title => 'DEMANDES REJETÉES';
+
+  @override
+  String get alert_rejected_title => '⚠️ MISSION REJETÉE';
+
+  @override
+  String alert_rejected_body(String name) {
+    return 'Le coursier $name a décliné votre demande.';
+  }
+
+  @override
+  String get alert_new_offer_title => '💰 NOUVELLE OFFRE';
+
+  @override
+  String alert_new_offer_body(String name) {
+    return 'Le coursier $name a envoyé une proposition.';
+  }
+
+  @override
+  String get common_reassign => 'RÉASSIGNER';
+
+  @override
+  String get common_sync => 'SYNCHRONISER';
+
+  @override
+  String neg_error_min_price(String price) {
+    return 'PRIX INVALIDE : Le minimum est de \$$price.';
+  }
 }

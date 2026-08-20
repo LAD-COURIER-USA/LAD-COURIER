@@ -411,9 +411,15 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
                   _buildMenuTile(title: l10n.earnings_history_title, icon: Icons.history_rounded, onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const CompletedOrdersPage(isDriver: true)))),
                   const SizedBox(height: 10),
                   _buildMenuTile(
-                    title: "RECLAMACIONES Y SUGERENCIAS", 
+                    title: l10n.prof_support_title, 
                     icon: Icons.support_agent, 
                     onTap: () => _showSupportDialog(),
+                  ),
+                  const SizedBox(height: 10),
+                  _buildMenuTile(
+                    title: l10n.prof_btn_rate_app,
+                    icon: Icons.star_rate_rounded,
+                    onTap: () => _launchStoreUrl(),
                   ),
                   const SizedBox(height: 20),
                   Text(l10n.prof_section_id, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14, color: Colors.black)),
@@ -521,38 +527,41 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: const Text("CENTRO DE SOPORTE LAD", style: TextStyle(fontWeight: FontWeight.w900)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: subController, decoration: const InputDecoration(labelText: "Asunto / Motivo")),
-            const SizedBox(height: 10),
-            TextField(controller: msgController, maxLines: 4, decoration: const InputDecoration(labelText: "Escribe tu mensaje...", border: OutlineInputBorder())),
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext)!;
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          title: Text(l10n.support_center_title, style: const TextStyle(fontWeight: FontWeight.w900)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: subController, decoration: InputDecoration(labelText: l10n.support_subject_label)),
+              const SizedBox(height: 10),
+              TextField(controller: msgController, maxLines: 4, decoration: InputDecoration(labelText: l10n.support_message_label, border: const OutlineInputBorder())),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(l10n.common_cancel)),
+            ElevatedButton(
+              onPressed: () async {
+                if (subController.text.isEmpty || msgController.text.isEmpty) return;
+                final navigator = Navigator.of(dialogContext);
+                final scaffoldMessenger = ScaffoldMessenger.of(dialogContext);
+                await supportService.sendTicket(
+                  subject: subController.text, 
+                  message: msgController.text, 
+                  role: 'DRIVER'
+                );
+                if (!mounted) return;
+                navigator.pop();
+                scaffoldMessenger.showSnackBar(SnackBar(content: Text(l10n.support_success_msg), backgroundColor: Colors.green));
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
+              child: Text(l10n.common_send),
+            )
           ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
-          ElevatedButton(
-            onPressed: () async {
-              if (subController.text.isEmpty || msgController.text.isEmpty) return;
-              final navigator = Navigator.of(context);
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-              await supportService.sendTicket(
-                subject: subController.text, 
-                message: msgController.text, 
-                role: 'DRIVER'
-              );
-              if (!mounted) return;
-              navigator.pop();
-              scaffoldMessenger.showSnackBar(const SnackBar(content: Text("✅ Mensaje enviado al búnker."), backgroundColor: Colors.green));
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
-            child: const Text("ENVIAR"),
-          )
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -561,6 +570,13 @@ class _DriverProfilePageState extends State<DriverProfilePage> {
     if (!mounted) return;
     if (res == "SUCCESS") {
       Navigator.of(context).pop();
+    }
+  }
+
+  void _launchStoreUrl() async {
+    final Uri url = Uri.parse("https://play.google.com/store/apps/details?id=com.elmensajero.app.messenger");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     }
   }
 }

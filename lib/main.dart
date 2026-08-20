@@ -208,35 +208,57 @@ class _MyAppState extends State<MyApp> {
   }
 
   void _handleBingoNavigation({String? imagePath, bool autoStartOCR = false}) async {
-    // 🛡️ Esperamos a que la App esté lista y el usuario logueado
+    final prefs = await SharedPreferences.getInstance();
+
+    if (imagePath != null) {
+      await prefs.setString('pending_bingo_image', imagePath);
+    }
+    if (autoStartOCR) {
+      await prefs.setBool('pending_bingo_ocr', true);
+    }
+
+    // 🛡️ REFUERZO V2026: Espera pacientemente al usuario
     int retry = 0;
-    while (FirebaseAuth.instance.currentUser == null && retry < 12) {
+    while (FirebaseAuth.instance.currentUser == null && retry < 30) {
       await Future.delayed(const Duration(milliseconds: 500));
       retry++;
     }
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      debugPrint("SISTEMA LAD: No se pudo navegar a BINGO - Usuario no autenticado.");
+      debugPrint("SISTEMA LAD: Usuario no autenticado. Misión BINGO abortada.");
       return;
     }
 
+    // Recuperamos datos frescos de la memoria
+    final String? savedPath = prefs.getString('pending_bingo_image');
+    final bool savedOcr = prefs.getBool('pending_bingo_ocr') ?? false;
+
+    if (savedPath == null && !savedOcr) return;
+
     final context = navigatorKey.currentContext;
     if (context != null && context.mounted) {
-      debugPrint("SISTEMA LAD: Ejecutando Teletransporte BINGO...");
+      debugPrint("SISTEMA LAD: ¡Lanzando Teletransporte BINGO! Image: $savedPath");
       
-      // 🚀 NAVEGACIÓN INTELIGENTE: Si ya estamos en una página, limpiamos hasta el Dashboard
-      // y lanzamos la nueva misión para evitar duplicidad.
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => CreateOrderPage(
-            initialImage: imagePath != null ? XFile(imagePath) : null,
-            autoStartOCR: autoStartOCR,
+      // Limpiamos los flags ANTES de navegar
+      await prefs.remove('pending_bingo_image');
+      await prefs.remove('pending_bingo_ocr');
+
+      // 🛡️ REFUERZO: Pequeña espera para asegurar que el árbol de widgets esté estable
+      await Future.delayed(const Duration(milliseconds: 500));
+
+      if (context.mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(
+            builder: (context) => CreateOrderPage(
+              initialImage: savedPath != null ? XFile(savedPath) : null,
+              autoStartOCR: savedOcr || autoStartOCR,
+            ),
           ),
-        ),
-        (route) => route.isFirst,
-      );
+          (route) => route.isFirst,
+        );
+      }
     }
   }
 
@@ -245,6 +267,12 @@ class _MyAppState extends State<MyApp> {
       if (user != null) {
         try {
           final prefs = await SharedPreferences.getInstance();
+          
+          // 🚀 REFUERZO: Si hay una misión BINGO pendiente tras el login, la lanzamos
+          if (prefs.containsKey('pending_bingo_image') || prefs.containsKey('pending_bingo_ocr')) {
+            _handleBingoNavigation();
+          }
+
           final pendingId = prefs.getString('pending_messenger_invitation');
           
           if (pendingId != null && pendingId.isNotEmpty) {

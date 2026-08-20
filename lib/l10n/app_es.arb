@@ -554,5 +554,73 @@
   "order_status_delivery_delayed": "ENTREGA RETRASADA",
   "order_status_delivery_delayed_msg": "ESTA ENTREGA LLEVA MÁS DE 2 HORAS. HEMOS NOTIFICADO AL DRIVER.",
   "driver_quarantine_title": "MODO CUARENTENA ACTIVO",
-  "driver_quarantine_body": "Llevas más de 2 horas con una entrega pendiente. No podrás recibir nuevas misiones hasta completar tus entregas activas."
+  "driver_quarantine_body": "Llevas más de 2 horas con una entrega pendiente. No podrás recibir nuevas misiones hasta completar tus entregas activas.",
+  "prof_btn_rate_app": "CALIFICAR LA APP",
+  "prof_rate_app_subtitle": "Ayúdanos a mejorar en la tienda",
+  "prof_support_title": "RECLAMACIONES Y SUGERENCIAS",
+  "client_dash_already_linked": "Este driver ya está en tu red de confianza.",
+  "client_dash_no_new_invitations": "No se encontraron nuevas invitaciones en el enlace.",
+  "common_access_denied": "ACCESO DENEGADO",
+  "logout_online_error": "Aún apareces como ONLINE en el sistema de Drivers. Por favor, ve a tu panel de Driver y ponte fuera de línea antes de cerrar sesión.",
+  "common_understood": "ENTENDIDO",
+  "bingo_magic_title": "MAGIA BINGO",
+  "bingo_magic_subtitle": "Pide en un toque con tu ticket",
+  "bingo_upload_screenshot": "BINGO: SUBIR SCREENSHOT",
+  "support_center_title": "CENTRO DE SOPORTE LAD",
+  "support_subject_label": "Asunto / Motivo",
+  "support_message_label": "Escribe tu mensaje...",
+  "common_send": "ENVIAR",
+  "support_success_msg": "✅ Mensaje enviado al búnker.",
+  "driver_dash_invite_title": "VINCULAR NUEVO CLIENTE",
+  "driver_dash_invite_body": "Muestra este código o comparte el link para que tus clientes te envíen pedidos directamente.",
+  "driver_dash_btn_share_invite": "COMPARTIR INVITACIÓN",
+  "driver_dash_share_invite_sub": "WhatsApp, Mensajes, etc.",
+  "common_close": "CERRAR",
+  "common_qr_error": "Error al generar QR",
+  "bingo_dialog_title": "AÑADIR TICKET O FOTO",
+  "bingo_dialog_body": "Selecciona el origen de la imagen para el auto-llenado BINGO.",
+  "common_camera": "CÁMARA",
+  "common_gallery": "GALERÍA",
+  "ocr_dialog_exact_title": "UBICACIÓN EXACTA",
+  "ocr_dialog_auto_title": "DETECCIÓN AUTOMÁTICA",
+  "ocr_label_store": "ESTABLECIMIENTO:",
+  "ocr_label_address": "DIRECCIÓN SUGERIDA:",
+  "ocr_label_order": "NÚMERO DE ORDEN:",
+  "ocr_btn_autofill": "AUTO-LLENAR",
+  "create_order_pickup_origin": "PUNTO DE ORIGEN",
+  "create_order_dropoff_dest": "PUNTO DE DESTINO",
+  "create_order_details_label": "DETALLES",
+  "create_order_gps_tooltip": "USAR MI UBICACIÓN ACTUAL",
+  "create_order_verified_msg": "✓ UBICACIÓN EXACTA VERIFICADA (SISTEMA LAD)",
+  "create_order_unverified_msg": "⚠ LA DIRECCIÓN NO ES TAN PRECISA, EL DRIVER HARÁ LO POSIBLE POR ENCONTRARLA.",
+  "order_status_rejected": "MISIÓN RECHAZADA",
+  "client_dash_rejected_requests_title": "SOLICITUDES RECHAZADAS",
+  "alert_rejected_title": "⚠️ MISIÓN RECHAZADA",
+  "alert_rejected_body": "El driver {name} ha declinado tu solicitud.",
+  "@alert_rejected_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alert_new_offer_title": "💰 NUEVA OFERTA",
+  "alert_new_offer_body": "El driver {name} ha enviado una propuesta.",
+  "common_reassign": "REASIGNAR",
+  "common_sync": "SINCRONIZAR",
+  "neg_error_min_price": "PRECIO NO VÁLIDO: El mínimo es ${price}.",
+  "@neg_error_min_price": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "@alert_new_offer_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  }
 }

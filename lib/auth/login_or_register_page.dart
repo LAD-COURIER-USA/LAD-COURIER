@@ -78,8 +78,8 @@ class _LoginOrRegisterPageState extends State<LoginOrRegisterPage> {
               ? LoginPage(onTap: togglePages)
               : RegisterPage(onTap: togglePages),
 
-          // Capa Superior (Overlay): Invitación personalizada
-          if (_showInvitation && _referredById != null)
+          // Capa Superior (Overlay): Invitación personalizada (SOLO WEB/PWA)
+          if (kIsWeb && _showInvitation && _referredById != null)
             Positioned.fill(
               child: Container(
                 color: Colors.black, 

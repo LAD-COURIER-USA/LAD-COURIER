@@ -14,7 +14,7 @@ import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/auth/auth_gate.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/services.dart';
-import 'package:share_plus/share_plus.dart'; // 🚀 AÑADIDO PARA COMPARTIR LINKS
+import 'package:qr_flutter/qr_flutter.dart'; // 🚀 ASEGURAMOS QR LOCAL
 
 
 const List<String> _allServices = [
@@ -96,6 +96,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
             }
           }
           _startGlobalOrderListener(profile!.uid);
+          // 🛡️ REFUERZO: Marcamos presencia al entrar al Dashboard si está Online
+          _userService.updateLastActive(profile.uid);
         }
       }
     }
@@ -125,6 +127,11 @@ class _DriverDashboardState extends State<DriverDashboard> {
       if (!mounted) return;
       final l10n = AppLocalizations.of(context);
       if (l10n == null) return;
+
+      // 🛡️ REFUERZO SOBERANO: Si entran órdenes, el Driver está activo
+      if (orders.isNotEmpty) {
+        _userService.updateLastActive(uid);
+      }
 
       if (_lastKnownOrdersState.isNotEmpty) {
         for (var o in orders) {
@@ -168,6 +175,16 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
   Future<void> _logout() async {
     final l10n = AppLocalizations.of(context)!;
+
+    // 🛡️ REFUERZO SOBERANO: Bloqueo de Logout si está ONLINE
+    if (_driverProfile?.isMessengerActive ?? false) {
+      _showErrorDialog(
+        "ACCESO DENEGADO", 
+        "No puedes cerrar sesión mientras estés ONLINE. Por favor, ponte fuera de línea primero para proteger la integridad del servicio a tus clientes."
+      );
+      return;
+    }
+
     bool? confirm = await showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -252,22 +269,48 @@ class _DriverDashboardState extends State<DriverDashboard> {
         return;
       }
 
-      // 🛡️ SEGURIDAD MANDATORIA 24H: Selfie + Huella
-      // 💎 BYPASS VIP: Los inspectores no necesitan re-verificarse cada 24h
-      if (!(_driverProfile!.isVipTester) && _driverProfile!.lastBiometricVerification != null) {
-        final lastVerification = _driverProfile!.lastBiometricVerification!.toDate();
+      // 🛡️ SEGURIDAD MANDATORIA V2026.8: Selfie + Huella (Lógica 4h/12h)
+      // 💎 BYPASS VIP: Los inspectores no necesitan re-verificarse bajo estas reglas
+      if (!(_driverProfile!.isVipTester)) {
         final now = DateTime.now();
-        final difference = now.difference(lastVerification).inHours;
+        
+        if (_driverProfile!.lastBiometricVerification != null) {
+          final lastVerification = _driverProfile!.lastBiometricVerification!.toDate();
+          final diffHours = now.difference(lastVerification).inHours;
+          
+          bool needsReauth = false;
 
-        if (difference >= 24) {
-          debugPrint("SISTEMA LAD: Han pasado $difference horas. Se requiere nueva validación.");
+          // REGLA 1: Máximo 12 horas desde la última verificación (obligatorio siempre)
+          if (diffHours >= 12) {
+            debugPrint("SISTEMA LAD: Han pasado $diffHours horas (Límite 12h). Nueva validación requerida.");
+            needsReauth = true;
+          } 
+          // REGLA 2: Si han pasado +4 horas y no ha habido actividad (sin órdenes pendientes)
+          else if (diffHours >= 4) {
+             if (_driverProfile!.lastActiveAt != null) {
+               final lastActive = _driverProfile!.lastActiveAt!.toDate();
+               final idleHours = now.difference(lastActive).inHours;
+               
+               if (idleHours >= 4) {
+                 debugPrint("SISTEMA LAD: $idleHours horas de inactividad detectadas. Nueva validación requerida.");
+                 needsReauth = true;
+               }
+             } else {
+               // Si no hay rastro de actividad y pasaron 4h, pedimos por seguridad
+               needsReauth = true;
+             }
+          }
+
+          if (needsReauth) {
+            _showBiometricPrompt();
+            return;
+          }
+
+        } else {
+          // Si nunca se ha verificado, obligamos la primera vez
           _showBiometricPrompt();
           return;
         }
-      } else if (!(_driverProfile!.isVipTester) && _driverProfile!.lastBiometricVerification == null) {
-        // Si no es VIP y nunca se ha verificado, obligamos la primera vez
-        _showBiometricPrompt();
-        return;
       }
 
       _processStatusChange(true);
@@ -506,8 +549,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
 
   void _showInviteDualDialog(BuildContext context) {
     final uid = FirebaseAuth.instance.currentUser?.uid ?? "";
-    final androidLink = _invitationService.getAndroidLink(uid);
-    final iphoneLink = _invitationService.getIPhoneLink(uid);
+    final unifiedLink = _invitationService.getUnifiedLink(uid);
 
     showDialog(
       context: context,
@@ -518,29 +560,48 @@ class _DriverDashboardState extends State<DriverDashboard> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text("Selecciona el sistema del cliente:", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 30),
+            const Text("Muestra este código o comparte el link para que tus clientes te envíen pedidos directamente.", textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 25),
             
-            // 🤖 BOTÓN QR ANDROID (Casi igual al anterior)
-            _buildLargeInviteButton(
-              context, 
-              "CLIENTE ANDROID", 
-              Icons.android, 
-              Colors.green[700]!, 
-              androidLink,
-              "Para teléfonos Samsung, Motorola, etc."
-            ),
+            // 🛡️ CÓDIGO QR UNIFICADO SOBERANO (LOCAL - REFORZADO)
+            if (unifiedLink.isNotEmpty && unifiedLink.length > 25)
+              Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.deepPurple.withValues(alpha: 0.2)),
+                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10)],
+                ),
+                child: QrImageView(
+                  data: unifiedLink,
+                  version: QrVersions.auto,
+                  size: 200.0,
+                  gapless: false,
+                  backgroundColor: Colors.white,
+                  errorStateBuilder: (cxt, err) => const SizedBox(
+                    width: 200, 
+                    height: 200, 
+                    child: Center(child: Text("Error al generar QR", style: TextStyle(fontSize: 10)))
+                  ),
+                ),
+              )
+            else
+              const SizedBox(
+                height: 200,
+                child: Center(child: CircularProgressIndicator(color: Colors.deepPurple)),
+              ),
             
             const SizedBox(height: 20),
 
-            // 🍏 BOTÓN QR iPHONE (Nuevo camino directo)
+            // 🚀 BOTÓN DE COMPARTIR UNIFICADO
             _buildLargeInviteButton(
               context, 
-              "CLIENTE iPHONE / iPAD", 
-              Icons.apple, 
-              Colors.black, 
-              iphoneLink,
-              "Acceso directo a la Web App PWA"
+              "COMPARTIR INVITACIÓN", 
+              Icons.share, 
+              Colors.deepPurple, 
+              unifiedLink,
+              "WhatsApp, Mensajes, etc."
             ),
           ],
         ),
@@ -569,8 +630,8 @@ class _DriverDashboardState extends State<DriverDashboard> {
           elevation: 5,
         ),
         onPressed: () {
-          Navigator.pop(context);
-          _showQRDetail(context, title, link, color);
+          // 🛡️ USAMOS EL MENSAJE AMISTOSO DEL SERVICIO
+          _invitationService.shareLink(context);
         },
         child: Row(
           children: [
@@ -585,51 +646,7 @@ class _DriverDashboardState extends State<DriverDashboard> {
                 ],
               ),
             ),
-            const Icon(Icons.qr_code_scanner, size: 20),
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _showQRDetail(BuildContext context, String title, String link, Color color) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
-        backgroundColor: Colors.white,
-        title: Text(title, textAlign: TextAlign.center, style: TextStyle(fontWeight: FontWeight.w900, color: color, fontSize: 14)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(15),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: color.withValues(alpha: 0.2)),
-              ),
-              child: Image.network(
-                "https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=$link",
-                height: 200,
-                width: 200,
-              ),
-            ),
-            const SizedBox(height: 15),
-            const Text("Escanea este código con la cámara del cliente", textAlign: TextAlign.center, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.black54)),
-            const SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                SharePlus.instance.share(ShareParams(text: link));
-              },
-              icon: const Icon(Icons.share, size: 16),
-              label: const Text("COMPARTIR LINK"),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: color, 
-                foregroundColor: Colors.white, 
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
-              ),
-            )
+            const Icon(Icons.send_rounded, size: 20),
           ],
         ),
       ),

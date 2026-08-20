@@ -419,100 +419,263 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
   }
 
   Future<void> _pickProductPhoto() async {
+    final l10n = AppLocalizations.of(context)!;
     if (!mounted) return;
 
-    // 🛡️ REFUERZO V2026: Abrimos el picker primero para asegurar el gesto de usuario en iPad/Safari
-    final ImagePicker picker = ImagePicker();
-    final XFile? image = await picker.pickImage(
-      source: ImageSource.camera, // Intentamos cámara directo primero
-      imageQuality: 50,
-      maxWidth: 1024,
-    ).catchError((_) => picker.pickImage(source: ImageSource.gallery, imageQuality: 50)); // Fallback a galería si falla
+    if (kIsWeb) {
+      // 🛡️ REFUERZO V2026 WEB: Abrimos el picker directo para asegurar el gesto de usuario en iPad/Safari
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(
+        source: ImageSource.camera, 
+        imageQuality: 50,
+        maxWidth: 1024,
+      ).catchError((_) => picker.pickImage(source: ImageSource.gallery, imageQuality: 50));
 
-    if (image != null && mounted) {
-      debugPrint("SISTEMA LAD: Imagen capturada en iPad/Web. Iniciando workflow...");
-      _processImageWorkflow(image);
-      
-      // Obtenemos ubicación en segundo plano para no bloquear
-      _ensureLocationPermission(); 
+      if (image != null && mounted) {
+        debugPrint("SISTEMA LAD: Imagen capturada en iPad/Web. Iniciando workflow...");
+        _processImageWorkflow(image);
+        _ensureLocationPermission(); 
+      }
+    } else {
+      // 📱 ANDROID NATIVO: Selector profesional Cámara/Galería
+      final ImageSource? source = await showDialog<ImageSource>(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(l10n.bingo_dialog_title, style: const TextStyle(fontWeight: FontWeight.w900)),
+          content: Text(l10n.bingo_dialog_body),
+          actions: [
+            TextButton.icon(
+              onPressed: () => Navigator.pop(context, ImageSource.camera),
+              icon: const Icon(Icons.camera_alt),
+              label: Text(l10n.common_camera, style: const TextStyle(fontWeight: FontWeight.w900))
+            ),
+            TextButton.icon(
+              onPressed: () => Navigator.pop(context, ImageSource.gallery),
+              icon: const Icon(Icons.photo_library),
+              label: Text(l10n.common_gallery, style: const TextStyle(fontWeight: FontWeight.w900, color: Colors.deepPurple))
+            ),
+          ],
+        ),
+      );
+
+      if (source != null && mounted) {
+        // 🛡️ REFUERZO: Esperamos a que el diálogo de selección se cierre completamente
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (!mounted) return;
+
+        try {
+          final ImagePicker picker = ImagePicker();
+          final XFile? image = await picker.pickImage(source: source, imageQuality: 50);
+          if (image != null && mounted) {
+            debugPrint("SISTEMA LAD: Foto capturada. Iniciando OCR...");
+            _processImageWorkflow(image);
+          }
+        } catch (e) {
+          debugPrint("❌ SISTEMA LAD: Error en picker local: $e");
+        }
+      }
     }
   }
 
   Future<void> _processImageWorkflow(dynamic file) async {
     if (!mounted) return;
+    
+    // 🛡️ REFUERZO: Cerramos cualquier diálogo abierto antes de empezar
+    if (Navigator.canPop(context)) {
+      debugPrint("SISTEMA LAD: Limpiando diálogos previos...");
+    }
+    
     setState(() => _isUploadingPhoto = true);
 
-    String? uploadedUrl = await _storageService.uploadFile('order_photos', "ticket_${DateTime.now().millisecondsSinceEpoch}", file);
-    
-    // 🛡️ REFUERZO V19.10: OCR Híbrido (Web + Nativo)
-    String? localPath = !kIsWeb ? (file as dynamic).path : null;
-    final ocrResult = await _ocrService.analyzeReceiptUniversal(
-      localPath: localPath,
-      remoteUrl: uploadedUrl
-    );
-    
-    final Position? position = await _ensureLocationPermission();
-    String? gpsZip, gpsCity, gpsState;
-    if (position != null) {
-      try {
-        final geo = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
-        gpsZip = geo?.zipCode; gpsCity = geo?.city; gpsState = geo?.state;
-      } catch (_) {}
-    }
+    try {
+      debugPrint("SISTEMA LAD: Iniciando workflow de imagen. File: $file");
+      
+      // 1. SUBIDA A STORAGE
+      String? uploadedUrl = await _storageService.uploadFile('order_photos', "ticket_${DateTime.now().millisecondsSinceEpoch}", file);
+      
+      if (uploadedUrl == null) {
+        throw "No se pudo subir la imagen al búnker. Revisa tu conexión.";
+      }
+      
+      // 2. OCR UNIVERSAL
+      String? localPath;
+      if (!kIsWeb) {
+        if (file is XFile) {
+          localPath = file.path;
+        } else if (file is String) {
+          localPath = file;
+        }
+      }
+      
+      debugPrint("SISTEMA LAD: Lanzando OCR. localPath: $localPath, url: $uploadedUrl");
 
-    final refined = _refineOcrAddress(ocrResult, gpsZip, gpsCity, gpsState);
-    final String? finalFullAddr = refined['address'];
-    Map<String, dynamic>? validatedStore;
+      final ocrResult = await _ocrService.analyzeReceiptUniversal(
+        localPath: localPath,
+        remoteUrl: uploadedUrl
+      ).timeout(const Duration(seconds: 20), onTimeout: () => throw "El análisis del ticket está tardando demasiado.");
+      
+      // 3. UBICACIÓN PARA REFINAMIENTO
+      final Position? position = await _ensureLocationPermission().timeout(const Duration(seconds: 5), onTimeout: () => null);
+      String? gpsZip, gpsCity, gpsState;
+      if (position != null) {
+        try {
+          final geo = await _geocodingService.getDetailsFromCoords(position.latitude, position.longitude);
+          gpsZip = geo?.zipCode; gpsCity = geo?.city; gpsState = geo?.state;
+        } catch (_) {}
+      }
 
-    final String targetZip = ocrResult.zipCode ?? gpsZip ?? "33030";
-    if (ocrResult.streetNumber != null) {
-       validatedStore = await _geodataService.findStoreByDna(zip: targetZip, streetNumber: ocrResult.streetNumber!, countryCode: "US", stateCode: ocrResult.stateCode ?? gpsState);
-       validatedStore ??= await _geodataService.findStoreByTriangulation(brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', city: ocrResult.cityName ?? gpsCity, streetNumber: ocrResult.streetNumber!, stateCode: ocrResult.stateCode ?? gpsState ?? 'FL', userLat: position?.latitude, userLon: position?.longitude);
-    }
+      final refined = _refineOcrAddress(ocrResult, gpsZip, gpsCity, gpsState);
+      final String? finalFullAddr = refined['address'];
+      Map<String, dynamic>? validatedStore;
 
-    if (mounted) {
-      setState(() {
-        _isUploadingPhoto = false;
-        if (uploadedUrl != null) _productPhotoUrl = uploadedUrl;
-      });
-      _showOcrSuggestions(ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), validatedStore);
+      final String targetZip = ocrResult.zipCode ?? gpsZip ?? "33030";
+      if (ocrResult.streetNumber != null) {
+         validatedStore = await _geodataService.findStoreByDna(zip: targetZip, streetNumber: ocrResult.streetNumber!, countryCode: "US", stateCode: ocrResult.stateCode ?? gpsState);
+         validatedStore ??= await _geodataService.findStoreByTriangulation(brand: ocrResult.storeName ?? 'ESTABLECIMIENTO', city: ocrResult.cityName ?? gpsCity, streetNumber: ocrResult.streetNumber!, stateCode: ocrResult.stateCode ?? gpsState ?? 'FL', userLat: position?.latitude, userLon: position?.longitude);
+      }
+
+      if (mounted) {
+        setState(() {
+          _isUploadingPhoto = false;
+          _productPhotoUrl = uploadedUrl;
+        });
+        
+        // 🚀 LANZAMIENTO SEGURO DE DIÁLOGO (Gesto de usuario)
+        _showOcrSuggestions(ocrResult.copyWith(fullAddress: validatedStore != null ? null : finalFullAddr), validatedStore);
+      }
+    } catch (e) {
+      debugPrint("❌ SISTEMA LAD ERROR en Workflow: $e");
+      if (mounted) {
+        setState(() => _isUploadingPhoto = false);
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text("AVISO BINGO"),
+            content: Text(e.toString()),
+            actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text("ENTENDIDO"))],
+          )
+        );
+      }
     }
   }
 
   void _showOcrSuggestions(OCRResult result, Map<String, dynamic>? validatedStore) {
-    final String? storeName = validatedStore != null ? validatedStore['name'] : result.storeName;
-    final String? address = (validatedStore != null && validatedStore['address'] != null) ? validatedStore['address']['full'] : result.fullAddress;
+    if (!mounted) return;
+    
+    // 🛡️ EXTRACCIÓN SEGURA DE DATOS (Prevención de Crash V2026.2)
+    String? storeName;
+    String? address;
+    
+    try {
+      if (validatedStore != null) {
+        storeName = validatedStore['name']?.toString();
+        final addrData = validatedStore['address'];
+        if (addrData != null) {
+          address = addrData is Map ? addrData['full']?.toString() : addrData.toString();
+        }
+      }
+      
+      // Fallback a los datos del OCR si el búnker no encontró nada mejor
+      storeName ??= result.storeName;
+      address ??= result.fullAddress;
+    } catch (e) {
+      debugPrint("❌ Error extrayendo datos para sugerencia: $e");
+    }
+
     final bool isVerified = validatedStore != null;
     
-    showDialog(context: context, builder: (context) => AlertDialog(
-      scrollable: true, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
-      title: Row(children: [Icon(isVerified ? Icons.verified : Icons.auto_awesome, color: isVerified ? Colors.green : Colors.blue, size: 28), const SizedBox(width: 12), Expanded(child: Text(isVerified ? "UBICACIÓN EXACTA" : "DETECCIÓN AUTOMÁTICA", style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)))]),
-      content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
-        if (storeName != null) ...[const Text("ESTABLECIMIENTO:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), const SizedBox(height: 4), Text(storeName.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)), const SizedBox(height: 12)],
-        if (address != null) ...[const Text("DIRECCIÓN SUGERIDA:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), const SizedBox(height: 4), Text(address.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), const SizedBox(height: 12)],
-        if (result.orderNumber != null) ...[const Text("NÚMERO DE ORDEN:", style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), const SizedBox(height: 4), Container(padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.green[200]!)), child: Text(result.orderNumber!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.green)))]
-      ]),
-      actions: [
-        TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR", style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900))),
-        ElevatedButton(onPressed: () { 
-          setState(() { 
-            if (address != null) { 
-              _pickupController.text = address; 
-              if (validatedStore != null) { 
-                _isPickupVerified = true; 
-                _validatedPickupLatLng = GeoPoint(validatedStore['gps']['lat'], validatedStore['gps']['lon']); 
-              } else { 
-                _isPickupVerified = false; 
-                _triggerDynamicFiltering(); 
-              } 
-            } 
-            String extra = result.orderNumber != null ? "ORDEN #${result.orderNumber}. " : "";
-            if (storeName != null) _descriptionController.text = "${extra}RECOGER EN $storeName. ${_descriptionController.text}";
-          }); 
-          Navigator.pop(context); 
-        }, style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))), child: const Text("AUTO-LLENAR", style: TextStyle(fontWeight: FontWeight.w900)))
-      ],
-    ));
+    debugPrint("SISTEMA LAD: Abriendo diálogo OCR. Store: $storeName, Address: $address");
+
+    showDialog(
+      context: context, 
+      barrierDismissible: false,
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext)!;
+        return AlertDialog(
+          scrollable: true, 
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(25)),
+          title: Row(
+            children: [
+              Icon(isVerified ? Icons.verified : Icons.auto_awesome, color: isVerified ? Colors.green : Colors.blue, size: 28), 
+              const SizedBox(width: 12), 
+              Expanded(child: Text(isVerified ? l10n.ocr_dialog_exact_title : l10n.ocr_dialog_auto_title, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)))
+            ]
+          ),
+          content: Column(
+            mainAxisSize: MainAxisSize.min, 
+            crossAxisAlignment: CrossAxisAlignment.start, 
+            children: [
+              if (storeName != null && storeName.isNotEmpty) ...[
+                Text(l10n.ocr_label_store, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
+                const SizedBox(height: 4), 
+                Text(storeName.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15)), 
+                const SizedBox(height: 12)
+              ],
+              if (address != null && address.isNotEmpty) ...[
+                Text(l10n.ocr_label_address, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
+                const SizedBox(height: 4), 
+                Text(address.toUpperCase(), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14)), 
+                const SizedBox(height: 12)
+              ],
+              if (result.orderNumber != null) ...[
+                Text(l10n.ocr_label_order, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: Colors.blueGrey)), 
+                const SizedBox(height: 4), 
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6), 
+                  decoration: BoxDecoration(color: Colors.green[50], borderRadius: BorderRadius.circular(10), border: Border.all(color: Colors.green[200]!)), 
+                  child: Text(result.orderNumber!, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 22, color: Colors.green))
+                )
+              ]
+            ]
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext), 
+              child: Text(l10n.common_cancel, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w900))
+            ),
+            ElevatedButton(
+              onPressed: () { 
+                if (mounted) {
+                  setState(() { 
+                    if (address != null) { 
+                      _pickupController.text = address; 
+                      if (validatedStore != null && validatedStore['gps'] != null) { 
+                        final gps = validatedStore['gps'];
+                        _isPickupVerified = true; 
+                        // Casting seguro a double para evitar crashes en tipos numéricos de Firestore
+                        _validatedPickupLatLng = GeoPoint(
+                          (gps['lat'] as num).toDouble(), 
+                          (gps['lon'] as num).toDouble()
+                        ); 
+                      } else { 
+                        _isPickupVerified = false; 
+                        _triggerDynamicFiltering(); 
+                      } 
+                    } 
+                    String extra = result.orderNumber != null ? "ORDEN #${result.orderNumber}. " : "";
+                    if (storeName != null) {
+                      String cleanStore = storeName.toUpperCase();
+                      if (!_descriptionController.text.contains(cleanStore)) {
+                        _descriptionController.text = "${extra}RECOGER EN $cleanStore. ${_descriptionController.text}";
+                      }
+                    }
+                  }); 
+                }
+                Navigator.pop(dialogContext); 
+              }, 
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black, 
+                foregroundColor: Colors.white, 
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))
+              ), 
+              child: Text(l10n.ocr_btn_autofill, style: const TextStyle(fontWeight: FontWeight.w900))
+            )
+          ],
+        );
+      }
+    );
   }
 
   void _handleOrderAction() async {
@@ -603,13 +766,13 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         _buildPhotoPicker(l10n),
         const SizedBox(height: 30),
         _buildSectionTitle(l10n.create_order_pickup_label, Icons.location_on_outlined, Colors.deepPurple[900]!),
-        _buildModernField(_pickupController, "PUNTO DE ORIGEN", Icons.storefront, Colors.deepPurple[900]!, isPickup: true, lines: 2),
+          _buildModernField(_pickupController, l10n.create_order_pickup_origin, Icons.storefront, Colors.deepPurple[900]!, isPickup: true, lines: 2),
         const SizedBox(height: 30),
         _buildSectionTitle(l10n.create_order_dropoff_label, Icons.flag_outlined, Colors.orange[900]!),
-        _buildModernField(_dropoffController, "PUNTO DE DESTINO", Icons.home_outlined, Colors.orange[900]!, isDropoff: true, lines: 2),
+        _buildModernField(_dropoffController, l10n.create_order_dropoff_dest, Icons.home_outlined, Colors.orange[900]!, isDropoff: true, lines: 2),
         const SizedBox(height: 30),
         _buildSectionTitle(l10n.create_order_description_label, Icons.assignment_outlined, Colors.blue[900]!),
-        _buildModernField(_descriptionController, "DETALLES", Icons.edit_note, Colors.blue[900]!, lines: 3),
+        _buildModernField(_descriptionController, l10n.create_order_details_label, Icons.edit_note, Colors.blue[900]!, lines: 3),
         if (_showDriverSelection) ...[const SizedBox(height: 30), _buildSectionTitle(l10n.create_order_section_messenger, Icons.person_search_outlined, Colors.black), _buildDriverSwitcher(l10n)],
         const SizedBox(height: 40),
         _buildActionButton(l10n),
@@ -668,9 +831,55 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
     if (driver != null) ...[const SizedBox(height: 2), Row(mainAxisAlignment: MainAxisAlignment.center, children: [const Icon(Icons.star, color: Colors.amber, size: 10), const SizedBox(width: 2), Text(driver.rating.toStringAsFixed(1), style: const TextStyle(fontSize: 9, fontWeight: FontWeight.bold))])]
   ]));
 
-  Widget _buildPhotoPicker(AppLocalizations l10n) => GestureDetector(onTap: _isUploadingPhoto ? null : _pickProductPhoto, child: Container(height: 180, decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(25), border: Border.all(color: Colors.grey[200]!, width: 2)), child: _isUploadingPhoto ? const Center(child: CircularProgressIndicator(color: Colors.black)) : _productPhotoUrl != null ? Stack(children: [ClipRRect(borderRadius: BorderRadius.circular(23), child: Image.network(_productPhotoUrl!, width: double.infinity, height: 180, fit: BoxFit.cover)), Container(decoration: BoxDecoration(borderRadius: BorderRadius.circular(23), color: Colors.black26)), const Center(child: Icon(Icons.sync, color: Colors.white, size: 40)), Positioned(right: 10, bottom: 10, child: IconButton(icon: const Icon(Icons.fullscreen, color: Colors.white), onPressed: () => _showFullImage(_productPhotoUrl!)))]) : const Column(mainAxisAlignment: MainAxisAlignment.center, children: [Icon(Icons.add_a_photo, size: 45, color: Colors.teal), SizedBox(height: 12), Text("SUBIR FOTO O RECIBO", style: TextStyle(color: Colors.teal, fontWeight: FontWeight.w900, fontSize: 13))] )));
+  Widget _buildPhotoPicker(AppLocalizations l10n) => GestureDetector(
+    onTap: _isUploadingPhoto ? null : _pickProductPhoto,
+    child: Container(
+      height: 180,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(25),
+        border: Border.all(color: Colors.grey[200]!, width: 2),
+      ),
+      child: _isUploadingPhoto
+          ? const Center(child: CircularProgressIndicator(color: Colors.black))
+          : _productPhotoUrl != null
+              ? Stack(children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(23),
+                    child: Image.network(_productPhotoUrl!, width: double.infinity, height: 180, fit: BoxFit.cover),
+                  ),
+                  Container(
+                    decoration: const BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(23)),
+                      color: Colors.black26,
+                    ),
+                  ),
+                  const Center(child: Icon(Icons.sync, color: Colors.white, size: 40)),
+                  Positioned(
+                    right: 10,
+                    bottom: 10,
+                    child: IconButton(
+                      icon: const Icon(Icons.fullscreen, color: Colors.white),
+                      onPressed: () => _showFullImage(_productPhotoUrl!),
+                    ),
+                  ),
+                ])
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add_a_photo, size: 45, color: Colors.teal),
+                    const SizedBox(height: 12),
+                    Text(
+                      l10n.create_order_add_photo.toUpperCase(),
+                      style: const TextStyle(color: Colors.teal, fontWeight: FontWeight.w900, fontSize: 13),
+                    ),
+                  ],
+                ),
+    ),
+  );
 
   Widget _buildModernField(TextEditingController controller, String label, IconData icon, Color color, {int lines = 1, bool isPickup = false, bool isDropoff = false}) {
+    final l10n = AppLocalizations.of(context)!;
     bool isVer = (isPickup && _isPickupVerified) || (isDropoff && _isDropoffVerified);
     bool isKnown = (isPickup && _validatedPickupLatLng != null) || (isDropoff && _validatedDropoffLatLng != null);
     
@@ -679,8 +888,8 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
         decoration: BoxDecoration(
           color: isVer ? Colors.green[50] : (isKnown ? Colors.amber[50] : Colors.white), 
           borderRadius: BorderRadius.circular(18), 
-          border: Border.all(color: isVer ? Colors.green[700]! : (isKnown ? Colors.amber[700]! : Colors.grey[400]!), width: isKnown ? 2 : 1)
-        ), 
+          border: Border.all(color: isVer ? Colors.green[700]! : (isKnown ? Colors.amber[700]! : Colors.grey[400]!), width: isKnown ? 2 : 1),
+        ),
         child: TextFormField(
           controller: controller, 
           maxLines: lines, 
@@ -693,7 +902,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
                 ? IconButton(
                     icon: Icon(Icons.my_location, color: isVer ? Colors.green : Colors.grey), 
                     onPressed: () => _useCurrentLocation(isPickup),
-                    tooltip: "USAR MI UBICACIÓN ACTUAL",
+                    tooltip: l10n.create_order_gps_tooltip,
                   )
                 : null,
             border: InputBorder.none, 
@@ -701,7 +910,7 @@ class _CreateOrderPageState extends State<CreateOrderPage> {
           )
         )
       ),
-      if (controller.text.isNotEmpty && isKnown) Padding(padding: const EdgeInsets.only(top: 8, left: 12), child: Text(isVer ? "✓ UBICACIÓN EXACTA VERIFICADA (SISTEMA LAD)" : "⚠ LA DIRECCIÓN NO ES TAN PRECISA, EL DRIVER HARÁ LO POSIBLE POR ENCONTRARLA.", style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isVer ? Colors.green[900] : Colors.amber[900]))),
+      if (controller.text.isNotEmpty && isKnown) Padding(padding: const EdgeInsets.only(top: 8, left: 12), child: Text(isVer ? l10n.create_order_verified_msg : l10n.create_order_unverified_msg, style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: isVer ? Colors.green[900] : Colors.amber[900]))),
     ]);
   }
 

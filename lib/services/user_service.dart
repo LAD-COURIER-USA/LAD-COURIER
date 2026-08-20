@@ -232,6 +232,17 @@ class UserService {
     } catch (e) { rethrow; }
   }
 
+  /// 🛡️ REFUERZO V2026.8: Actualiza el sello de actividad del Driver
+  Future<void> updateLastActive(String uid) async {
+    try {
+      await _usersRef.doc(uid).update({
+        'lastActiveAt': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      debugPrint("Error actualizando rastro de actividad: $e");
+    }
+  }
+
   Future<void> updateAvailableServices(String uid, List<String> services) async {
     try {
       await _usersRef.doc(uid).set({

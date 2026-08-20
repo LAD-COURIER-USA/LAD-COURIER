@@ -84,7 +84,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get earnings_refund_disclaimer =>
-      'LAD Courier não cobra mensalidade. Apenas uma taxa de serviço de \$ 0,50 por pedido bem-sucedido, independentemente do preço acordado.';
+      'LAD Courier não cobra mensalidade. Apenas uma taxa de serviço de 0,70 \$ por pedido bem-sucedido, independentemente do preço acordado.';
 
   @override
   String get driver_dash_title => 'CENTRO DE COMANDO DRIVER';
@@ -128,7 +128,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get driver_error_incomplete_data_msg =>
-      'Seu nome e telefone são obrigatórios para la segurança do serviço.';
+      'Seu nome e telefone são obrigatórios para a segurança del serviço.';
 
   @override
   String get driver_error_no_vehicle => 'DETALHES DO VEÍCULO';
@@ -280,7 +280,7 @@ class AppLocalizationsPt extends AppLocalizations {
   }
 
   @override
-  String get sub_btn_activate => 'ATIVAR ZONA';
+  String get sub_btn_activate => 'ACTIVAR ZONA';
 
   @override
   String get welcome_title => 'Bem-vindo a Bordo!';
@@ -626,7 +626,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get neg_client_order_details => 'DETALHES DA ORDEM';
 
   @override
-  String get neg_client_price_proposal => 'PROPOSTA DE PREÇO';
+  String get neg_client_price_proposal => 'PROPOSTA DE PRECIO';
 
   @override
   String get neg_client_price_final => 'OFERTA FINAL DO DRIVER';
@@ -662,7 +662,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get auth_sync_security => 'Sincronização de segurança...';
 
   @override
-  String get auth_sync_timeout => 'Se demorar muito, pressione o botão abaixo.';
+  String get auth_sync_timeout => 'Se demorar muito, pressione o botón abaixo.';
 
   @override
   String get auth_cancel_retry => 'Cancelar e tentar novamente';
@@ -794,7 +794,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get pickup_label => 'RECOLHER';
 
   @override
-  String get notification_new_order_title => '🚀 ¡NUEVA MISIÓN DETECTADA!';
+  String get notification_new_order_title => '🚀 NOVA MISSÃO DETECTADA!';
 
   @override
   String get notification_new_order_body =>
@@ -885,7 +885,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get sub_plan_lite_title => 'ZONA LITE';
 
   @override
-  String get sub_plan_lite_desc => 'Ideal para entregas locais rápidas.';
+  String get sub_plan_lite_desc => 'Ideal para entregas locales rápidas.';
 
   @override
   String get sub_plan_standart_title => 'ZONA STANDARD';
@@ -949,7 +949,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get catalog_no_results_detail =>
-      'Tente mudar de categoria ou verifique se o Driver tem raio de ação.';
+      'Tente mudar de categoria ou verifique se o Driver tem raio de acción.';
 
   @override
   String get catalog_default_name => 'Loja';
@@ -1046,7 +1046,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get auth_verification_required_body =>
-      'Por segurança, você deve validar sua identidade con uma selfie e sua impressão digital para começar a trabalhar.';
+      'Por segurança, você deve validar sua identidade com uma selfie e sua impressão digital para começar a trabalhar.';
 
   @override
   String get client_dash_negotiations_title => 'NEGOCIAÇÕES';
@@ -1110,7 +1110,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get liveness_face_detected => '✅ ROSTO DETECTADO. MANTENHA-SE FIRME.';
 
   @override
-  String get liveness_searching => 'BUSCANDO ROSTO HUMANO...';
+  String get liveness_searching => 'BUSCANDO ROSTRO HUMANO...';
 
   @override
   String get verif_title => 'CENTRAL DE VERIFICAÇÃO';
@@ -1152,7 +1152,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get verif_step2_title => 'Verificar Identidade';
 
   @override
-  String get verif_step2_desc => 'Digitalize seu ID e tire uma selfie.';
+  String get verif_step2_desc => 'Digitalize seu ID e tire una selfie.';
 
   @override
   String get verif_step2_btn_verified => 'IDENTIDADE VERIFICADA';
@@ -1176,7 +1176,7 @@ class AppLocalizationsPt extends AppLocalizations {
 
   @override
   String get verif_footer =>
-      'Seus dados são criptografados e processados diretamente pelo Stripe sob padrões bancários.';
+      'Seus datos são criptografados e processados diretamente pelo Stripe sob padrões bancários.';
 
   @override
   String get order_status_driver_busy => 'DRIVER OCUPADO';
@@ -1229,9 +1229,163 @@ class AppLocalizationsPt extends AppLocalizations {
       'ESTA ENTREGA ESTÁ DEMORANDO MAIS DE 2 HORAS. NOTIFICAMOS O MOTORISTA.';
 
   @override
-  String get driver_quarantine_title => 'MODO QUARENTENA ATIVO';
+  String get driver_quarantine_title => 'MODO QUARENTENA ACTIVO';
 
   @override
   String get driver_quarantine_body =>
       'Você tem uma entrega pendente há mais de 2 horas. Você não poderá receber novas missões até concluir suas entregas ativas.';
+
+  @override
+  String get prof_btn_rate_app => 'AVALIAR O APLICATIVO';
+
+  @override
+  String get prof_rate_app_subtitle => 'Ajude-nos a melhorar na loja';
+
+  @override
+  String get prof_support_title => 'RECLAMAÇÕES E SUGESTÕES';
+
+  @override
+  String get client_dash_already_linked =>
+      'Este motorista já está em sua rede de confiança.';
+
+  @override
+  String get client_dash_no_new_invitations =>
+      'Nenhuma nova indicação encontrada no link.';
+
+  @override
+  String get common_access_denied => 'ACESSO NEGADO';
+
+  @override
+  String get logout_online_error =>
+      'Você ainda aparece como ONLINE no sistema de Drivers. Por favor, vá ao seu painel de Driver e fique offline antes de sair.';
+
+  @override
+  String get common_understood => 'ENTENDIDO';
+
+  @override
+  String get bingo_magic_title => 'MAGIA BINGO';
+
+  @override
+  String get bingo_magic_subtitle => 'Peça em um toque com seu ticket';
+
+  @override
+  String get bingo_upload_screenshot => 'BINGO: ENVIAR CAPTURA';
+
+  @override
+  String get support_center_title => 'CENTRO DE SUPORTE LAD';
+
+  @override
+  String get support_subject_label => 'Assunto / Motivo';
+
+  @override
+  String get support_message_label => 'Escreva sua mensagem...';
+
+  @override
+  String get common_send => 'ENVIAR';
+
+  @override
+  String get support_success_msg => '✅ Mensagem enviada ao búnker.';
+
+  @override
+  String get driver_dash_invite_title => 'VINCULAR NOVO CLIENTE';
+
+  @override
+  String get driver_dash_invite_body =>
+      'Mostre este código ou compartilhe o link para que seus clientes lhe enviem pedidos diretamente.';
+
+  @override
+  String get driver_dash_btn_share_invite => 'COMPARTILHAR CONVITE';
+
+  @override
+  String get driver_dash_share_invite_sub => 'WhatsApp, Mensagens, etc.';
+
+  @override
+  String get common_close => 'FECHAR';
+
+  @override
+  String get common_qr_error => 'Erro ao gerar o QR';
+
+  @override
+  String get bingo_dialog_title => 'ADICIONAR TICKET OU FOTO';
+
+  @override
+  String get bingo_dialog_body =>
+      'Selecione a origem da imagem para o preenchimento automático BINGO.';
+
+  @override
+  String get common_camera => 'CÂMERA';
+
+  @override
+  String get common_gallery => 'GALERIA';
+
+  @override
+  String get ocr_dialog_exact_title => 'LOCALIZAÇÃO EXATA';
+
+  @override
+  String get ocr_dialog_auto_title => 'DETECÇÃO AUTOMÁTICA';
+
+  @override
+  String get ocr_label_store => 'ESTABELECIMENTO:';
+
+  @override
+  String get ocr_label_address => 'ENDEREÇO SUGERIDO:';
+
+  @override
+  String get ocr_label_order => 'NÚMERO DO PEDIDO:';
+
+  @override
+  String get ocr_btn_autofill => 'AUTO-PREENCHER';
+
+  @override
+  String get create_order_pickup_origin => 'PONTO DE ORIGEM';
+
+  @override
+  String get create_order_dropoff_dest => 'PONTO DE DESTINO';
+
+  @override
+  String get create_order_details_label => 'DETALHES';
+
+  @override
+  String get create_order_gps_tooltip => 'USAR MINHA LOCALIZAÇÃO ATUAL';
+
+  @override
+  String get create_order_verified_msg =>
+      '✓ LOCALIZAÇÃO EXATA VERIFICADA (SISTEMA LAD)';
+
+  @override
+  String get create_order_unverified_msg =>
+      '⚠ O ENDEREÇO NÃO É MUITO PRECISO, O MOTORISTA FARÁ O POSSÍVEL PARA ENCONTRÁ-LO.';
+
+  @override
+  String get order_status_rejected => 'MISSÃO REJEITADA';
+
+  @override
+  String get client_dash_rejected_requests_title => 'SOLICITAÇÕES REJEITADAS';
+
+  @override
+  String get alert_rejected_title => '⚠️ MISSÃO REJEITADA';
+
+  @override
+  String alert_rejected_body(String name) {
+    return 'O motorista $name recusou sua solicitação.';
+  }
+
+  @override
+  String get alert_new_offer_title => '💰 NOVA OFERTA';
+
+  @override
+  String alert_new_offer_body(String name) {
+    return 'O motorista $name enviou uma proposta.';
+  }
+
+  @override
+  String get common_reassign => 'REATRIBUIR';
+
+  @override
+  String get common_sync => 'SINCRONIZAR';
+
+  @override
+  String neg_error_min_price(String price) {
+    return 'PREÇO INVÁLIDO: O mínimo é \$$price.';
+  }
 }

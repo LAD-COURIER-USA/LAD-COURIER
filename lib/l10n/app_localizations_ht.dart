@@ -1224,4 +1224,156 @@ class AppLocalizationsHt extends AppLocalizations {
   @override
   String get driver_quarantine_body =>
       'Ou gen yon livrezon ki annatant pou plis pase 2 èdtan. Ou pap ka resevwa nouvo misyon jiskaske ou fin livrezon aktif ou yo.';
+
+  @override
+  String get prof_btn_rate_app => 'EVALYE APLIKASYON AN';
+
+  @override
+  String get prof_rate_app_subtitle => 'Ede nou amelyore nan magazen an';
+
+  @override
+  String get prof_support_title => 'REKLAMASYON AK SIJESYON';
+
+  @override
+  String get client_dash_already_linked =>
+      'Chofè sa a deja nan rezo konfyans ou.';
+
+  @override
+  String get client_dash_no_new_invitations =>
+      'Pa jwenn okenn nouvo envitasyon nan lyen an.';
+
+  @override
+  String get common_access_denied => 'AKSÈ REJTE';
+
+  @override
+  String get logout_online_error =>
+      'Ou parèt toujou kòm AN LINY nan sistèm chofè yo. Tanpri ale nan panno chofè ou epi mete ou offline anvan ou dekonekte.';
+
+  @override
+  String get common_understood => 'KONPRANN';
+
+  @override
+  String get bingo_magic_title => 'MAJI BINGO';
+
+  @override
+  String get bingo_magic_subtitle => 'Kòmande nan yon sèl jès avèk resi ou';
+
+  @override
+  String get bingo_upload_screenshot => 'BINGO: MONTE SCREENSHOT';
+
+  @override
+  String get support_center_title => 'SANT SIPÒ LAD';
+
+  @override
+  String get support_subject_label => 'Sijè / Rezon';
+
+  @override
+  String get support_message_label => 'Ekri mesaj ou...';
+
+  @override
+  String get common_send => 'VOYE';
+
+  @override
+  String get support_success_msg => '✅ Mesaj voye nan binkè a.';
+
+  @override
+  String get driver_dash_invite_title => 'LYE YON NOUVO KLIYAN';
+
+  @override
+  String get driver_dash_invite_body =>
+      'Montre kòd sa a oswa pataje lyen an pou kliyan ou yo ka voye kòmand ba ou dirèkteman.';
+
+  @override
+  String get driver_dash_btn_share_invite => 'PATAJE ENVITASYON';
+
+  @override
+  String get driver_dash_share_invite_sub => 'WhatsApp, Mesaj, elatriye.';
+
+  @override
+  String get common_close => 'FÈMEN';
+
+  @override
+  String get common_qr_error => 'Erè nan jenere QR';
+
+  @override
+  String get bingo_dialog_title => 'ADTE TIKÈ OLYA FOTO';
+
+  @override
+  String get bingo_dialog_body => 'Chwazi sous imaj la pou oto-ranpli BINGO a.';
+
+  @override
+  String get common_camera => 'KAMERA';
+
+  @override
+  String get common_gallery => 'GALRI';
+
+  @override
+  String get ocr_dialog_exact_title => 'KOTE EGZAK';
+
+  @override
+  String get ocr_dialog_auto_title => 'DETEKSYON OTOMATIK';
+
+  @override
+  String get ocr_label_store => 'ETABLISMAN:';
+
+  @override
+  String get ocr_label_address => 'ADRÈS SIGJERE:';
+
+  @override
+  String get ocr_label_order => 'NIMEWO KÒMAND:';
+
+  @override
+  String get ocr_btn_autofill => 'OTO-RANPLI';
+
+  @override
+  String get create_order_pickup_origin => 'PWEEN DEPA';
+
+  @override
+  String get create_order_dropoff_dest => 'DESTINASYON LIVREZON';
+
+  @override
+  String get create_order_details_label => 'DETAY YO';
+
+  @override
+  String get create_order_gps_tooltip => 'ITILIZE KOTE MWEN YE KOUNYE A';
+
+  @override
+  String get create_order_verified_msg => '✓ KOTE EGZAK VERIFIE (SISTÈM LAD)';
+
+  @override
+  String get create_order_unverified_msg =>
+      '⚠ ADRÈS LA PA TROP PRESI, CHOFÈ A AP FÈ SA L KAPAB POU L JWENN LI.';
+
+  @override
+  String get order_status_rejected => 'MISYON REJTE';
+
+  @override
+  String get client_dash_rejected_requests_title => 'DEMANN REJTE';
+
+  @override
+  String get alert_rejected_title => '⚠️ MISYON REJTE';
+
+  @override
+  String alert_rejected_body(String name) {
+    return 'Chofè $name an refize demann ou an.';
+  }
+
+  @override
+  String get alert_new_offer_title => '💰 NOUVO OFRANN';
+
+  @override
+  String alert_new_offer_body(String name) {
+    return 'Chofè $name an voye yon pwopozisyon.';
+  }
+
+  @override
+  String get common_reassign => 'REASINYEN';
+
+  @override
+  String get common_sync => 'SENKRONIZE';
+
+  @override
+  String neg_error_min_price(String price) {
+    return 'PRI PA VALID: Minimòm lan se \$$price.';
+  }
 }

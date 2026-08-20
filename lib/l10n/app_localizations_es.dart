@@ -1233,4 +1233,158 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get driver_quarantine_body =>
       'Llevas más de 2 horas con una entrega pendiente. No podrás recibir nuevas misiones hasta completar tus entregas activas.';
+
+  @override
+  String get prof_btn_rate_app => 'CALIFICAR LA APP';
+
+  @override
+  String get prof_rate_app_subtitle => 'Ayúdanos a mejorar en la tienda';
+
+  @override
+  String get prof_support_title => 'RECLAMACIONES Y SUGERENCIAS';
+
+  @override
+  String get client_dash_already_linked =>
+      'Este driver ya está en tu red de confianza.';
+
+  @override
+  String get client_dash_no_new_invitations =>
+      'No se encontraron nuevas invitaciones en el enlace.';
+
+  @override
+  String get common_access_denied => 'ACCESO DENEGADO';
+
+  @override
+  String get logout_online_error =>
+      'Aún apareces como ONLINE en el sistema de Drivers. Por favor, ve a tu panel de Driver y ponte fuera de línea antes de cerrar sesión.';
+
+  @override
+  String get common_understood => 'ENTENDIDO';
+
+  @override
+  String get bingo_magic_title => 'MAGIA BINGO';
+
+  @override
+  String get bingo_magic_subtitle => 'Pide en un toque con tu ticket';
+
+  @override
+  String get bingo_upload_screenshot => 'BINGO: SUBIR SCREENSHOT';
+
+  @override
+  String get support_center_title => 'CENTRO DE SOPORTE LAD';
+
+  @override
+  String get support_subject_label => 'Asunto / Motivo';
+
+  @override
+  String get support_message_label => 'Escribe tu mensaje...';
+
+  @override
+  String get common_send => 'ENVIAR';
+
+  @override
+  String get support_success_msg => '✅ Mensaje enviado al búnker.';
+
+  @override
+  String get driver_dash_invite_title => 'VINCULAR NUEVO CLIENTE';
+
+  @override
+  String get driver_dash_invite_body =>
+      'Muestra este código o comparte el link para que tus clientes te envíen pedidos directamente.';
+
+  @override
+  String get driver_dash_btn_share_invite => 'COMPARTIR INVITACIÓN';
+
+  @override
+  String get driver_dash_share_invite_sub => 'WhatsApp, Mensajes, etc.';
+
+  @override
+  String get common_close => 'CERRAR';
+
+  @override
+  String get common_qr_error => 'Error al generar QR';
+
+  @override
+  String get bingo_dialog_title => 'AÑADIR TICKET O FOTO';
+
+  @override
+  String get bingo_dialog_body =>
+      'Selecciona el origen de la imagen para el auto-llenado BINGO.';
+
+  @override
+  String get common_camera => 'CÁMARA';
+
+  @override
+  String get common_gallery => 'GALERÍA';
+
+  @override
+  String get ocr_dialog_exact_title => 'UBICACIÓN EXACTA';
+
+  @override
+  String get ocr_dialog_auto_title => 'DETECCIÓN AUTOMÁTICA';
+
+  @override
+  String get ocr_label_store => 'ESTABLECIMIENTO:';
+
+  @override
+  String get ocr_label_address => 'DIRECCIÓN SUGERIDA:';
+
+  @override
+  String get ocr_label_order => 'NÚMERO DE ORDEN:';
+
+  @override
+  String get ocr_btn_autofill => 'AUTO-LLENAR';
+
+  @override
+  String get create_order_pickup_origin => 'PUNTO DE ORIGEN';
+
+  @override
+  String get create_order_dropoff_dest => 'PUNTO DE DESTINO';
+
+  @override
+  String get create_order_details_label => 'DETALLES';
+
+  @override
+  String get create_order_gps_tooltip => 'USAR MI UBICACIÓN ACTUAL';
+
+  @override
+  String get create_order_verified_msg =>
+      '✓ UBICACIÓN EXACTA VERIFICADA (SISTEMA LAD)';
+
+  @override
+  String get create_order_unverified_msg =>
+      '⚠ LA DIRECCIÓN NO ES TAN PRECISA, EL DRIVER HARÁ LO POSIBLE POR ENCONTRARLA.';
+
+  @override
+  String get order_status_rejected => 'MISIÓN RECHAZADA';
+
+  @override
+  String get client_dash_rejected_requests_title => 'SOLICITUDES RECHAZADAS';
+
+  @override
+  String get alert_rejected_title => '⚠️ MISIÓN RECHAZADA';
+
+  @override
+  String alert_rejected_body(String name) {
+    return 'El driver $name ha declinado tu solicitud.';
+  }
+
+  @override
+  String get alert_new_offer_title => '💰 NUEVA OFERTA';
+
+  @override
+  String alert_new_offer_body(String name) {
+    return 'El driver $name ha enviado una propuesta.';
+  }
+
+  @override
+  String get common_reassign => 'REASIGNAR';
+
+  @override
+  String get common_sync => 'SINCRONIZAR';
+
+  @override
+  String neg_error_min_price(String price) {
+    return 'PRECIO NO VÁLIDO: El mínimo es \$$price.';
+  }
 }

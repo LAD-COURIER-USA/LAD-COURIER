@@ -390,7 +390,6 @@
   "order_status_timeout_full_msg": "Due to the large number of orders, the driver could not attend to it in time. Please send it to another available driver. Thank you!",
   "auth_error_generic": "Security error: {message}",
   "@auth_error_generic": {
-    "description": "Generic error",
     "placeholders": {
       "message": {
         "type": "String"
@@ -547,12 +546,80 @@
   "ss_dialog_title": "WHAT ARE WE LOOKING FOR TODAY?",
   "ss_dialog_hint": "Ex: Pizza, Pharmacy, Best Buy...",
   "ss_btn_search": "SEARCH",
-  "ss_notif_title": "BINGO! CAPTURE",
+  "ss_notif_title": "BINGO! CAPTURA",
   "ss_notif_body": "We detected you took a screenshot of the ticket. Do you want to process it now to create your order?",
   "ss_ocr_error_title": "TICKET NOT DETECTED",
   "ss_ocr_error_body": "We couldn't extract a clear address from the image. Please make sure the ticket is legible or enter the address manually.",
   "order_status_delivery_delayed": "DELIVERY DELAYED",
   "order_status_delivery_delayed_msg": "THIS DELIVERY HAS TAKEN MORE THAN 2 HOURS. WE HAVE NOTIFIED THE DRIVER.",
   "driver_quarantine_title": "QUARANTINE MODE ACTIVE",
-  "driver_quarantine_body": "You have a pending delivery for more than 2 hours. You won't be able to receive new missions until you complete your active deliveries."
+  "driver_quarantine_body": "You have a pending delivery for more than 2 hours. You won't be able to receive new missions until you complete your active deliveries.",
+  "prof_btn_rate_app": "RATE THE APP",
+  "prof_rate_app_subtitle": "Help us improve on the store",
+  "prof_support_title": "CLAIMS AND SUGGESTIONS",
+  "client_dash_already_linked": "This driver is already in your trusted network.",
+  "client_dash_no_new_invitations": "No new invitations found in the link.",
+  "common_access_denied": "ACCESS DENIED",
+  "logout_online_error": "You still appear as ONLINE in the Driver system. Please go to your Driver panel and go offline before logging out.",
+  "common_understood": "UNDERSTOOD",
+  "bingo_magic_title": "BINGO MAGIC",
+  "bingo_magic_subtitle": "Order in one tap with your ticket",
+  "bingo_upload_screenshot": "BINGO: UPLOAD SCREENSHOT",
+  "support_center_title": "LAD SUPPORT CENTER",
+  "support_subject_label": "Subject / Reason",
+  "support_message_label": "Write your message...",
+  "common_send": "SEND",
+  "support_success_msg": "✅ Message sent to the bunker.",
+  "driver_dash_invite_title": "LINK NEW CUSTOMER",
+  "driver_dash_invite_body": "Show this code or share the link so your customers can send you orders directly.",
+  "driver_dash_btn_share_invite": "SHARE INVITATION",
+  "driver_dash_share_invite_sub": "WhatsApp, Messages, etc.",
+  "common_close": "CLOSE",
+  "common_qr_error": "Error generating QR",
+  "bingo_dialog_title": "ADD TICKET OR PHOTO",
+  "bingo_dialog_body": "Select the source of the image for BINGO auto-filling.",
+  "common_camera": "CAMERA",
+  "common_gallery": "GALLERY",
+  "ocr_dialog_exact_title": "EXACT LOCATION",
+  "ocr_dialog_auto_title": "AUTOMATIC DETECTION",
+  "ocr_label_store": "ESTABLISHMENT:",
+  "ocr_label_address": "SUGGESTED ADDRESS:",
+  "ocr_label_order": "ORDER NUMBER:",
+  "ocr_btn_autofill": "AUTO-FILL",
+  "create_order_pickup_origin": "PICKUP ORIGIN",
+  "create_order_dropoff_dest": "DELIVERY DESTINATION",
+  "create_order_details_label": "DETAILS",
+  "create_order_gps_tooltip": "USE MY CURRENT LOCATION",
+  "create_order_verified_msg": "✓ EXACT LOCATION VERIFIED (LAD SYSTEM)",
+  "create_order_unverified_msg": "⚠ THE ADDRESS IS NOT THAT PRECISE, THE DRIVER WILL DO THEIR BEST TO FIND IT.",
+  "order_status_rejected": "MISSION REJECTED",
+  "client_dash_rejected_requests_title": "REJECTED REQUESTS",
+  "alert_rejected_title": "⚠️ MISSION REJECTED",
+  "alert_rejected_body": "Courier {name} has declined your request.",
+  "@alert_rejected_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "alert_new_offer_title": "💰 NEW OFFER",
+  "alert_new_offer_body": "Courier {name} has sent a proposal.",
+  "@alert_new_offer_body": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "common_reassign": "REASSIGN",
+  "common_sync": "SYNC",
+  "neg_error_min_price": "INVALID PRICE: The minimum is ${price}.",
+  "@neg_error_min_price": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  }
 }

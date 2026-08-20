@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_functions/cloud_functions.dart'; // 🟢 Importación vital
 import 'package:flutter/foundation.dart'; // 🚀 AÑADIDO PARA kIsWeb
 import 'package:universal_html/html.dart' as html; // 🌐 PARA LEER URL EN WEB
+import 'package:url_launcher/url_launcher.dart'; // 🚀 AÑADIDO PARA CALIFICAR APP
 import 'package:lad_courier/services/support_service.dart'; // ✅ AÑADIDO PARA SOPORTE
 import 'package:lad_courier/l10n/app_localizations.dart';
 import 'package:lad_courier/models/user_model.dart';
@@ -232,9 +233,17 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
               const SizedBox(height: 10),
 
               _buildMenuTile(
-                title: "RECLAMACIONES Y SUGERENCIAS",
+                title: l10n.prof_support_title,
                 icon: Icons.support_agent,
                 onTap: () => _showSupportDialog(),
+              ),
+
+              const SizedBox(height: 10),
+
+              _buildMenuTile(
+                title: l10n.prof_btn_rate_app,
+                icon: Icons.star_rate_rounded,
+                onTap: () => _launchStoreUrl(),
               ),
 
               const SizedBox(height: 30),
@@ -441,39 +450,42 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
 
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: Colors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("CENTRO DE SOPORTE LAD", style: TextStyle(fontWeight: FontWeight.w900)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: subController, decoration: const InputDecoration(labelText: "Asunto / Motivo")),
-            const SizedBox(height: 10),
-            TextField(controller: msgController, maxLines: 4, decoration: const InputDecoration(labelText: "Escribe tu mensaje...", border: OutlineInputBorder())),
+      builder: (dialogContext) {
+        final l10n = AppLocalizations.of(dialogContext)!;
+        return AlertDialog(
+          backgroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          title: Text(l10n.support_center_title, style: const TextStyle(fontWeight: FontWeight.w900)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: subController, decoration: InputDecoration(labelText: l10n.support_subject_label)),
+              const SizedBox(height: 10),
+              TextField(controller: msgController, maxLines: 4, decoration: InputDecoration(labelText: l10n.support_message_label, border: const OutlineInputBorder())),
+            ],
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: Text(l10n.common_cancel)),
+            ElevatedButton(
+              onPressed: () async {
+                if (subController.text.isEmpty || msgController.text.isEmpty) return;
+                final navigator = Navigator.of(dialogContext);
+                final scaffoldMessenger = ScaffoldMessenger.of(dialogContext);
+                await supportService.sendTicket(
+                  subject: subController.text, 
+                  message: msgController.text, 
+                  role: 'CLIENT'
+                );
+                if (!mounted) return;
+                navigator.pop();
+                scaffoldMessenger.showSnackBar(SnackBar(content: Text(l10n.support_success_msg), backgroundColor: Colors.green));
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
+              child: Text(l10n.common_send),
+            )
           ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("CANCELAR")),
-          ElevatedButton(
-            onPressed: () async {
-              if (subController.text.isEmpty || msgController.text.isEmpty) return;
-              final navigator = Navigator.of(context);
-              final scaffoldMessenger = ScaffoldMessenger.of(context);
-              await supportService.sendTicket(
-                subject: subController.text, 
-                message: msgController.text, 
-                role: 'CLIENT'
-              );
-              if (!mounted) return;
-              navigator.pop();
-              scaffoldMessenger.showSnackBar(const SnackBar(content: Text("✅ Mensaje enviado al búnker."), backgroundColor: Colors.green));
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.black, foregroundColor: Colors.white),
-            child: const Text("ENVIAR"),
-          )
-        ],
-      ),
+        );
+      },
     );
   }
 
@@ -517,6 +529,13 @@ class _ClientProfilePageState extends State<ClientProfilePage> {
       navigator.pop();
     } else {
       scaffoldMessenger.showSnackBar(SnackBar(content: Text(res), backgroundColor: Colors.red));
+    }
+  }
+
+  void _launchStoreUrl() async {
+    final Uri url = Uri.parse("https://play.google.com/store/apps/details?id=com.elmensajero.app.messenger");
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
     }
   }
 }

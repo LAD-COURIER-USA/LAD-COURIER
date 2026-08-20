@@ -328,8 +328,8 @@ class _ClientNegotiationPageState extends State<ClientNegotiationPage> {
                       if (newPrice != null && newPrice > 0) {
                         if (newPrice < 3.5) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text("PRECIO NO VÁLIDO: El mínimo es \$3.50."),
+                            SnackBar(
+                              content: Text(l10n.neg_error_min_price("3.50")),
                               backgroundColor: Colors.orange,
                             ),
                           );
